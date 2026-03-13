@@ -1,0 +1,202 @@
+{
+  "title": "Eshait",
+  "version": "1.0.0",
+  "packs": [
+    {
+      "label": "DDB Backgrounds",
+      "name": "ddb-ishait-backgrounds",
+      "type": "Item",
+      "path": "packs/ddb-ishait-backgrounds",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Classes",
+      "name": "ddb-ishait-classes",
+      "type": "Item",
+      "path": "packs/ddb-ishait-classes",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Subclasses",
+      "name": "ddb-ishait-subclasses",
+      "type": "Item",
+      "path": "packs/ddb-ishait-subclasses",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Class Features",
+      "name": "ddb-ishait-class-features",
+      "type": "Item",
+      "path": "packs/ddb-ishait-class-features",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Feats",
+      "name": "ddb-ishait-feats",
+      "type": "Item",
+      "path": "packs/ddb-ishait-feats",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Items",
+      "name": "ddb-ishait-items",
+      "type": "Item",
+      "path": "packs/ddb-ishait-items",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Monsters",
+      "name": "ddb-ishait-monsters",
+      "type": "Actor",
+      "path": "packs/ddb-ishait-monsters",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Vehicles",
+      "name": "ddb-ishait-vehicles",
+      "type": "Actor",
+      "path": "packs/ddb-ishait-vehicles",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Races",
+      "name": "ddb-ishait-races",
+      "type": "Item",
+      "path": "packs/ddb-ishait-races",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Racial Traits",
+      "name": "ddb-ishait-racial-traits",
+      "type": "Item",
+      "path": "packs/ddb-ishait-racial-traits",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Spells",
+      "name": "ddb-ishait-spells",
+      "type": "Item",
+      "path": "packs/ddb-ishait-spells",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Tables",
+      "name": "ddb-ishait-tables",
+      "type": "RollTable",
+      "path": "packs/ddb-ishait-tables",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "DDB Override",
+      "name": "ddb-ishait-override",
+      "type": "Item",
+      "path": "packs/ddb-ishait-override",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "type": "Actor",
+      "label": "DDB Summons",
+      "name": "ddb-ishait-ddb-summons",
+      "path": "packs/ddb-ishait-ddb-summons",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    },
+    {
+      "label": "Features",
+      "type": "Item",
+      "name": "features",
+      "path": "packs/features",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    }
+  ],
+  "system": "dnd5e",
+  "coreVersion": "13.351",
+  "resetKeys": false,
+  "safeMode": false,
+  "systemVersion": "5.2.5",
+  "id": "ishait",
+  "compatibility": {
+    "verified": "13.351",
+    "minimum": "13"
+  },
+  "lastPlayed": "Sun Feb 22 2026 09:22:53 GMT+0000 (Coordinated Universal Time)",
+  "playtime": 167295,
+  "background": "https://assets.forge-vtt.com/5ffb042d40b71d288bae1916/Image%20of%20Verdanthion.png",
+  "joinTheme": "default",
+  "description": "",
+  "flags": {}
+}
