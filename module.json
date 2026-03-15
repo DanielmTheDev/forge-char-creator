@@ -1,0 +1,25 @@
+{
+  "id": "forge-char-creator",
+  "title": "Forge Character Creator",
+  "description": "A character creator wizard module for Foundry VTT V13.",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Forge Char Creator Developer"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+  "esmodules": [
+    "./scripts/main.js"
+  ],
+  "systems": [
+    {
+      "id": "dnd5e",
+      "type": "system"
+    }
+  ]
+}
