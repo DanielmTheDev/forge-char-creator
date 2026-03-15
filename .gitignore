@@ -2,6 +2,7 @@ FoundryVTT-Linux-13.351/
 world-export/
 Node/
 Data/
+FoundryData/
 .idea/
 .vscode/
 .foundry_license_key
