@@ -1,6 +1,9 @@
 import { ForgeCharCreatorSettings } from "./data.js";
 import { CharCreatorApp } from "./app.js";
 
+// Global instance to prevent opening multiples
+let charCreatorInstance = null;
+
 Hooks.once("init", () => {
   console.log("Forge Character Creator | Initializing");
 
@@ -17,7 +20,29 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   console.log("Forge Character Creator | Ready");
-  
-  // Optionally open the app for testing
-  // new CharCreatorApp().render(true);
+});
+
+Hooks.on("renderActorDirectory", (app, html, data) => {
+  // Check if wizard is enabled in settings before showing button
+  const settings = game.settings.get("forge-char-creator", "wizardSettings");
+  if (!settings.enableWizard) return;
+
+  // Create the button
+  const button = document.createElement("button");
+  button.type = "button";
+  button.classList.add("forge-char-creator-btn");
+  button.innerHTML = `<i class="fas fa-magic"></i> Launch Forge Creator`;
+
+  button.addEventListener("click", () => {
+    if (!charCreatorInstance) {
+      charCreatorInstance = new CharCreatorApp();
+    }
+    charCreatorInstance.render(true, { focus: true });
+  });
+
+  // Inject at the bottom of the directory actions (next to Create Actor)
+  const headerActions = html[0].querySelector(".directory-header .action-buttons");
+  if (headerActions) {
+    headerActions.insertAdjacentElement("beforeend", button);
+  }
 });

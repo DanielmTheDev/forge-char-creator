@@ -2,16 +2,16 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
-    id: "forge-char-creator",
-    classes: ["forge-char-creator"],
-    title: "Forge Character Creator",
+    id: "forge-char-creator-app",
+    classes: ["forge-char-creator", "standard-form"],
+    title: "Forge Character Wizard",
     position: {
-      width: 600,
-      height: 400
+      width: 400,
+      height: "auto"
     },
     window: {
-      icon: "fas fa-users",
-      resizable: true
+      icon: "fas fa-user-plus",
+      resizable: false
     }
   };
 
@@ -23,7 +23,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    context.message = "Welcome to the Forge Character Creator V13!";
+    context.message = "Create a new Character or Creature using the wizard.";
     return context;
   }
 }
