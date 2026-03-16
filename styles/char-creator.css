@@ -1,6 +1,7 @@
 /* Increase size and force spin buttons for ability score inputs */
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"],
-.forge-char-creator.standard-form .combat-stats-fieldset input[type="number"] {
+.forge-char-creator.standard-form .combat-stats-fieldset input[type="number"],
+.forge-char-creator.standard-form .spellcasting-fieldset input[type="number"] {
   width: 3.5rem;
   height: 2.5rem;
   font-size: 1.25rem;
@@ -15,7 +16,9 @@
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"]::-webkit-inner-spin-button,
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"]::-webkit-outer-spin-button,
 .forge-char-creator.standard-form .combat-stats-fieldset input[type="number"]::-webkit-inner-spin-button,
-.forge-char-creator.standard-form .combat-stats-fieldset input[type="number"]::-webkit-outer-spin-button {
+.forge-char-creator.standard-form .combat-stats-fieldset input[type="number"]::-webkit-outer-spin-button,
+.forge-char-creator.standard-form .spellcasting-fieldset input[type="number"]::-webkit-inner-spin-button,
+.forge-char-creator.standard-form .spellcasting-fieldset input[type="number"]::-webkit-outer-spin-button {
   appearance: auto !important;
   -webkit-appearance: inner-spin-button !important;
   display: block !important;

@@ -156,6 +156,10 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           ac: {
             flat: data.ac ?? 10,
             calc: "flat"
+          },
+          spellcasting: data.spellcasting || "",
+          spell: {
+            level: parseInt(data.spellLevel) || 0
           }
         },
         abilities: {

@@ -40,6 +40,36 @@
   </div>
 </fieldset>
 
+<fieldset class="spellcasting-fieldset" style="margin-bottom: 10px;">
+  <legend>Spellcasting</legend>
+  <div class="flexrow" style="gap: 10px;">
+    <!-- Spellcasting Ability -->
+    <div class="form-group flexcol" style="margin: 0; align-items: center; flex: 1;">
+      <label for="spellcasting" style="line-height: 1.2;">Ability</label>
+      <div class="form-fields" style="width: 100%;">
+        <select id="spellcasting" name="spellcasting" style="text-align: center; height: 2.5rem; font-size: 1.1rem; width: 100%;">
+          <option value="">None</option>
+          <option value="int">Intelligence</option>
+          <option value="wis">Wisdom</option>
+          <option value="cha">Charisma</option>
+          <option value="str">Strength</option>
+          <option value="dex">Dexterity</option>
+          <option value="con">Constitution</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Spellcasting Level -->
+    <div class="form-group flexcol" style="margin: 0; align-items: center;">
+      <label for="spellLevel" style="line-height: 1.2;">Level</label>
+      <div class="form-fields">
+        <input type="number" id="spellLevel" name="spellLevel" value="0" min="0" step="1"
+          style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+      </div>
+    </div>
+  </div>
+</fieldset>
+
 <fieldset class="abilities-fieldset">
   <legend>Ability Scores</legend>
   <div class="flexrow" style="gap: 5px;">
