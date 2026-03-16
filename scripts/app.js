@@ -76,8 +76,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     try {
       await Actor.create(actorData);
       ui.notifications.info(`Successfully created ${actorName}!`);
-      // Close the app dialog after creation (which we previously handled with closeOnSubmit)
-      const app = ui.windows[target.closest(".app").dataset.appid];
+      // Close the app dialog after creation
+      const app = foundry.applications.instances.get("forge-char-creator-app");
       if (app) app.close();
     } catch (err) {
       ui.notifications.error(`Failed to create Actor: ${err.message}`);
