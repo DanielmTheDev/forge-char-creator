@@ -6,13 +6,14 @@
   padding: 0.2rem;
   text-align: center;
   /* Reverting any global appearance overrides that hide the spinner */
-  appearance: auto;
-  -moz-appearance: auto;
+  appearance: auto !important;
+  -moz-appearance: auto !important;
 }
 
 /* Specifically force WebKit spin buttons to always show */
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"]::-webkit-inner-spin-button,
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"]::-webkit-outer-spin-button {
+  appearance: auto !important;
   -webkit-appearance: inner-spin-button !important;
   display: block !important;
   opacity: 1 !important;
