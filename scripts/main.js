@@ -31,7 +31,8 @@ Hooks.on("renderActorDirectory", (app, html, data) => {
   const button = document.createElement("button");
   button.type = "button";
   button.classList.add("forge-char-creator-btn");
-  button.innerHTML = `<i class="fas fa-magic"></i> Launch Forge Creator`;
+  button.innerHTML = `<i class="fas fa-magic"></i> Forge Creator`;
+  button.title = "Launch Forge Character Creator";
 
   button.addEventListener("click", () => {
     if (!charCreatorInstance) {
