@@ -25,7 +25,7 @@ Hooks.once("ready", () => {
 Hooks.on("renderActorDirectory", (app, html, data) => {
   // Check if wizard is enabled in settings before showing button
   const settings = game.settings.get("forge-char-creator", "wizardSettings");
-  if (!settings.enableWizard) return;
+  if (settings?.enableWizard === false) return;
 
   // Create the button
   const button = document.createElement("button");
