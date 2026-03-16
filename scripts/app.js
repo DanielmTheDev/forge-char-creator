@@ -68,13 +68,24 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         
         // 2. Upload the RAW portrait image right away
         const targetDir = "forge-creations/images";
-        // Create directory if it doesn't exist (Foundry doesn't have a direct folder create API for data, 
-        // FilePicker.upload usually creates it if it doesn't exist, or we rely on the user having a data folder).
-        // Best practice in Foundry is just to upload.
+        
+        // Ensure directory exists
+        try {
+          await FilePicker.browse("data", targetDir);
+        } catch (err) {
+          // Directory probably doesn't exist, try to create it natively
+          try {
+            await FilePicker.createDirectory("data", "forge-creations");
+          } catch(e) {} // Might already exist, ignore
+          try {
+            await FilePicker.createDirectory("data", targetDir);
+          } catch(e) {}
+        }
+
         const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
         
         // Portrait Upload
-        const portraitUploadResult = await FilePicker.upload("data", "forge-creations/images", file, {});
+        const portraitUploadResult = await FilePicker.upload("data", targetDir, file, {});
         if (portraitUploadResult && portraitUploadResult.path) {
            portraitPath = portraitUploadResult.path;
         }
@@ -113,7 +124,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // Use a synthetic File object for the picker
         const tokenFile = new File([blob], `token-${safeName.replace(/\.[^/.]+$/, "")}.webp`, { type: "image/webp" });
         
-        const tokenUploadResult = await FilePicker.upload("data", "forge-creations/images", tokenFile, {});
+        const tokenUploadResult = await FilePicker.upload("data", targetDir, tokenFile, {});
         if (tokenUploadResult && tokenUploadResult.path) {
            tokenPath = tokenUploadResult.path;
         }
