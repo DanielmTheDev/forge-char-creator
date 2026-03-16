@@ -1,0 +1,34 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer Glow/Shadow for depth -->
+  <circle cx="128" cy="128" r="124" stroke="none" fill="none" filter="drop-shadow(0px 4px 6px rgba(0,0,0,0.6))" />
+  
+  <!-- Outer metallic rim -->
+  <circle cx="128" cy="128" r="122" stroke="url(#metal-gradient-outer)" stroke-width="6" fill="none" />
+  
+  <!-- Thick dark ring base -->
+  <circle cx="128" cy="128" r="115" stroke="#2c2c2e" stroke-width="12" fill="none" />
+  
+  <!-- Inner metallic rim -->
+  <circle cx="128" cy="128" r="106" stroke="url(#metal-gradient-inner)" stroke-width="4" fill="none" />
+  
+  <!-- Inset shadow on the actual portrait area to make it look embedded -->
+  <circle cx="128" cy="128" r="104" stroke="rgba(0,0,0,0.8)" stroke-width="4" fill="none" />
+  
+  <defs>
+    <!-- Complex gold/bronze metallic gradient for outer ring -->
+    <linearGradient id="metal-gradient-outer" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#b69b5c" />
+      <stop offset="25%" stop-color="#f5e1a4" />
+      <stop offset="50%" stop-color="#8f7336" />
+      <stop offset="75%" stop-color="#d4bf7d" />
+      <stop offset="100%" stop-color="#5a471c" />
+    </linearGradient>
+    
+    <!-- Lighter gold metallic gradient for inner ring -->
+    <linearGradient id="metal-gradient-inner" x1="256" y1="0" x2="0" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d4bf7d" />
+      <stop offset="50%" stop-color="#fff4c2" />
+      <stop offset="100%" stop-color="#b69b5c" />
+    </linearGradient>
+  </defs>
+</svg>

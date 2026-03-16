@@ -51,14 +51,89 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       folder = await Folder.create({ name: folderName, type: "Actor" });
     }
 
+    // Image Processing & Uploads
+    let portraitPath = "icons/svg/mystery-man.svg";
+    let tokenPath = "icons/svg/mystery-man.svg";
+    
+    // Check if the user uploaded an image
+    const fileInput = form.querySelector("#portraitUpload");
+    const file = fileInput?.files[0];
+    
+    if (file) {
+      try {
+        // 1. Read file into an Image
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        await new Promise(resolve => img.onload = resolve);
+        
+        // 2. Upload the RAW portrait image right away
+        const targetDir = "forge-creations/images";
+        // Create directory if it doesn't exist (Foundry doesn't have a direct folder create API for data, 
+        // FilePicker.upload usually creates it if it doesn't exist, or we rely on the user having a data folder).
+        // Best practice in Foundry is just to upload.
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        
+        // Portrait Upload
+        const portraitUploadResult = await FilePicker.upload("data", "forge-creations/images", file, {});
+        if (portraitUploadResult && portraitUploadResult.path) {
+           portraitPath = portraitUploadResult.path;
+        }
+
+        // 3. Generate the Token Image via Canvas
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const size = 256;
+        canvas.width = size;
+        canvas.height = size;
+        
+        // Calculate crop to cover the circle
+        const scale = Math.max(size / img.width, size / img.height);
+        const x = (size / 2) - (img.width / 2) * scale;
+        const y = (size / 2) - (img.height / 2) * scale;
+        
+        // Clip to circle
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, (size/2) - 10, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.save();
+        ctx.clip();
+        
+        // Draw native image filled
+        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+        ctx.restore();
+        
+        // Draw the Token Ring SVG over it
+        const ringImg = new Image();
+        ringImg.src = "modules/forge-char-creator/assets/token-ring.svg";
+        await new Promise(resolve => ringImg.onload = resolve);
+        ctx.drawImage(ringImg, 0, 0, size, size);
+        
+        // 4. Convert Canvas to WebP and Upload
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.9));
+        // Use a synthetic File object for the picker
+        const tokenFile = new File([blob], `token-${safeName.replace(/\.[^/.]+$/, "")}.webp`, { type: "image/webp" });
+        
+        const tokenUploadResult = await FilePicker.upload("data", "forge-creations/images", tokenFile, {});
+        if (tokenUploadResult && tokenUploadResult.path) {
+           tokenPath = tokenUploadResult.path;
+        }
+        
+      } catch (e) {
+        console.warn("Forge Creator | Failed to process images:", e);
+        ui.notifications.warn("Image upload failed, falling back to default.");
+      }
+    }
+
     // Prepare actor data
     const actorName = data.charName || "Unnamed Creature";
     const actorData = {
       name: actorName,
       type: "npc",
       folder: folder.id,
+      img: portraitPath,
       prototypeToken: {
         name: actorName,
+        texture: { src: tokenPath },
         disposition: CONST.TOKEN_DISPOSITIONS.HOSTILE
       },
       system: {

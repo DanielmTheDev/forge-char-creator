@@ -7,7 +7,15 @@
     <input type="text" id="charName" name="charName" placeholder="Enter name...">
   </div>
 </div>
-
+<div class="form-group portrait-group flexrow" style="align-items: center; margin-bottom: 10px;">
+  <label for="portraitUpload" style="flex: 1;">Portrait Image:</label>
+  <div class="form-fields" style="flex: 2; display: flex; align-items: center; gap: 10px;">
+    <!-- The actual file input -->
+    <input type="file" id="portraitUpload" name="portraitUpload" accept="image/*" style="width: 100%;">
+    <!-- A small preview box to show what they picked -> defaults to mystery man -->
+    <img id="portraitPreview" src="icons/svg/mystery-man.svg" alt="Preview" width="48" height="48" style="border: 1px solid #000; border-radius: 4px; object-fit: cover;">
+  </div>
+</div>
 <fieldset class="abilities-fieldset">
   <legend>Ability Scores</legend>
   <div class="flexrow" style="gap: 5px;">
