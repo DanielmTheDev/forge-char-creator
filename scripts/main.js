@@ -41,7 +41,8 @@ Hooks.on("renderActorDirectory", (app, html, data) => {
   });
 
   // Inject at the bottom of the directory actions (next to Create Actor)
-  const headerActions = html[0].querySelector(".directory-header .action-buttons");
+  const element = html[0] ?? html;
+  const headerActions = element.querySelector(".header-actions.action-buttons") || element.querySelector(".directory-header .action-buttons");
   if (headerActions) {
     headerActions.insertAdjacentElement("beforeend", button);
   }

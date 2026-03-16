@@ -1,30 +1,31 @@
 <form class="forge-char-creator-content standard-form flexcol">
-  <p class="hint">{{message}}</p>
-  
-  <div class="form-group">
-    <label for="charName">Character Name:</label>
-    <div class="form-fields">
-      <input type="text" id="charName" name="charName" placeholder="Enter name...">
-    </div>
-  </div>
+<p class="hint">{{message}}</p>
 
-  <fieldset class="abilities-fieldset">
-    <legend>Ability Scores</legend>
-    <div class="flexrow" style="gap: 5px;">
-      {{#each abilities as |label key|}}
-      <div class="form-group flexcol" style="margin: 0; align-items: center;">
-        <label for="ability-{{key}}" style="line-height: 1.2;">{{label}}</label>
-        <div class="form-fields">
-          <input type="number" id="ability-{{key}}" name="abilities.{{key}}" value="10" step="1" required style="text-align: center;">
-        </div>
+<div class="form-group">
+  <label for="charName">Character Name:</label>
+  <div class="form-fields">
+    <input type="text" id="charName" name="charName" placeholder="Enter name...">
+  </div>
+</div>
+
+<fieldset class="abilities-fieldset">
+  <legend>Ability Scores</legend>
+  <div class="flexrow" style="gap: 5px;">
+    {{#each abilities as |label key|}}
+    <div class="form-group flexcol" style="margin: 0; align-items: center;">
+      <label for="ability-{{key}}" style="line-height: 1.2;">{{label}}</label>
+      <div class="form-fields">
+        <input type="number" id="ability-{{key}}" name="abilities.{{key}}" value="10" step="1" required
+          style="text-align: center;">
       </div>
-      {{/each}}
     </div>
-  </fieldset>
-
-  <div class="form-group">
-    <button type="submit" class="create-btn">
-      <i class="fas fa-hammer"></i> Create
-    </button>
+    {{/each}}
   </div>
+</fieldset>
+
+<div class="form-group">
+  <button type="submit" class="create-btn">
+    <i class="fas fa-hammer"></i> Create
+  </button>
+</div>
 </form>
