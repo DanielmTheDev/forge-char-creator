@@ -6,12 +6,12 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     classes: ["forge-char-creator", "standard-form"],
     title: "Forge Character Wizard",
     position: {
-      width: 450,
-      height: "auto"
+      width: 550,
+      height: 700
     },
     window: {
       icon: "fas fa-user-plus",
-      resizable: false
+      resizable: true
     },
     actions: {
       createNPC: CharCreatorApp.#onCreateNPC
@@ -52,6 +52,51 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     searchInput.addEventListener("focus", () => {
       if (searchResults.children.length > 0 && searchInput.value.length > 0) {
         searchResults.style.display = "block";
+      }
+    });
+
+    // --- Drag and Drop Logic --- //
+    selectedBin.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      selectedBin.classList.add("drag-hover");
+    });
+
+    selectedBin.addEventListener("dragover", (e) => {
+      e.preventDefault(); 
+    });
+
+    selectedBin.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      selectedBin.classList.remove("drag-hover");
+    });
+
+    selectedBin.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      selectedBin.classList.remove("drag-hover");
+      
+      try {
+        const dataStr = e.dataTransfer.getData("text/plain");
+        if (!dataStr) return;
+        
+        const dragData = JSON.parse(dataStr);
+        // Only accept explicitly formatted "Item" drops from normal Foundry UI
+        if (dragData.type !== "Item" || !dragData.uuid) return;
+        
+        // Fast async resolution of the document to pull formatting
+        const itemDoc = await fromUuid(dragData.uuid);
+        if (!itemDoc) return;
+        
+        // Queue it
+        this.selectedItems.set(dragData.uuid, {
+          name: itemDoc.name,
+          img: itemDoc.img || "icons/svg/item-bag.svg"
+        });
+        
+        // Refresh display
+        this.#renderSelectedItems(selectedBin);
+        
+      } catch(err) {
+        console.warn("Forge Creator | Invalid drag drop data payload", err);
       }
     });
   }

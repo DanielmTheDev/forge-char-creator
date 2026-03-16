@@ -116,3 +116,33 @@
   color: var(--color-text-light-highlight);
   text-shadow: 0 0 5px var(--color-shadow-primary);
 }
+
+/* Radio Button Matrix Alignment */
+.forge-char-creator .size-fieldset .form-fields {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  justify-items: start;
+  align-items: center;
+  padding: 5px;
+}
+
+.forge-char-creator .disposition-fieldset .form-fields {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  justify-items: start;
+  align-items: center;
+  padding: 5px;
+}
+
+/* Selected Items Dropzone Styling */
+.forge-char-creator .selected-items-bin {
+  transition: all 0.2s ease-in-out;
+}
+
+.forge-char-creator .selected-items-bin.drag-hover {
+  background: rgba(255, 200, 0, 0.2) !important;
+  border: 1px dashed var(--color-shadow-highlight) !important;
+  box-shadow: inset 0 0 10px rgba(255, 200, 0, 0.4);
+}
