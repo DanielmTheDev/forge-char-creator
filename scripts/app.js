@@ -13,10 +13,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       icon: "fas fa-user-plus",
       resizable: false
     },
-    form: {
-      handler: CharCreatorApp.#onSubmit,
-      submitOnChange: false,
-      closeOnSubmit: true
+    actions: {
+      createNPC: CharCreatorApp.#onCreateNPC
     }
   };
 
@@ -40,11 +38,10 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     return context;
   }
 
-  static async #onSubmit(event, form, formData) {
-    event.preventDefault();
-
-    // Process form data. FormDataExtended in v13 expands objects automatically,
-    // so formData.object.abilities will be an object.
+  static async #onCreateNPC(event, target) {
+    // Process form data manually to avoid native redirections
+    const form = target.closest("form");
+    const formData = new FormDataExtended(form);
     const data = formData.object;
     
     // Ensure folder exists
@@ -79,6 +76,9 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     try {
       await Actor.create(actorData);
       ui.notifications.info(`Successfully created ${actorName}!`);
+      // Close the app dialog after creation (which we previously handled with closeOnSubmit)
+      const app = ui.windows[target.closest(".app").dataset.appid];
+      if (app) app.close();
     } catch (err) {
       ui.notifications.error(`Failed to create Actor: ${err.message}`);
       console.error("Forge Character Creator | Error creating actor:", err);
