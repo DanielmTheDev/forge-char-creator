@@ -16,6 +16,30 @@
     <img id="portraitPreview" src="icons/svg/mystery-man.svg" alt="Preview" width="48" height="48" style="border: 1px solid #000; border-radius: 4px; object-fit: cover;">
   </div>
 </div>
+
+<fieldset class="combat-stats-fieldset" style="margin-bottom: 10px;">
+  <legend>Combat Attributes</legend>
+  <div class="flexrow" style="gap: 10px;">
+    <!-- Armor Class -->
+    <div class="form-group flexcol" style="margin: 0; align-items: center;">
+      <label for="ac" style="line-height: 1.2;">Armor Class</label>
+      <div class="form-fields">
+        <input type="number" id="ac" name="ac" value="10" step="1" required
+          style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+      </div>
+    </div>
+    
+    <!-- Health / HP -->
+    <div class="form-group flexcol" style="margin: 0; align-items: center;">
+      <label for="hp" style="line-height: 1.2;">Health (HP)</label>
+      <div class="form-fields">
+        <input type="number" id="hp" name="hp" value="10" step="1" required
+          style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+      </div>
+    </div>
+  </div>
+</fieldset>
+
 <fieldset class="abilities-fieldset">
   <legend>Ability Scores</legend>
   <div class="flexrow" style="gap: 5px;">

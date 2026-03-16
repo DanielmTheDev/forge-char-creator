@@ -148,6 +148,16 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         disposition: CONST.TOKEN_DISPOSITIONS.HOSTILE
       },
       system: {
+        attributes: {
+          hp: {
+            value: data.hp ?? 10,
+            max: data.hp ?? 10
+          },
+          ac: {
+            flat: data.ac ?? 10,
+            calc: "flat"
+          }
+        },
         abilities: {
           str: { value: data.abilities?.str ?? 10 },
           dex: { value: data.abilities?.dex ?? 10 },
