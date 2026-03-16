@@ -17,6 +17,31 @@
   </div>
 </div>
 
+<div class="flexrow" style="gap: 10px; margin-bottom: 10px;">
+  <!-- Actor Size -->
+  <fieldset class="size-fieldset" style="flex: 1; margin: 0;">
+    <legend>Actor Size</legend>
+    <div class="form-fields" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 0.95rem;">
+      <label><input type="radio" name="size" value="tiny"> Tiny</label>
+      <label><input type="radio" name="size" value="sm"> Small</label>
+      <label><input type="radio" name="size" value="med" checked> Medium</label>
+      <label><input type="radio" name="size" value="lg"> Large</label>
+      <label><input type="radio" name="size" value="huge"> Huge</label>
+      <label><input type="radio" name="size" value="grg"> Gargantuan</label>
+    </div>
+  </fieldset>
+
+  <!-- Token Disposition -->
+  <fieldset class="disposition-fieldset" style="flex: 1; margin: 0;">
+    <legend>Token Disposition</legend>
+    <div class="form-fields" style="display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem; align-items: center; justify-content: center; height: 100%;">
+      <label><input type="radio" name="disposition" value="1"> Friendly</label>
+      <label><input type="radio" name="disposition" value="0"> Neutral</label>
+      <label><input type="radio" name="disposition" value="-1" checked> Hostile</label>
+    </div>
+  </fieldset>
+</div>
+
 <fieldset class="combat-stats-fieldset" style="margin-bottom: 10px;">
   <legend>Combat Attributes</legend>
   <div class="flexrow" style="gap: 10px;">

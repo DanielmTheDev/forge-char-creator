@@ -145,9 +145,12 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       prototypeToken: {
         name: actorName,
         texture: { src: tokenPath },
-        disposition: CONST.TOKEN_DISPOSITIONS.HOSTILE
+        disposition: parseInt(data.disposition) || CONST.TOKEN_DISPOSITIONS.HOSTILE
       },
       system: {
+        traits: {
+          size: data.size || "med"
+        },
         attributes: {
           hp: {
             value: data.hp ?? 10,
