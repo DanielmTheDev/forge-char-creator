@@ -24,6 +24,116 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   };
 
+  selectedItems = new Map();
+
+  _onRender(context, options) {
+    super._onRender(context, options);
+    
+    const searchInput = this.element.querySelector("#itemSearchQuery");
+    const searchResults = this.element.querySelector("#itemSearchResults");
+    const selectedBin = this.element.querySelector("#selectedItemsBin");
+    
+    // Clear state on render
+    this.selectedItems.clear();
+    this.#renderSelectedItems(selectedBin);
+
+    let timeout = null;
+    searchInput.addEventListener("input", (e) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => this.#performSearch(e.target.value, searchResults, selectedBin, searchInput), 300);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = "none";
+      }
+    });
+
+    searchInput.addEventListener("focus", () => {
+      if (searchResults.children.length > 0 && searchInput.value.length > 0) {
+        searchResults.style.display = "block";
+      }
+    });
+  }
+
+  async #performSearch(query, resultsList, selectedBin, searchInput) {
+    query = query.toLowerCase().trim();
+    if (query.length === 0) {
+      resultsList.style.display = "none";
+      resultsList.innerHTML = "";
+      return;
+    }
+
+    const itemPacks = game.packs.filter(p => p.documentName === "Item");
+    let matches = [];
+
+    for (const pack of itemPacks) {
+      const index = await pack.getIndex({fields: ["name", "img"]});
+      for (const entry of index) {
+        if (entry.name.toLowerCase().includes(query)) {
+          matches.push({
+            uuid: `Compendium.${pack.metadata.id}.${entry._id}`,
+            name: entry.name,
+            img: entry.img || "icons/svg/item-bag.svg",
+            packTitle: pack.title
+          });
+        }
+      }
+    }
+
+    // Sort and limit output
+    matches.sort((a, b) => a.name.localeCompare(b.name));
+    matches = matches.slice(0, 50); // Show max 50
+
+    if (matches.length === 0) {
+      resultsList.innerHTML = `<li style="pointer-events: none; color: gray;">No items found.</li>`;
+    } else {
+      resultsList.innerHTML = matches.map(m => `
+        <li data-uuid="${m.uuid}" data-name="${m.name}" data-img="${m.img}" data-pack="${m.packTitle}">
+          <img src="${m.img}" alt="${m.name}">
+          <span class="item-name">${m.name}</span>
+          <span class="compendium-name">(${m.packTitle})</span>
+        </li>
+      `).join("");
+
+      // Add click listeners to new results
+      resultsList.querySelectorAll("li[data-uuid]").forEach(li => {
+        li.addEventListener("click", () => {
+          this.selectedItems.set(li.dataset.uuid, {
+            name: li.dataset.name,
+            img: li.dataset.img
+          });
+          this.#renderSelectedItems(selectedBin);
+          resultsList.style.display = "none";
+          searchInput.value = ""; // clear search on pick
+        });
+      });
+    }
+    resultsList.style.display = "block";
+  }
+
+  #renderSelectedItems(container) {
+    if (this.selectedItems.size === 0) {
+      container.innerHTML = `<span class="empty-bin-msg" style="color: var(--color-text-light-5); font-style: italic; font-size: 0.9em;">No items selected.</span>`;
+      return;
+    }
+
+    container.innerHTML = Array.from(this.selectedItems.entries()).map(([uuid, data]) => `
+      <div class="item-pill">
+        <img src="${data.img}" alt="${data.name}">
+        <span>${data.name}</span>
+        <span class="remove-btn" data-uuid="${uuid}">×</span>
+      </div>
+    `).join("");
+
+    container.querySelectorAll(".remove-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        this.selectedItems.delete(btn.dataset.uuid);
+        this.#renderSelectedItems(container);
+      });
+    });
+  }
+
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     context.message = "Create a new Character or Creature using the wizard.";
@@ -177,10 +287,22 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     try {
-      await Actor.create(actorData);
+      const npc = await Actor.create(actorData);
+      
+      // Inject selected compendium items
+      const app = foundry.applications.instances.get("forge-char-creator-app");
+      if (app && app.selectedItems.size > 0) {
+        const itemDocuments = await Promise.all(
+          Array.from(app.selectedItems.keys()).map(uuid => fromUuid(uuid))
+        );
+        const validItems = itemDocuments.filter(i => i).map(i => i.toObject());
+        if (validItems.length > 0) {
+          await npc.createEmbeddedDocuments("Item", validItems);
+        }
+      }
+
       ui.notifications.info(`Successfully created ${actorName}!`);
       // Close the app dialog after creation
-      const app = foundry.applications.instances.get("forge-char-creator-app");
       if (app) app.close();
     } catch (err) {
       ui.notifications.error(`Failed to create Actor: ${err.message}`);

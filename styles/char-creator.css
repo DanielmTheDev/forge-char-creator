@@ -24,3 +24,95 @@
   display: block !important;
   opacity: 1 !important;
 }
+
+/* Compendium Search Styles */
+.forge-char-creator .search-results-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--color-bg-window-content);
+  border: 1px solid var(--color-border-light-primary);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 100;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.forge-char-creator .search-results-dropdown li {
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border-light-2);
+}
+
+.forge-char-creator .search-results-dropdown li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.forge-char-creator .search-results-dropdown li img {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 2px;
+}
+
+.forge-char-creator .search-results-dropdown li .item-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.forge-char-creator .search-results-dropdown li .compendium-name {
+  font-size: 0.8em;
+  color: var(--color-text-light-5);
+}
+
+.forge-char-creator .selected-items-bin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 2.5rem;
+  padding: 5px;
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
+
+.forge-char-creator .item-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-border-dark-1);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.9em;
+  gap: 5px;
+}
+
+.forge-char-creator .item-pill img {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+}
+
+.forge-char-creator .item-pill .remove-btn {
+  cursor: pointer;
+  color: var(--color-text-light-5);
+  font-weight: bold;
+}
+
+.forge-char-creator .item-pill .remove-btn:hover {
+  color: var(--color-text-light-highlight);
+  text-shadow: 0 0 5px var(--color-shadow-primary);
+}
