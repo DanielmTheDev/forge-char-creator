@@ -16,6 +16,9 @@
   "esmodules": [
     "./scripts/main.js"
   ],
+  "styles": [
+    "./styles/char-creator.css"
+  ],
   "systems": [
     {
       "id": "dnd5e",
