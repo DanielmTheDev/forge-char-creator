@@ -50,7 +50,7 @@ const ADV_ROLL_CATS = [
 
 // ── EffectCreatorApp ─────────────────────────────────────────────────────────
 
-export class EffectCreatorApp extends ApplicationV2 {
+export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "forge-effect-creator-app",
     classes: ["forge-effect-creator", "standard-form"],
