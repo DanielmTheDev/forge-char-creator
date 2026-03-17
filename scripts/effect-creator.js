@@ -1,0 +1,339 @@
+/**
+ * Forge Effect Creator Wizard
+ *
+ * A standalone ApplicationV2 that builds Active Effects (with optional
+ * Midi-QOL OverTime reroll logic) and saves them into the module's compendiums.
+ * If "Wrap in Feature" is checked, a dnd5e Feature Item is created instead,
+ * with the AE embedded inside it.
+ */
+
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+// ── Constants ───────────────────────────────────────────────────────────────
+
+const DND5E_CONDITIONS = [
+  "blinded", "charmed", "deafened", "exhaustion", "frightened",
+  "grappled", "incapacitated", "invisible", "paralyzed", "petrified",
+  "poisoned", "prone", "restrained", "stunned", "unconscious"
+];
+
+const DAMAGE_TYPES = [
+  "acid","bludgeoning","cold","fire","force","lightning","necrotic",
+  "piercing","poison","psychic","radiant","slashing","thunder","healing"
+];
+
+const ABILITIES = [
+  ["str","Strength"], ["dex","Dexterity"], ["con","Constitution"],
+  ["int","Intelligence"], ["wis","Wisdom"], ["cha","Charisma"]
+];
+
+const ADV_TYPES = [
+  { id: "advantage",    label: "Advantage" },
+  { id: "disadvantage", label: "Disadvantage" },
+  { id: "noAdv",        label: "No Advantage" },
+  { id: "noDisadv",     label: "No Disadvantage" }
+];
+
+const ADV_ROLL_CATS = [
+  { id: "all",       label: "All Rolls" },
+  { id: "attack.all", label: "All Attacks" },
+  { id: "attack.mwak", label: "Melee Attack" },
+  { id: "attack.rwak", label: "Ranged Attack" },
+  { id: "attack.msak", label: "Melee Spell" },
+  { id: "attack.rsak", label: "Ranged Spell" },
+  { id: "save.all",  label: "All Saves" },
+  { id: "save.str", label: "STR Save" }, { id: "save.dex", label: "DEX Save" },
+  { id: "save.con", label: "CON Save" }, { id: "save.int", label: "INT Save" },
+  { id: "save.wis", label: "WIS Save" }, { id: "save.cha", label: "CHA Save" },
+  { id: "skill.all", label: "All Skills" }
+];
+
+// ── EffectCreatorApp ─────────────────────────────────────────────────────────
+
+export class EffectCreatorApp extends ApplicationV2 {
+  static DEFAULT_OPTIONS = {
+    id: "forge-effect-creator-app",
+    classes: ["forge-effect-creator", "standard-form"],
+    title: "Forge Effect Creator",
+    position: { width: 560, height: 740 },
+    window: { icon: "fas fa-sparkles", resizable: true },
+    actions: { createEffect: EffectCreatorApp.#onCreate }
+  };
+
+  static PARTS = {
+    form: {
+      template: "./modules/forge-char-creator/templates/effect-creator.hbs",
+      scrollable: [".forge-effect-creator-content"]
+    }
+  };
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  #state = {
+    name: "",
+    img: "icons/svg/aura.svg",
+    description: "",
+    durationType: "fixed",   // "fixed" | "overtime"
+    rounds: 0,
+    // OverTime
+    otTrigger: "end",         // "start" | "end"
+    otWhose: "target",        // "source" | "target"
+    otDamage: "",
+    otDamageType: "fire",
+    otSave: false,
+    otSaveAbility: "dex",
+    otSaveDC: "14",
+    otOnSave: "nodamage",     // "nodamage" | "halfdamage" | "fulldamage"
+    otSuccesses: "1",
+    // Application mode
+    appMode: "passive",       // "passive" | "activation"
+    activationTarget: "wearer", // "wearer" | "targets"
+    // Conditions
+    statuses: [],
+    // Adv/Disadv rows
+    advRows: [],
+    // Output
+    wrapInFeature: false
+  };
+
+  async _prepareContext(options) {
+    const ctx = await super._prepareContext(options);
+    ctx.s = this.#state;
+    ctx.damageTypes = DAMAGE_TYPES;
+    ctx.abilities = ABILITIES;
+    ctx.conditions = DND5E_CONDITIONS;
+    ctx.advTypes = ADV_TYPES;
+    ctx.advCats = ADV_ROLL_CATS;
+    return ctx;
+  }
+
+  // ── Render hooks ───────────────────────────────────────────────────────────
+  _onRender(context, options) {
+    super._onRender(context, options);
+    const el = this.element;
+
+    // Live-bind all simple fields
+    el.querySelectorAll("[data-ef]").forEach(input => {
+      const key = input.dataset.ef;
+      const type = input.type;
+      input.addEventListener("change", () => {
+        if (type === "checkbox") this.#state[key] = input.checked;
+        else this.#state[key] = input.value;
+        this.#reactiveUpdate(el);
+        this.#updateRawPreview(el);
+      });
+    });
+
+    // Status checkboxes (multi-select array)
+    el.querySelectorAll("[data-status]").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const s = cb.dataset.status;
+        if (cb.checked) { if (!this.#state.statuses.includes(s)) this.#state.statuses.push(s); }
+        else this.#state.statuses = this.#state.statuses.filter(x => x !== s);
+        this.#updateRawPreview(el);
+      });
+    });
+
+    // Icon path preview
+    const imgInput = el.querySelector("[data-ef='img']");
+    const imgPreview = el.querySelector("#efImgPreview");
+    if (imgInput && imgPreview) {
+      imgInput.addEventListener("input", () => { imgPreview.src = imgInput.value || "icons/svg/aura.svg"; });
+    }
+
+    // Add Adv Row
+    const addAdvBtn = el.querySelector("#addAdvRow");
+    if (addAdvBtn) addAdvBtn.addEventListener("click", () => {
+      this.#state.advRows.push({ type: "advantage", cat: "attack.all", grants: false });
+      this.#renderAdvRows(el);
+    });
+
+    this.#reactiveUpdate(el);
+    this.#renderAdvRows(el);
+    this.#updateRawPreview(el);
+  }
+
+  // ── Reactive section visibility ────────────────────────────────────────────
+  #reactiveUpdate(el) {
+    const s = this.#state;
+    const show = (id, visible) => {
+      const node = el.querySelector(`#${id}`);
+      if (node) node.style.display = visible ? "" : "none";
+    };
+    show("otSection",           s.durationType === "overtime");
+    show("otSaveSection",       s.durationType === "overtime" && s.otSave);
+    show("activationModeRow",   s.appMode === "activation");
+  }
+
+  // ── Advantage/Disadvantage rows ────────────────────────────────────────────
+  #renderAdvRows(el) {
+    const container = el.querySelector("#advRowsContainer");
+    if (!container) return;
+
+    if (this.#state.advRows.length === 0) {
+      container.innerHTML = `<p class="notes" style="font-style:italic; font-size:0.85em; color:var(--color-text-light-5);">No modifiers added.</p>`;
+      return;
+    }
+
+    container.innerHTML = this.#state.advRows.map((row, idx) => `
+      <div class="adv-row flexrow" style="gap:6px; align-items:center; margin-bottom:4px; background:rgba(0,0,0,0.15); border-radius:3px; padding:3px 6px;">
+        <select class="adv-type" data-idx="${idx}" style="flex:1; height:1.8rem;">
+          ${ADV_TYPES.map(t => `<option value="${t.id}" ${row.type===t.id?"selected":""}>${t.label}</option>`).join("")}
+        </select>
+        <span style="font-size:0.8em; color:var(--color-text-light-5);">on</span>
+        <select class="adv-cat" data-idx="${idx}" style="flex:1.4; height:1.8rem;">
+          ${ADV_ROLL_CATS.map(c => `<option value="${c.id}" ${row.cat===c.id?"selected":""}>${c.label}</option>`).join("")}
+        </select>
+        <label style="font-size:0.82em; display:flex; align-items:center; gap:3px; white-space:nowrap;">
+          <input type="checkbox" class="adv-grants" data-idx="${idx}" ${row.grants?"checked":""}> Grants (incoming)
+        </label>
+        <button type="button" class="adv-del" data-idx="${idx}" style="flex-shrink:0; padding:0 6px; height:1.8rem; color:var(--color-level-error-high);">×</button>
+      </div>`).join("");
+
+    // Wire events
+    container.querySelectorAll(".adv-type").forEach(sel => sel.addEventListener("change", () => {
+      this.#state.advRows[+sel.dataset.idx].type = sel.value;
+      this.#updateRawPreview(el);
+    }));
+    container.querySelectorAll(".adv-cat").forEach(sel => sel.addEventListener("change", () => {
+      this.#state.advRows[+sel.dataset.idx].cat = sel.value;
+      this.#updateRawPreview(el);
+    }));
+    container.querySelectorAll(".adv-grants").forEach(cb => cb.addEventListener("change", () => {
+      this.#state.advRows[+cb.dataset.idx].grants = cb.checked;
+      this.#updateRawPreview(el);
+    }));
+    container.querySelectorAll(".adv-del").forEach(btn => btn.addEventListener("click", () => {
+      this.#state.advRows.splice(+btn.dataset.idx, 1);
+      this.#renderAdvRows(el);
+      this.#updateRawPreview(el);
+    }));
+  }
+
+  // ── Live Raw Preview ───────────────────────────────────────────────────────
+  #updateRawPreview(el) {
+    const pre = el.querySelector("#efRawPreview");
+    if (!pre) return;
+    try {
+      const payload = this.#buildAEData();
+      pre.textContent = JSON.stringify(payload, null, 2);
+    } catch { pre.textContent = "(error building preview)"; }
+  }
+
+  // ── Payload Builder ────────────────────────────────────────────────────────
+  #buildAEData() {
+    const s = this.#state;
+    const changes = [];
+
+    // Over-Time flag
+    if (s.durationType === "overtime" && s.otDamage) {
+      const whose = s.otWhose === "source" ? "Source" : "Target";
+      const trigger = `turn${s.otTrigger === "start" ? "Start" : "End"}${whose}`;
+      const parts = [`turn=${trigger}`];
+      parts.push(`damageRoll=${s.otDamage}`);
+      parts.push(`damageType=${s.otDamageType}`);
+      if (s.otSave && s.otSaveAbility) {
+        parts.push(`saveAbility=${s.otSaveAbility}`);
+        parts.push(`saveDC=${s.otSaveDC || 14}`);
+        if (s.otOnSave !== "nodamage") parts.push(`saveDamage=${s.otOnSave}`);
+        if (s.otSuccesses) parts.push(`saveCount=${s.otSuccesses}-`);
+      }
+      parts.push(`label="${s.name || "Effect"}"`);
+      changes.push({
+        key: `flags.midi-qol.OverTime`,
+        mode: 0,
+        value: parts.join(", "),
+        priority: 20
+      });
+    }
+
+    // Advantage / Disadvantage rows
+    for (const row of (s.advRows || [])) {
+      const prefix = row.grants ? "grants" : "advantage_mode";
+      // Map type to midi flag path
+      const typeMap = {
+        advantage:    "flags.midi-qol.advantage",
+        disadvantage: "flags.midi-qol.disadvantage",
+        noAdv:        "flags.midi-qol.fail.all",
+        noDisadv:     "flags.midi-qol.fail.all"
+      };
+      const catPath = row.cat === "all" ? "all" : row.cat;
+      const base = row.type === "advantage" ? "flags.midi-qol.advantage"
+                 : row.type === "disadvantage" ? "flags.midi-qol.disadvantage"
+                 : row.type === "noAdv" ? "flags.midi-qol.critical.all"
+                 : "flags.midi-qol.fail.all";
+      const key = row.grants ? `flags.midi-qol.grants.${row.type}.${catPath}`
+                              : `${base}.${catPath}`;
+      changes.push({ key, mode: 0, value: "1", priority: 20 });
+    }
+
+    const aeData = {
+      name: s.name || "New Effect",
+      img: s.img || "icons/svg/aura.svg",
+      description: { value: s.description || "" },
+      transfer: s.appMode === "passive",
+      statuses: [...(s.statuses || [])],
+      duration: s.durationType === "fixed" ? { rounds: parseInt(s.rounds) || 0 } : {},
+      changes,
+      flags: {}
+    };
+    return aeData;
+  }
+
+  // ── Creation ───────────────────────────────────────────────────────────────
+  static async #onCreate(event, target) {
+    const app = target.closest(".app");
+    const instance = Object.values(ui.windows ?? {}).find(w => w.element === app)
+                  ?? [...(globalThis._forgeEffectCreatorInstance ? [globalThis._forgeEffectCreatorInstance] : [])].pop();
+    if (!instance) { ui.notifications.error("Could not find EffectCreatorApp instance."); return; }
+    await instance.#doCreate();
+  }
+
+  async #doCreate() {
+    const s = this.#state;
+    if (!s.name?.trim()) { ui.notifications.warn("Please enter an effect name."); return; }
+    const aeData = this.#buildAEData();
+
+    try {
+      if (s.wrapInFeature) {
+        // Create a Feature item containing the AE
+        const pack = game.packs.get("forge-char-creator.forge-features");
+        if (!pack) { ui.notifications.error("Could not find Forge Features compendium. Reload Foundry after installing the module."); return; }
+        const itemData = {
+          name: s.name.trim(),
+          img: s.img || "icons/svg/feature.svg",
+          type: "feat",
+          system: { description: { value: s.description || "" } },
+          effects: [aeData]
+        };
+        const tempItem = await Item.create(itemData, { temporary: true });
+        await pack.importDocument(tempItem);
+        ui.notifications.info(`Feature "${s.name}" saved to Forge Features compendium.`);
+      } else {
+        // Create a standalone Active Effect (stored on a temporary actor then imported)
+        // ActiveEffects can't be imported directly to compendium in dnd5e; workaround:
+        // put on a temp JournalEntry-like actor, or use the Items compendium with type=base
+        // Best approach: wrap in a feature item in the Effects compendium too ─ but let the
+        // user drag it to any item. Since v13 compendiums support AE directly via the
+        // "ActiveEffect" type pack, we create it there.
+        const pack = game.packs.get("forge-char-creator.forge-effects");
+        if (!pack) { ui.notifications.error("Could not find Forge Effects compendium. Reload Foundry after installing the module."); return; }
+        const doc = await ActiveEffect.create(aeData, { temporary: true });
+        await pack.importDocument(doc);
+        ui.notifications.info(`Effect "${s.name}" saved to Forge Effects compendium.`);
+      }
+      // Reset state for next effect
+      this.#state = {
+        name: "", img: "icons/svg/aura.svg", description: "",
+        durationType: "fixed", rounds: 0,
+        otTrigger: "end", otWhose: "target", otDamage: "", otDamageType: "fire",
+        otSave: false, otSaveAbility: "dex", otSaveDC: "14", otOnSave: "nodamage", otSuccesses: "1",
+        appMode: "passive", activationTarget: "wearer",
+        statuses: [], advRows: [], wrapInFeature: false
+      };
+      this.render();
+    } catch (err) {
+      console.error("Forge Effect Creator | Error saving effect:", err);
+      ui.notifications.error(`Failed to save: ${err.message}`);
+    }
+  }
+}

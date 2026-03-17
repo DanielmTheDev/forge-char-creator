@@ -1,0 +1,190 @@
+<form class="forge-effect-creator-content standard-form flexcol">
+
+  <!-- ── Identity ─────────────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Identity</legend>
+    <div class="flexrow" style="gap:8px; align-items:center; margin-bottom:6px;">
+      <input type="text" data-ef="name" placeholder="Effect Name" value="{{s.name}}"
+             style="flex:1; height:2rem;">
+      <div style="display:flex; align-items:center; gap:4px; flex:1.5;">
+        <input type="text" data-ef="img" placeholder="Icon path" value="{{s.img}}"
+               style="flex:1; height:2rem; font-size:0.8em;">
+        <img id="efImgPreview" src="{{s.img}}" alt="Icon" width="32" height="32"
+             style="border:none; border-radius:4px; flex-shrink:0;">
+      </div>
+    </div>
+    <textarea data-ef="description" placeholder="Description (optional)"
+              style="width:100%; height:3.5rem; resize:vertical; font-size:0.9em;">{{s.description}}</textarea>
+  </fieldset>
+
+  <!-- ── Application Mode ──────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Application Mode</legend>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="radio" data-ef="appMode" name="appMode" value="passive"
+               {{#if (eq s.appMode "passive")}}checked{{/if}}>
+        <strong>Passive</strong> — always active on item holder
+      </label>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="radio" data-ef="appMode" name="appMode" value="activation"
+               {{#if (eq s.appMode "activation")}}checked{{/if}}>
+        <strong>On Activation</strong>
+      </label>
+    </div>
+    <!-- Sub-row for activation target (shown/hidden by JS) -->
+    <div id="activationModeRow" style="margin-top:8px; padding-left:8px; border-left:2px solid var(--color-border-light-tertiary);">
+      <span style="font-size:0.9em;">Apply to:</span>
+      <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
+        <input type="radio" data-ef="activationTarget" name="activationTarget" value="wearer"
+               {{#if (eq s.activationTarget "wearer")}}checked{{/if}}>
+        Wearer / Self
+      </label>
+      <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
+        <input type="radio" data-ef="activationTarget" name="activationTarget" value="targets"
+               {{#if (eq s.activationTarget "targets")}}checked{{/if}}>
+        Target(s)
+      </label>
+    </div>
+  </fieldset>
+
+  <!-- ── Duration / Reroll Logic ───────────────────────────────────────── -->
+  <fieldset>
+    <legend>Duration</legend>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="radio" data-ef="durationType" name="durationType" value="fixed"
+               {{#if (eq s.durationType "fixed")}}checked{{/if}}>
+        Fixed (rounds)
+      </label>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="radio" data-ef="durationType" name="durationType" value="overtime"
+               {{#if (eq s.durationType "overtime")}}checked{{/if}}>
+        Reroll / Over Time
+      </label>
+    </div>
+
+    <!-- Fixed -->
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+      <label style="font-size:0.9em;">Rounds (0 = indefinite):</label>
+      <input type="number" data-ef="rounds" value="{{s.rounds}}" min="0"
+             style="width:4rem; height:1.8rem; text-align:center;">
+    </div>
+
+    <!-- OverTime sub-section (shown by JS) -->
+    <div id="otSection" style="border-top:1px solid var(--color-border-light-tertiary); margin-top:6px; padding-top:6px; display:none;">
+      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
+        <label style="font-size:0.9em;">Trigger:
+          <select data-ef="otTrigger" style="height:1.8rem; margin-left:4px;">
+            <option value="end" {{#if (eq s.otTrigger "end")}}selected{{/if}}>End of Turn</option>
+            <option value="start" {{#if (eq s.otTrigger "start")}}selected{{/if}}>Start of Turn</option>
+          </select>
+        </label>
+        <label style="font-size:0.9em;">Whose turn:
+          <select data-ef="otWhose" style="height:1.8rem; margin-left:4px;">
+            <option value="target" {{#if (eq s.otWhose "target")}}selected{{/if}}>Target's</option>
+            <option value="source" {{#if (eq s.otWhose "source")}}selected{{/if}}>Source's</option>
+          </select>
+        </label>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
+        <label style="font-size:0.9em;">Damage/Healing Roll:
+          <input type="text" data-ef="otDamage" placeholder="e.g. 1d6, @con.mod, healing"
+                 value="{{s.otDamage}}" style="width:10rem; height:1.8rem; margin-left:4px;">
+        </label>
+        <label style="font-size:0.9em;">Type:
+          <select data-ef="otDamageType" style="height:1.8rem; margin-left:4px;">
+            {{#each damageTypes as |dt|}}
+            <option value="{{dt}}" {{#if (eq ../s.otDamageType dt)}}selected{{/if}}>{{dt}}</option>
+            {{/each}}
+          </select>
+        </label>
+      </div>
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; cursor:pointer; margin-bottom:4px;">
+        <input type="checkbox" data-ef="otSave" {{#if s.otSave}}checked{{/if}}>
+        Saving Throw
+      </label>
+      <div id="otSaveSection" style="padding-left:12px; border-left:2px solid var(--color-border-light-tertiary); display:none;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
+          <label style="font-size:0.9em;">Ability:
+            <select data-ef="otSaveAbility" style="height:1.8rem; margin-left:4px;">
+              {{#each abilities as |ab|}}
+              <option value="{{ab.[0]}}" {{#if (eq ../s.otSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
+              {{/each}}
+            </select>
+          </label>
+          <label style="font-size:0.9em;">DC:
+            <input type="number" data-ef="otSaveDC" value="{{s.otSaveDC}}" min="5" max="30"
+                   style="width:4rem; height:1.8rem; text-align:center; margin-left:4px;">
+          </label>
+        </div>
+        <label style="font-size:0.9em;">On Save:
+          <select data-ef="otOnSave" style="height:1.8rem; margin-left:4px;">
+            <option value="nodamage"   {{#if (eq s.otOnSave "nodamage")}}selected{{/if}}>No Damage</option>
+            <option value="halfdamage" {{#if (eq s.otOnSave "halfdamage")}}selected{{/if}}>Half Damage</option>
+            <option value="fulldamage" {{#if (eq s.otOnSave "fulldamage")}}selected{{/if}}>Full Damage</option>
+          </select>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; margin-top:4px;">
+          Remove after
+          <input type="number" data-ef="otSuccesses" value="{{s.otSuccesses}}" min="1"
+                 style="width:3rem; height:1.8rem; text-align:center;">
+          successful save(s)
+        </label>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- ── Conditions ────────────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Conditions Applied</legend>
+    <div style="display:flex; flex-wrap:wrap; gap:4px 10px;">
+      {{#each conditions as |cond|}}
+      <label style="display:inline-flex; align-items:center; gap:4px; font-size:0.85em; cursor:pointer; text-transform:capitalize;">
+        <input type="checkbox" data-status="{{cond}}"
+               {{#if (includes ../s.statuses cond)}}checked{{/if}}>
+        {{cond}}
+      </label>
+      {{/each}}
+    </div>
+  </fieldset>
+
+  <!-- ── Roll Modifiers ────────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Advantage / Disadvantage</legend>
+    <div id="advRowsContainer" style="margin-bottom:6px;"></div>
+    <button type="button" id="addAdvRow" style="font-size:0.85em; padding:2px 8px;">
+      <i class="fas fa-plus"></i> Add Modifier
+    </button>
+  </fieldset>
+
+  <!-- ── Output Mode ───────────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Output</legend>
+    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.95em;">
+      <input type="checkbox" data-ef="wrapInFeature" {{#if s.wrapInFeature}}checked{{/if}}>
+      <span>
+        <strong>Wrap in Feature Item</strong>
+        <span class="notes" style="font-size:0.85em;">
+          — creates a Feature item with the AE embedded (drag onto actors)
+          instead of a standalone AE (drag onto items)
+        </span>
+      </span>
+    </label>
+  </fieldset>
+
+  <!-- ── Raw Preview ───────────────────────────────────────────────────── -->
+  <details style="margin-top:4px;">
+    <summary style="cursor:pointer; font-size:0.85em; color:var(--color-text-light-5);">🔧 Raw Effect Preview</summary>
+    <pre id="efRawPreview" style="font-size:0.72em; background:rgba(0,0,0,0.3); border-radius:4px; padding:6px; margin-top:4px; white-space:pre-wrap; word-break:break-all; max-height:160px; overflow-y:auto;"></pre>
+  </details>
+
+  <!-- ── Create Button ─────────────────────────────────────────────────── -->
+  <div style="margin-top:auto; padding-top:8px;">
+    <button type="button" data-action="createEffect" style="width:100%; padding:6px; font-size:1rem; font-weight:bold;">
+      <i class="fas fa-sparkles"></i>
+      {{#if s.wrapInFeature}}Create Feature{{else}}Create Effect{{/if}}
+    </button>
+  </div>
+
+</form>

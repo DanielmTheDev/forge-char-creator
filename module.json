@@ -24,5 +24,23 @@
       "id": "dnd5e",
       "type": "system"
     }
+  ],
+  "packs": [
+    {
+      "name": "forge-effects",
+      "label": "Forge Effects",
+      "path": "packs/forge-effects",
+      "type": "ActiveEffect",
+      "system": "dnd5e",
+      "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" }
+    },
+    {
+      "name": "forge-features",
+      "label": "Forge Features",
+      "path": "packs/forge-features",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" }
+    }
   ]
 }
