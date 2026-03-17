@@ -1,4 +1,64 @@
-/* Increase size and force spin buttons for ability score inputs */
+/* ── Tab Navigation ─────────────────────────────────────────────────────── */
+.forge-char-creator .forge-tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 4px 0 2px;
+  border-bottom: 2px solid var(--color-border-light-tertiary);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.forge-char-creator .forge-tab-btn {
+  padding: 4px 16px;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid var(--color-border-light-tertiary);
+  border-bottom: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-light-5);
+  font-size: 0.9rem;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.forge-char-creator .forge-tab-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--color-text-light-highlight);
+}
+
+.forge-char-creator .forge-tab-btn.active {
+  background: var(--color-bg-option);
+  color: var(--color-text-light-highlight);
+  font-weight: bold;
+  border-color: var(--color-border-light-primary);
+}
+
+/* Tab panels — hidden by default, active one shows */
+.forge-char-creator .forge-tab-panel {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.forge-char-creator .forge-tab-panel.active {
+  display: flex;
+}
+
+/* Effects tab inner layout */
+.forge-char-creator .forge-effects-tab {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 6px;
+}
+
+/* ── Increase size and force spin buttons for ability score inputs ─────── */
+
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"],
 .forge-char-creator.standard-form .combat-stats-fieldset input[type="number"],
 .forge-char-creator.standard-form .spellcasting-fieldset input[type="number"] {

@@ -92,14 +92,9 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    tabs: { template: "templates/generic/tab-navigation.hbs" },
     form: {
       template: "./modules/forge-char-creator/templates/char-creator.hbs",
       scrollable: [".forge-char-creator-content"]
-    },
-    effects: {
-      template: "./modules/forge-char-creator/templates/char-effects.hbs",
-      scrollable: [".forge-effects-tab"]
     }
   };
 
@@ -108,39 +103,25 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _effects = [];               // Array of effect data objects
   _selectedEffectIdx = -1;     // Currently-open effect index
 
-  // ── Tab support ────────────────────────────────────────────────────────────
-  tabGroups = { primary: "form" };
-
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    context.tabs = this.#buildTabs();
     context.message = "Create a new Character or Creature using the wizard.";
     context.abilities = { str:"STR", dex:"DEX", con:"CON", int:"INT", wis:"WIS", cha:"CHA" };
     return context;
-  }
-
-  #buildTabs() {
-    return {
-      form: { id:"form", group:"primary", label:"⚔️ Character", icon:"fas fa-user", active: this.tabGroups.primary === "form", cssClass: this.tabGroups.primary === "form" ? "active" : "" },
-      effects: { id:"effects", group:"primary", label:"✨ Effects", icon:"fas fa-bolt", active: this.tabGroups.primary === "effects", cssClass: this.tabGroups.primary === "effects" ? "active" : "" }
-    };
-  }
-
-  _configureRenderOptions(options) {
-    super._configureRenderOptions(options);
-    // Render only the active tab's part plus the tab nav
-    options.parts = ["tabs", this.tabGroups.primary];
   }
 
   // ── Render hooks ──────────────────────────────────────────────────────────
   _onRender(context, options) {
     super._onRender(context, options);
 
-    // Tab click handling
-    this.element.querySelectorAll(".tabs [data-tab]").forEach(tab => {
-      tab.addEventListener("click", () => {
-        this.tabGroups.primary = tab.dataset.tab;
-        this.render({ parts: ["tabs", tab.dataset.tab] });
+    // ── Simple CSS tab switching ──────────────────────────────────────────────
+    const tabBtns = this.element.querySelectorAll(".forge-tab-btn");
+    const tabPanels = this.element.querySelectorAll(".forge-tab-panel");
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.forgeTab;
+        tabBtns.forEach(b => b.classList.toggle("active", b.dataset.forgeTab === target));
+        tabPanels.forEach(p => p.classList.toggle("active", p.dataset.forgePanel === target));
       });
     });
 
