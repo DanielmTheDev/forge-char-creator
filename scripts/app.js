@@ -179,6 +179,43 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   // ── Compendium Search ───────────────────────────────────────────────────────────
 
+  async #performSearch(query, resultsList, selectedBin, searchInput) {
+    query = query.toLowerCase().trim();
+    if (query.length === 0) { resultsList.style.display = "none"; resultsList.innerHTML = ""; return; }
+
+    const itemPacks = game.packs.filter(p => p.documentName === "Item");
+    let matches = [];
+    for (const pack of itemPacks) {
+      const index = await pack.getIndex({ fields: ["name", "img"] });
+      for (const entry of index) {
+        if (entry.name.toLowerCase().includes(query)) {
+          matches.push({ uuid: `Compendium.${pack.metadata.id}.${entry._id}`, name: entry.name, img: entry.img || "icons/svg/item-bag.svg", packTitle: pack.title });
+        }
+      }
+    }
+    matches.sort((a, b) => a.name.localeCompare(b.name));
+    matches = matches.slice(0, 50);
+
+    if (matches.length === 0) {
+      resultsList.innerHTML = `<li style="pointer-events:none; color:gray;">No items found.</li>`;
+    } else {
+      resultsList.innerHTML = matches.map(m => `
+        <li data-uuid="${m.uuid}" data-name="${m.name}" data-img="${m.img}" data-pack="${m.packTitle}">
+          <img src="${m.img}" alt="${m.name}">
+          <span class="item-name">${m.name}</span>
+          <span class="compendium-name">(${m.packTitle})</span>
+        </li>`).join("");
+      resultsList.querySelectorAll("li[data-uuid]").forEach(li => {
+        li.addEventListener("click", () => {
+          this.selectedItems.set(li.dataset.uuid, { name: li.dataset.name, img: li.dataset.img });
+          this.#renderSelectedItems(selectedBin);
+          resultsList.style.display = "none";
+          searchInput.value = "";
+        });
+      });
+    }
+    resultsList.style.display = "block";
+  }
   #renderSelectedItems(container) {
     if (!container) return;
     if (this.selectedItems.size === 0) {
