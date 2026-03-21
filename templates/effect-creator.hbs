@@ -142,7 +142,7 @@
       {{#each conditions as |cond|}}
       <label style="display:inline-flex; align-items:center; gap:4px; font-size:0.85em; cursor:pointer; text-transform:capitalize;">
         <input type="checkbox" data-status="{{cond}}"
-               {{#if (includes ../s.statuses cond)}}checked{{/if}}>
+               {{#if (lookup ../statusMap cond)}}checked{{/if}}>
         {{cond}}
       </label>
       {{/each}}

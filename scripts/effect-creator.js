@@ -98,6 +98,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
     ctx.s = this.#state;
+    ctx.statusMap = {};
+    for (const st of DND5E_CONDITIONS) ctx.statusMap[st] = this.#state.statuses.includes(st);
     ctx.damageTypes = DAMAGE_TYPES;
     ctx.abilities = ABILITIES;
     ctx.conditions = DND5E_CONDITIONS;
