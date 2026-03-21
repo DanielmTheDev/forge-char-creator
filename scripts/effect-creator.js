@@ -55,7 +55,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     id: "forge-effect-creator-app",
     classes: ["forge-effect-creator", "standard-form"],
     title: "Forge Effect Creator",
-    position: { width: 560, height: 740 },
+    position: { width: 750, height: "auto" },
     window: { icon: "fas fa-sparkles", resizable: true },
     actions: { createEffect: EffectCreatorApp.#onCreate }
   };
@@ -216,13 +216,13 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const pre = el.querySelector("#efRawPreview");
     if (!pre) return;
     try {
-      const payload = this.#buildAEData();
+      const payload = this._buildAEData();
       pre.textContent = JSON.stringify(payload, null, 2);
     } catch { pre.textContent = "(error building preview)"; }
   }
 
   // ── Payload Builder ────────────────────────────────────────────────────────
-  #buildAEData() {
+  _buildAEData() {
     const s = this.#state;
     const changes = [];
 
@@ -265,7 +265,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
                  : "flags.midi-qol.fail.all";
       const key = row.grants ? `flags.midi-qol.grants.${row.type}.${catPath}`
                               : `${base}.${catPath}`;
-      changes.push({ key, mode: 0, value: "1", priority: 20 });
+      changes.push({ key, mode: 5, value: "1", priority: 20 });
     }
 
     const aeData = {
@@ -293,36 +293,24 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   async #doCreate() {
     const s = this.#state;
     if (!s.name?.trim()) { ui.notifications.warn("Please enter an effect name."); return; }
-    const aeData = this.#buildAEData();
+    const aeData = this._buildAEData();
 
     try {
-      if (s.wrapInFeature) {
-        // Create a Feature item containing the AE
-        const pack = game.packs.get("forge-char-creator.forge-features");
-        if (!pack) { ui.notifications.error("Could not find Forge Features compendium. Reload Foundry after installing the module."); return; }
-        const itemData = {
-          name: s.name.trim(),
-          img: s.img || "icons/svg/feature.svg",
-          type: "feat",
-          system: { description: { value: s.description || "" } },
-          effects: [aeData]
-        };
-        const tempItem = await Item.create(itemData, { temporary: true });
-        await pack.importDocument(tempItem);
-        ui.notifications.info(`Feature "${s.name}" saved to Forge Features compendium.`);
-      } else {
-        // Create a standalone Active Effect (stored on a temporary actor then imported)
-        // ActiveEffects can't be imported directly to compendium in dnd5e; workaround:
-        // put on a temp JournalEntry-like actor, or use the Items compendium with type=base
-        // Best approach: wrap in a feature item in the Effects compendium too ─ but let the
-        // user drag it to any item. Since v13 compendiums support AE directly via the
-        // "ActiveEffect" type pack, we create it there.
-        const pack = game.packs.get("forge-char-creator.forge-effects");
-        if (!pack) { ui.notifications.error("Could not find Forge Effects compendium. Reload Foundry after installing the module."); return; }
-        const doc = await ActiveEffect.create(aeData, { temporary: true });
-        await pack.importDocument(doc);
-        ui.notifications.info(`Effect "${s.name}" saved to Forge Effects compendium.`);
-      }
+      const itemData = {
+        name: s.wrapInFeature ? s.name.trim() : `[AE] ${s.name.trim()}`,
+        img: s.img || (s.wrapInFeature ? "icons/svg/feature.svg" : "icons/svg/aura.svg"),
+        type: "feat",
+        system: { description: { value: s.description || "" } },
+        effects: [aeData]
+      };
+      
+      const targetPack = s.wrapInFeature ? "forge-features" : "forge-effects";
+      const pack = game.packs.get(`forge-char-creator.${targetPack}`);
+      if (!pack) { ui.notifications.error(`Could not find ${targetPack} compendium. Reload Foundry.`); return; }
+      
+      const tempItem = await Item.create(itemData, { temporary: true });
+      await pack.importDocument(tempItem);
+      ui.notifications.info(`Successfully saved to ${targetPack} compendium.`);
       // Reset state for next effect
       this.#state = {
         name: "", img: "icons/svg/aura.svg", description: "",

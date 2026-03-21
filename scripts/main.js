@@ -67,3 +67,6 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
                      || element.querySelector(".directory-header .action-buttons");
   if (headerActions) headerActions.insertAdjacentElement("beforeend", button);
 });
+
+// ── Test Suite ───────────────────────────────────────────────────────────────
+import "./tests/index.js";

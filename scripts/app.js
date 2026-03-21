@@ -86,7 +86,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "forge-char-creator-app",
     classes: ["forge-char-creator", "standard-form"],
     title: "Forge Character Wizard",
-    position: { width: 700, height: 800 },
+    position: { width: 700, height: "auto" },
     window: { icon: "fas fa-user-plus", resizable: true },
     actions: { createNPC: CharCreatorApp.#onCreateNPC }
   };
@@ -240,6 +240,19 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const formData = new FormDataExtended(form);
     const data = formData.object;
 
+    const app = target.closest(".app");
+    const instance = Object.values(ui.windows ?? {}).find(w => w.element === app)
+                  ?? [...(globalThis._forgeCharCreatorInstance ? [globalThis._forgeCharCreatorInstance] : [])].pop();
+
+    if (!instance) {
+      ui.notifications.error("Could not find CharCreatorApp instance.");
+      return;
+    }
+
+    await instance._createNPC(data);
+  }
+
+  async _createNPC(data) {
     const folderName = "Forge Creations";
     let folder = game.folders.find(f => f.name === folderName && f.type === "Actor");
     if (!folder) folder = await Folder.create({ name: folderName, type: "Actor" });
