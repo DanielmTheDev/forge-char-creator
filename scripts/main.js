@@ -69,4 +69,4 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
 });
 
 // ── Test Suite ───────────────────────────────────────────────────────────────
-import "./tests/index.js";
+// Tests are intended for local dev environments only.
