@@ -68,5 +68,7 @@ Hooks.on("renderItemDirectory", (app, html, data) => {
   if (headerActions) headerActions.insertAdjacentElement("beforeend", button);
 });
 
-// ── Test Suite ───────────────────────────────────────────────────────────────
-// Tests are intended for local dev environments only.
+// ── Test Suite (Development Only) ──────────────────────────────────────────────
+import("./tests/index.js").catch(() => {
+  // Silent fail in production where tests are excluded from the build zip.
+});
