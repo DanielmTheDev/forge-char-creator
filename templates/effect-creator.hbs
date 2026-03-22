@@ -92,7 +92,18 @@
           <input type="text" data-ef="otDamage" placeholder="e.g. 1d6, @con.mod, healing"
                  value="{{s.otDamage}}" style="width:10rem; height:1.8rem; margin-left:4px;">
         </label>
-        <label style="font-size:0.9em;">Type:
+        
+        <!-- Roll Type (Damage or Healing) shown only if roll is populated -->
+        <div id="otRollTypeSection" style="display:none; align-items:center; gap:6px; margin-left:8px;">
+          <label style="cursor:pointer; font-size:0.9em;">
+            <input type="radio" data-ef="otRollType" name="otRollType" value="damage" {{#if (eq s.otRollType "damage")}}checked{{/if}}> Damage
+          </label>
+          <label style="cursor:pointer; font-size:0.9em;">
+            <input type="radio" data-ef="otRollType" name="otRollType" value="healing" {{#if (eq s.otRollType "healing")}}checked{{/if}}> Healing
+          </label>
+        </div>
+
+        <label id="otDamageTypeSection" style="font-size:0.9em; display:none;">Type:
           <select data-ef="otDamageType" style="height:1.8rem; margin-left:4px;">
             {{#each damageTypes as |dt|}}
             <option value="{{dt}}" {{#if (eq ../s.otDamageType dt)}}selected{{/if}}>{{dt}}</option>

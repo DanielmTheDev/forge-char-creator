@@ -29,6 +29,7 @@ class ForgeTestingSuite {
 
     await runTest("EffectCreatorApp: Generates correct Passive Advantage Payload", this.#testEffectPassiveAdvantage);
     await runTest("EffectCreatorApp: Generates correct OverTime Payload", this.#testEffectOverTime);
+    await runTest("EffectCreatorApp: Generates correct OverTime Save-Only Payload", this.#testEffectOverTimeSaveOnly);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
 
     console.log(`%c🧪 Test Run Complete! ${passed} Passed, ${failed} Failed.`, `color: ${failed > 0 ? 'red' : 'green'}; font-size: 1.2em; font-weight: bold;`);
@@ -108,6 +109,7 @@ class ForgeTestingSuite {
       
       setTimeout(() => {
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otDamage']"), "2d6");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='otRollType'][value='damage']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otDamageType']"), "poison");
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSave']"), true);
         
@@ -129,6 +131,48 @@ class ForgeTestingSuite {
             if (!val.includes("saveAbility=con")) throw new Error("Missing saveAbility");
             if (!val.includes("damageType=poison")) throw new Error("Missing damageType");
             if (!val.includes("label=\"Poison Nova\"")) throw new Error("Missing label inside OverTime flag");
+            
+            resolve();
+          } catch (e) {
+            app.close();
+            reject(e);
+          }
+        }, 50);
+      }, 50);
+    });
+  }
+
+  static async #testEffectOverTimeSaveOnly() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      
+      const el = app.element;
+      
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Restraining Web");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='durationType'][value='overtime']"), true);
+      
+      setTimeout(() => {
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSave']"), true);
+        
+        setTimeout(() => {
+          ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSaveAbility']"), "str");
+          ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSaveDC']"), "12");
+          
+          try {
+            const payload = app._buildAEData();
+            app.close();
+            
+            if (!payload) throw new Error("No payload was captured.");
+            const change = payload.changes.find(c => c.key === "flags.midi-qol.OverTime");
+            if (!change) throw new Error("Missing OverTime flag for save-only effect.");
+            
+            const val = change.value;
+            if (val.includes("damageRoll")) throw new Error("Should not contain damage roll");
+            if (!val.includes("saveDC=12")) throw new Error("Missing saveDC");
+            if (!val.includes("saveAbility=str")) throw new Error("Missing saveAbility");
+            if (!val.includes("label=\"Restraining Web\"")) throw new Error("Missing label inside OverTime flag");
             
             resolve();
           } catch (e) {

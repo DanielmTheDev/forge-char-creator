@@ -78,6 +78,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     otTrigger: "end",         // "start" | "end"
     otWhose: "target",        // "source" | "target"
     otDamage: "",
+    otRollType: "damage",     // "damage" | "healing"
     otDamageType: "fire",
     otSave: false,
     otSaveAbility: "dex",
@@ -85,8 +86,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     otOnSave: "nodamage",     // "nodamage" | "halfdamage" | "fulldamage"
     otSuccesses: "1",
     // Application mode
-    appMode: "passive",       // "passive" | "activation"
-    activationTarget: "wearer", // "wearer" | "targets"
+    appMode: "activation",       // "passive" | "activation"
+    activationTarget: "targets", // "wearer" | "targets"
     // Conditions
     statuses: [],
     // Adv/Disadv rows
@@ -163,6 +164,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     };
     show("otSection",           s.durationType === "overtime");
     show("otSaveSection",       s.durationType === "overtime" && s.otSave);
+    show("otRollTypeSection",   s.durationType === "overtime" && !!s.otDamage);
+    show("otDamageTypeSection", s.durationType === "overtime" && !!s.otDamage && s.otRollType === "damage");
     show("activationModeRow",   s.appMode === "activation");
   }
 
@@ -227,12 +230,16 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const changes = [];
 
     // Over-Time flag
-    if (s.durationType === "overtime" && s.otDamage) {
+    const hasDamage = s.otDamage && s.otDamage.trim();
+    const hasSave = s.otSave && s.otSaveAbility;
+    if (s.durationType === "overtime" && (hasDamage || hasSave)) {
       const whose = s.otWhose === "source" ? "Source" : "Target";
       const trigger = `turn${s.otTrigger === "start" ? "Start" : "End"}${whose}`;
       const parts = [`turn=${trigger}`];
-      parts.push(`damageRoll=${s.otDamage}`);
-      parts.push(`damageType=${s.otDamageType}`);
+      if (hasDamage) {
+        parts.push(`damageRoll=${s.otDamage}`);
+        parts.push(`damageType=${s.otRollType === "healing" ? "healing" : s.otDamageType}`);
+      }
       if (s.otSave && s.otSaveAbility) {
         parts.push(`saveAbility=${s.otSaveAbility}`);
         parts.push(`saveDC=${s.otSaveDC || 14}`);
@@ -308,6 +315,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       const pack = game.packs.get(`forge-char-creator.${targetPack}`);
       if (!pack) { ui.notifications.error(`Could not find ${targetPack} compendium. Reload Foundry.`); return; }
       
+      if (pack.locked) await pack.configure({ locked: false }); // Auto-unlock the compendium for saving
+      
       const tempItem = await Item.create(itemData, { temporary: true });
       await pack.importDocument(tempItem);
       ui.notifications.info(`Successfully saved to ${targetPack} compendium.`);
@@ -315,9 +324,9 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       this.#state = {
         name: "", img: "icons/svg/aura.svg", description: "",
         durationType: "fixed", rounds: 0,
-        otTrigger: "end", otWhose: "target", otDamage: "", otDamageType: "fire",
+        otTrigger: "end", otWhose: "target", otDamage: "", otRollType: "damage", otDamageType: "fire",
         otSave: false, otSaveAbility: "dex", otSaveDC: "14", otOnSave: "nodamage", otSuccesses: "1",
-        appMode: "passive", activationTarget: "wearer",
+        appMode: "activation", activationTarget: "targets",
         statuses: [], advRows: [], wrapInFeature: false
       };
       this.render();
