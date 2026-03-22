@@ -275,10 +275,33 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       changes.push({ key, mode: 5, value: "1", priority: 20 });
     }
 
+    let descriptionText = s.description || "";
+    if (!descriptionText.trim()) {
+      const summaries = [];
+      if (s.statuses?.length) summaries.push(`Applies ${s.statuses.join(", ")}.`);
+      
+      const hasDamage = s.otDamage && s.otDamage.trim();
+      const hasSave = s.otSave && s.otSaveAbility;
+      if (s.durationType === "overtime" && (hasDamage || hasSave)) {
+        let otStr = `At the ${s.otTrigger === "start" ? "start" : "end"} of the ${s.otWhose}'s turn, `;
+        if (hasSave) otStr += `make a DC ${s.otSaveDC} ${s.otSaveAbility.toUpperCase()} save`;
+        if (hasDamage && hasSave) otStr += ` (${s.otOnSave === "nodamage" ? "no" : "half"} damage on success). `;
+        else if (hasSave) otStr += ` to remove the effect. `;
+        if (hasDamage) otStr += `Takes ${s.otDamage} ${s.otRollType === "healing" ? "healing" : s.otDamageType}.`;
+        summaries.push(otStr.trim());
+      }
+      
+      if (s.advRows?.length) {
+        summaries.push(`Modifiers: ${s.advRows.map(r => `${r.type} on ${r.cat}`).join(", ")}.`);
+      }
+      
+      descriptionText = summaries.join(" ") || "A custom effect.";
+    }
+
     const aeData = {
       name: s.name || "New Effect",
       img: s.img || "icons/svg/aura.svg",
-      description: { value: s.description || "" },
+      description: { value: descriptionText },
       transfer: s.appMode === "passive",
       statuses: [...(s.statuses || [])],
       duration: s.durationType === "fixed" ? { rounds: parseInt(s.rounds) || 0 } : {},
@@ -290,9 +313,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
   // ── Creation ───────────────────────────────────────────────────────────────
   static async #onCreate(event, target) {
-    const app = target.closest(".app");
-    const instance = Object.values(ui.windows ?? {}).find(w => w.element === app)
-                  ?? [...(globalThis._forgeEffectCreatorInstance ? [globalThis._forgeEffectCreatorInstance] : [])].pop();
+    const instance = foundry.applications.instances.get("forge-effect-creator-app");
     if (!instance) { ui.notifications.error("Could not find EffectCreatorApp instance."); return; }
     await instance.#doCreate();
   }

@@ -240,9 +240,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const formData = new FormDataExtended(form);
     const data = formData.object;
 
-    const app = target.closest(".app");
-    const instance = Object.values(ui.windows ?? {}).find(w => w.element === app)
-                  ?? [...(globalThis._forgeCharCreatorInstance ? [globalThis._forgeCharCreatorInstance] : [])].pop();
+    const instance = foundry.applications.instances.get("forge-char-creator-app");
 
     if (!instance) {
       ui.notifications.error("Could not find CharCreatorApp instance.");
