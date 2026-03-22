@@ -30,6 +30,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates correct Passive Advantage Payload", this.#testEffectPassiveAdvantage);
     await runTest("EffectCreatorApp: Generates correct OverTime Payload", this.#testEffectOverTime);
     await runTest("EffectCreatorApp: Generates correct OverTime Save-Only Payload", this.#testEffectOverTimeSaveOnly);
+    await runTest("EffectCreatorApp: Generates dynamic Auto-Destription string", this.#testEffectAutoDescription);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
 
     console.log(`%c🧪 Test Run Complete! ${passed} Passed, ${failed} Failed.`, `color: ${failed > 0 ? 'red' : 'green'}; font-size: 1.2em; font-weight: bold;`);
@@ -179,6 +180,67 @@ class ForgeTestingSuite {
             app.close();
             reject(e);
           }
+        }, 50);
+      }, 50);
+    });
+  }
+
+  static async #testEffectAutoDescription() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      
+      const el = app.element;
+      
+      // We leave description blank to trigger auto-gen
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Auto Desc Test");
+      
+      // 1. Add Statuses
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='prone']"), true);
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='poisoned']"), true);
+      
+      // 2. Add OverTime (End, Target, 2d6 poison, CON 14, half)
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='durationType'][value='overtime']"), true);
+      
+      setTimeout(() => {
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otDamage']"), "2d6");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='otRollType'][value='damage']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otDamageType']"), "poison");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSave']"), true);
+        
+        setTimeout(() => {
+          ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSaveAbility']"), "con");
+          ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otSaveDC']"), "14");
+          ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otOnSave']"), "halfdamage");
+          
+          // 3. Add Modifier (Disadvantage on All Attacks)
+          el.querySelector("#addAdvRow").click();
+          
+          setTimeout(() => {
+            const typeSelect = el.querySelector(".adv-type");
+            const catSelect = el.querySelector(".adv-cat");
+            ForgeTestingSuite.#simulateChange(typeSelect, "disadvantage");
+            ForgeTestingSuite.#simulateChange(catSelect, "attack.all");
+            
+            try {
+              const payload = app._buildAEData();
+              app.close();
+              
+              if (!payload) throw new Error("No payload was captured.");
+              const desc = payload.description?.value;
+              if (!desc) throw new Error("Description was not generated.");
+              
+              if (!desc.includes("Applies prone, poisoned.")) throw new Error("Statuses missing from description.");
+              if (!desc.includes("At the end of the target's turn, make a DC 14 CON save (half damage on success). Takes 2d6 poison.")) throw new Error("Overtime string malformed.");
+              if (!desc.includes("Modifiers: disadvantage on attack.all.")) throw new Error("Modifiers missing from description.");
+              
+              resolve();
+            } catch (e) {
+              app.close();
+              reject(e);
+            }
+          }, 50);
         }, 50);
       }, 50);
     });
