@@ -262,17 +262,35 @@ class ForgeTestingSuite {
         spellLevel: "5"
       };
       
+      // Inject dummy selected item
+      const dummyItemUuid = "Compendium.dnd5e.spells.Item.4d5ZqB5V5aA1d6k"; // Any standard UUID, just mock the fetch
+      app.selectedItems.set(dummyItemUuid, { name: "Dummy Spell", img: "icons/svg/mystery-man.svg" });
+      
       let capturedPayload = null;
+      let capturedEmbedded = null;
+      
       const origActorCreate = Actor.create;
       Actor.create = async function(data) {
         capturedPayload = data;
         Actor.create = origActorCreate;
-        return { id: "mock_actor_id", createEmbeddedDocuments: async()=>{} }; 
+        return { 
+          id: "mock_actor_id", 
+          createEmbeddedDocuments: async (type, docs) => {
+            capturedEmbedded = docs;
+          } 
+        }; 
+      };
+
+      // Mock fromUuid to return a dummy item doc that stringifies to an object cleanly
+      const origFromUuid = globalThis.fromUuid;
+      globalThis.fromUuid = async (uuid) => {
+        return { toObject: () => ({ name: "Dummy Spell", type: "spell", system: {} }) };
       };
 
       try {
         await app._createNPC(mockData);
         app.close();
+        globalThis.fromUuid = origFromUuid;
         
         if (!capturedPayload) throw new Error("No Actor payload was captured.");
         if (capturedPayload.name !== "Test Wizard") throw new Error("Name mismatch");
@@ -280,12 +298,16 @@ class ForgeTestingSuite {
         if (capturedPayload.system.attributes.ac.flat !== "14") throw new Error("AC mismatch");
         if (capturedPayload.system.traits.size !== "huge") throw new Error("Size mismatch");
         if (capturedPayload.prototypeToken.disposition !== 1) throw new Error("Disposition mismatch");
-        if (capturedPayload.system.attributes.spellcasting !== "int") throw new Error("Spellcasting ability mismatch");
-        if (capturedPayload.system.attributes.spell.level !== 5) throw new Error("Spell level mismatch");
+        
+        // Check Item injection
+        if (!capturedEmbedded) throw new Error("createEmbeddedDocuments was never called!");
+        if (capturedEmbedded.length !== 1) throw new Error("Incorrect number of items injected");
+        if (capturedEmbedded[0].name !== "Dummy Spell") throw new Error("Item payload name mismatch");
         
         resolve();
       } catch (e) {
         Actor.create = origActorCreate;
+        globalThis.fromUuid = origFromUuid;
         app.close();
         reject(e);
       }

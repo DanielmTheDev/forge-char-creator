@@ -284,6 +284,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         ctx.beginPath(); ctx.arc(size/2, size/2, (size/2)-10, 0, Math.PI*2); ctx.closePath(); ctx.save(); ctx.clip();
         ctx.drawImage(img, x, y, img.width * scale, img.height * scale); ctx.restore();
         const ringImg = new Image();
+        ringImg.crossOrigin = "Anonymous"; // Fix for The Forge CDN Tainted Canvas
         ringImg.src = "modules/forge-char-creator/assets/token-ring.svg";
         await new Promise(resolve => ringImg.onload = resolve);
         ctx.drawImage(ringImg, 0, 0, size, size);
@@ -327,7 +328,12 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       // Inject compendium items
       if (app?.selectedItems?.size > 0) {
         const docs = await Promise.all(Array.from(app.selectedItems.keys()).map(uuid => fromUuid(uuid)));
-        const valid = docs.filter(i => i).map(i => i.toObject());
+        const valid = docs.filter(i => i).map(i => {
+          const obj = i.toObject();
+          delete obj._id;     // Strip ID to prevent collision limits during creation
+          delete obj.folder;  // Strip compendium folder IDs
+          return obj;
+        });
         if (valid.length > 0) await npc.createEmbeddedDocuments("Item", valid);
       }
 
