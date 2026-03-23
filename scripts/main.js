@@ -39,19 +39,52 @@ Hooks.once("init", () => {
   });
 });
 
-// 2. Global Scene Controls (Floating Icon on left)
-Hooks.on("getSceneControlButtons", (controls) => {
-  if (!Array.isArray(controls)) return;
-  const tokenControls = controls.find(c => c.name === "token");
-  if (tokenControls && game?.user?.isGM) {
-    tokenControls.tools.push({
-      name: "forge-hub",
-      title: "The Forge Hub",
-      icon: "fas fa-hammer",
-      button: true,
-      onClick: () => { new ForgeHubApp().render({ force: true }); }
+// 2. Global Floating Action Button (Universal Compatibility)
+import("./forge-hub.js").then(({ ForgeHubApp }) => {
+  Hooks.once("ready", () => {
+    if (!game.user.isGM) return;
+
+    const fabButton = document.createElement("button");
+    fabButton.id = "forge-hub-fab";
+    fabButton.innerHTML = `<i class="fas fa-hammer"></i>`;
+    fabButton.title = "Launch The Forge Hub";
+    
+    // Aesthetic overlay positioning
+    Object.assign(fabButton.style, {
+      position: "fixed",
+      bottom: "20px",
+      left: "120px",
+      width: "50px",
+      height: "50px",
+      borderRadius: "50%",
+      background: "rgba(0, 0, 0, 0.7)",
+      border: "2px solid #a4c639",
+      color: "white",
+      fontSize: "20px",
+      cursor: "pointer",
+      boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+      zIndex: "100",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "all 0.2s ease"
     });
-  }
+
+    fabButton.addEventListener("mouseenter", () => {
+      fabButton.style.transform = "scale(1.1)";
+      fabButton.style.boxShadow = "0 0 15px #a4c639";
+    });
+    fabButton.addEventListener("mouseleave", () => {
+      fabButton.style.transform = "scale(1)";
+      fabButton.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
+    });
+
+    fabButton.addEventListener("click", () => {
+      new ForgeHubApp().render({ force: true });
+    });
+
+    document.body.appendChild(fabButton);
+  });
 });
 
 // 3. Third-party Omnisearch support (e.g., Spotlight Omnisearch)
