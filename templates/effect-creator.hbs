@@ -183,40 +183,64 @@
       </span>
     </label>
 
-    <div id="wrapFeatureOptions" style="display:none; padding:8px; background:rgba(0,0,0,0.1); border-radius:4px;">
-      <div style="display:flex; gap:16px; margin-bottom:8px;">
-        <label><input type="radio" name="wrapType" data-ef="wrapType" value="none" {{#if (eq s.wrapType "none")}}checked{{/if}}> No Action</label>
-        <label><input type="radio" name="wrapType" data-ef="wrapType" value="attack" {{#if (eq s.wrapType "attack")}}checked{{/if}}> Midi Attack</label>
-        <label><input type="radio" name="wrapType" data-ef="wrapType" value="save" {{#if (eq s.wrapType "save")}}checked{{/if}}> Midi Save</label>
+    <div id="wrapFeatureOptions" style="display:none; padding:10px; background:rgba(0,0,0,0.2); border-radius:4px; border:1px solid var(--color-border-light-tertiary);">
+      
+      <!-- Radio buttons row -->
+      <div style="display:flex; gap:16px; margin-bottom:12px; align-items:center;">
+        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="none" {{#if (eq s.wrapType "none")}}checked{{/if}}> No Action</label>
+        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="attack" {{#if (eq s.wrapType "attack")}}checked{{/if}}> Midi Attack</label>
+        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="save" {{#if (eq s.wrapType "save")}}checked{{/if}}> Midi Save</label>
       </div>
       
       <!-- Common wrapper target/damage Row -->
-      <div id="wrapCommonRow" style="display:none; flex-wrap:wrap; gap:10px; margin-bottom:6px; align-items:center;">
-        <label style="font-size:0.9em;">Targets: <input type="number" data-ef="wrapTargetCount" value="{{s.wrapTargetCount}}" style="width:3rem; text-align:center; height:1.8rem;"></label>
-        <label style="font-size:0.9em;">Area: 
-          <select data-ef="wrapTargetArea" style="height:1.8rem;">
-            <option value="none" {{#if (eq s.wrapTargetArea "none")}}selected{{/if}}>Creature</option>
-            <option value="radius" {{#if (eq s.wrapTargetArea "radius")}}selected{{/if}}>Radius</option>
-            <option value="cone" {{#if (eq s.wrapTargetArea "cone")}}selected{{/if}}>Cone</option>
-            <option value="line" {{#if (eq s.wrapTargetArea "line")}}selected{{/if}}>Line</option>
-          </select>
-        </label>
-        <label style="font-size:0.9em;">Damage (optional): <input type="text" data-ef="wrapDamageFormula" value="{{s.wrapDamageFormula}}" placeholder="e.g. 1d8+3" style="width:6rem; height:1.8rem;"></label>
-        <label style="font-size:0.9em;" id="wrapDamageTypeSection">Type: 
-          <select data-ef="wrapDamageType" style="height:1.8rem;">
-            {{#each damageTypes as |dt|}}<option value="{{dt}}" {{#if (eq ../s.wrapDamageType dt)}}selected{{/if}}>{{dt}}</option>{{/each}}
-          </select>
-        </label>
+      <div id="wrapCommonRow" style="display:none; flex-direction:column; gap:8px; margin-bottom:8px;">
+        
+        <!-- Targets & Area -->
+        <div style="display:flex; gap:16px; align-items:center; width:100%;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Targets:</span>
+            <input type="number" data-ef="wrapTargetCount" value="{{s.wrapTargetCount}}" style="width:3.5rem; text-align:center; height:1.8rem;">
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex:1;">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Area:</span>
+            <select data-ef="wrapTargetArea" style="height:1.8rem; flex:1;">
+              <option value="none" {{#if (eq s.wrapTargetArea "none")}}selected{{/if}}>Creature</option>
+              <option value="radius" {{#if (eq s.wrapTargetArea "radius")}}selected{{/if}}>Radius</option>
+              <option value="cone" {{#if (eq s.wrapTargetArea "cone")}}selected{{/if}}>Cone</option>
+              <option value="line" {{#if (eq s.wrapTargetArea "line")}}selected{{/if}}>Line</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Damage & Type -->
+        <div style="display:flex; gap:16px; align-items:center; width:100%;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Damage:</span>
+            <input type="text" data-ef="wrapDamageFormula" value="{{s.wrapDamageFormula}}" placeholder="1d8+3" style="width:6rem; height:1.8rem; text-align:center;">
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex:1;" id="wrapDamageTypeSection">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Type:</span>
+            <select data-ef="wrapDamageType" style="height:1.8rem; flex:1;">
+              {{#each damageTypes as |dt|}}<option value="{{dt}}" {{#if (eq ../s.wrapDamageType dt)}}selected{{/if}}>{{dt}}</option>{{/each}}
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Save Only Row -->
-      <div id="wrapSaveRow" style="display:none; flex-wrap:wrap; gap:10px; align-items:center;">
-        <label style="font-size:0.9em;">Save Ability: 
-          <select data-ef="wrapSaveAbility" style="height:1.8rem;">
-            {{#each abilities as |ab|}}<option value="{{ab.[0]}}" {{#if (eq ../s.wrapSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>{{/each}}
-          </select>
-        </label>
-        <label style="font-size:0.9em;">Save DC: <input type="text" data-ef="wrapSaveDC" value="{{s.wrapSaveDC}}" style="width:4.5rem; height:1.8rem; text-align:center;" placeholder="e.g. 14, spell"></label>
+      <div id="wrapSaveRow" style="display:none; flex-direction:column; gap:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex; gap:16px; align-items:center; width:100%;">
+          <div style="display:flex; align-items:center; gap:6px; flex:1;">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Save Ability:</span>
+            <select data-ef="wrapSaveAbility" style="height:1.8rem; flex:1;">
+              {{#each abilities as |ab|}}<option value="{{ab.[0]}}" {{#if (eq ../s.wrapSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>{{/each}}
+            </select>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Save DC:</span>
+            <input type="text" data-ef="wrapSaveDC" value="{{s.wrapSaveDC}}" style="width:4.5rem; height:1.8rem; text-align:center;" placeholder="e.g. 14">
+          </div>
+        </div>
       </div>
     </div>
   </fieldset>
