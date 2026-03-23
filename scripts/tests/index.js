@@ -31,7 +31,9 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates correct OverTime Payload", this.#testEffectOverTime);
     await runTest("EffectCreatorApp: Generates correct OverTime Save-Only Payload", this.#testEffectOverTimeSaveOnly);
     await runTest("EffectCreatorApp: Generates dynamic Auto-Destription string", this.#testEffectAutoDescription);
+    await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
+    await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
 
     console.log(`%c🧪 Test Run Complete! ${passed} Passed, ${failed} Failed.`, `color: ${failed > 0 ? 'red' : 'green'}; font-size: 1.2em; font-weight: bold;`);
     console.groupEnd();
@@ -311,6 +313,91 @@ class ForgeTestingSuite {
         app.close();
         reject(e);
       }
+    });
+  }
+
+  static async #testEffectFeatureWrapper() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      const el = app.element;
+      
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Giant Fireball");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+      ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='save']"), true);
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), "radius");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "8d6");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageType']"), "fire");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveAbility']"), "dex");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveDC']"), "16");
+      
+      let capturedItem = null;
+      const origItemCreate = Item.create;
+      Item.create = async function(data, context) {
+        capturedItem = data;
+        Item.create = origItemCreate;
+        return { id: "mock_feat_id", toObject: ()=>data };
+      };
+      
+      const origGet = game.packs.get;
+      game.packs.get = function(key) {
+        if (key === "forge-char-creator.forge-features") return { locked: false, importDocument: async ()=>{} };
+        return origGet.call(game.packs, key);
+      };
+      
+      try {
+        await app._doCreate();
+        await ForgeTestingSuite.#delay(50);
+        
+        Item.create = origItemCreate;
+        game.packs.get = origGet;
+        
+        if (!capturedItem) throw new Error("Feature Item payload not captured");
+        if (capturedItem.system.activation.type !== "action") throw new Error("Missing activation cost");
+        if (capturedItem.system.target.type !== "radius") throw new Error("Target area not set to radius");
+        if (capturedItem.system.target.value !== 20) throw new Error("Target radius size not 20");
+        if (capturedItem.system.actionType !== "save") throw new Error("ActionType not set to save");
+        if (capturedItem.system.save.ability !== "dex") throw new Error("Save ability mismatch");
+        if (capturedItem.system.save.dc !== 16) throw new Error("Save DC mismatch");
+        if (capturedItem.system.damage.parts[0][0] !== "8d6") throw new Error("Damage formula mismatch");
+        if (capturedItem.system.damage.parts[0][1] !== "fire") throw new Error("Damage type mismatch");
+        
+        app.close();
+        resolve();
+      } catch (e) {
+        Item.create = origItemCreate;
+        game.packs.get = origGet;
+        app.close();
+        reject(e);
+      }
+    });
+  }
+
+  static async #testCharCreatorArchetypes() {
+    return new Promise(async (resolve, reject) => {
+      const app = new CharCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      const el = app.element;
+      
+      ForgeTestingSuite.#simulateChange(el.querySelector("#charLevel"), "10");
+      ForgeTestingSuite.#simulateChange(el.querySelector("#charArchetype"), "warrior");
+      
+      try {
+        if (el.querySelector("#ac").value !== "18") throw new Error("AC scaling failed for Warrior Lvl 10");
+        if (el.querySelector("#hp").value !== "90") throw new Error("HP scaling failed for Warrior Lvl 10");
+        if (el.querySelector("#ability-str").value !== "18") throw new Error("STR scaling failed for Warrior Lvl 10");
+        
+        ForgeTestingSuite.#simulateChange(el.querySelector("#charArchetype"), "mage_int");
+        if (el.querySelector("#ac").value !== "14") throw new Error("AC scaling failed for Mage Lvl 10");
+        if (el.querySelector("#hp").value !== "56") throw new Error("HP scaling failed for Mage Lvl 10");
+        if (el.querySelector("#ability-int").value !== "19") throw new Error("INT scaling failed for Mage Lvl 10");
+        if (el.querySelector("#spellcasting").value !== "int") throw new Error("Spellcasting ability not set for Int Mage");
+        
+        app.close();
+        resolve();
+      } catch(e) { app.close(); reject(e); }
     });
   }
 }

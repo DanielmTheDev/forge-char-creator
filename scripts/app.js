@@ -105,6 +105,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = await super._prepareContext(options);
     context.message = "Create a new Character or Creature using the wizard.";
     context.abilities = { str:"STR", dex:"DEX", con:"CON", int:"INT", wis:"WIS", cha:"CHA" };
+    // Provide a simple array generator for Handlebars to build the 1-20 level dropdown
+    context.range = (start, end) => Array.from({length: (end - start + 1)}, (v, k) => k + start);
     return context;
   }
 
@@ -122,6 +124,70 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tabPanels.forEach(p => p.classList.toggle("active", p.dataset.forgePanel === target));
       });
     });
+
+    // ── Archetype Mathematics & Reactivity ──────────────────────────────────
+    const levelSelect = this.element.querySelector("#charLevel");
+    const archSelect = this.element.querySelector("#charArchetype");
+    if (levelSelect && archSelect) {
+      const applyArchetype = () => {
+        const arch = archSelect.value;
+        if (arch === "custom") return; // Do not overwrite user inputs if Custom is selected
+        
+        const lvl = parseInt(levelSelect.value) || 1;
+        
+        let ac=10, hp=10, str=10, dex=10, con=10, int=10, wis=10, cha=10, spell=""
+        
+        if (arch === "warrior") {
+          ac = 16 + Math.floor(lvl / 4);
+          hp = 10 + (lvl * Math.floor(6 + (lvl/5)));
+          str = Math.min(22, 15 + Math.floor(lvl / 3));
+          dex = Math.min(14, 10 + Math.floor(lvl / 5));
+          con = Math.min(20, 14 + Math.floor(lvl / 4));
+          wis = 12;
+        } else if (arch === "rogue") {
+          ac = 14 + Math.min(5, Math.floor(lvl / 4));
+          hp = 8 + (lvl * Math.floor(4.5 + (lvl/6)));
+          dex = Math.min(22, 16 + Math.floor(lvl / 3));
+          con = Math.min(16, 12 + Math.floor(lvl / 4));
+          int = 12; cha = 12; str = 8;
+        } else if (arch.startsWith("mage_") || arch === "cleric_wis") {
+          ac = 12 + Math.floor(lvl / 5);
+          hp = 6 + (lvl * Math.floor(3.5 + (lvl/6)));
+          dex = Math.min(16, 12 + Math.floor(lvl / 4));
+          con = Math.min(18, 12 + Math.floor(lvl / 4));
+          str = 8;
+          
+          if (arch === "mage_int") {
+            int = Math.min(24, 16 + Math.floor(lvl / 3));
+            wis = 14; cha = 10;
+            spell = "int";
+          } else if (arch === "cleric_wis") {
+            wis = Math.min(24, 16 + Math.floor(lvl / 3));
+            ac = 14 + Math.floor(lvl / 5); // clerics get slightly better AC naturally
+            hp = 8 + (lvl * Math.floor(4.5 + (lvl/6))); // slightly tankier
+            int = 10; cha = 12;
+            spell = "wis";
+          } else if (arch === "mage_cha") {
+            cha = Math.min(24, 16 + Math.floor(lvl / 3));
+            int = 12; wis = 12;
+            spell = "cha";
+          }
+          // Auto-fill spell level
+          const spellInput = this.element.querySelector("#spellLevel");
+          if (spellInput) spellInput.value = Math.max(1, Math.min(20, lvl));
+        }
+        
+        // Write the calculated values to the DOM inputs
+        const setVal = (id, val) => { const el = this.element.querySelector(`#${id}`); if (el) el.value = val; };
+        setVal("ac", ac); setVal("hp", hp);
+        setVal("ability-str", str); setVal("ability-dex", dex); setVal("ability-con", con);
+        setVal("ability-int", int); setVal("ability-wis", wis); setVal("ability-cha", cha);
+        setVal("spellcasting", spell);
+      };
+
+      levelSelect.addEventListener("change", applyArchetype);
+      archSelect.addEventListener("change", applyArchetype);
+    }
 
     // Portrait preview
     const fileInput = this.element.querySelector("#portraitUpload");

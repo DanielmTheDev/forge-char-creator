@@ -57,7 +57,9 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     title: "Forge Effect Creator",
     position: { width: 750, height: "auto" },
     window: { icon: "fas fa-sparkles", resizable: true },
-    actions: { createEffect: EffectCreatorApp.#onCreate }
+    actions: { 
+      createEffect: function() { this._doCreate(); }
+    }
   };
 
   static PARTS = {
@@ -93,7 +95,14 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     // Adv/Disadv rows
     advRows: [],
     // Output
-    wrapInFeature: false
+    wrapInFeature: false,
+    wrapType: "none",
+    wrapTargetCount: "1",
+    wrapTargetArea: "none",
+    wrapDamageFormula: "",
+    wrapDamageType: "bludgeoning",
+    wrapSaveAbility: "dex",
+    wrapSaveDC: "14"
   };
 
   async _prepareContext(options) {
@@ -167,6 +176,11 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     show("otRollTypeSection",   s.durationType === "overtime" && !!s.otDamage);
     show("otDamageTypeSection", s.durationType === "overtime" && !!s.otDamage && s.otRollType === "damage");
     show("activationModeRow",   s.appMode === "activation");
+    
+    // Output Wrapper logic
+    show("wrapFeatureOptions", s.wrapInFeature);
+    show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save");
+    show("wrapSaveRow", s.wrapType === "save");
   }
 
   // ── Advantage/Disadvantage rows ────────────────────────────────────────────
@@ -312,13 +326,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   // ── Creation ───────────────────────────────────────────────────────────────
-  static async #onCreate(event, target) {
-    const instance = foundry.applications.instances.get("forge-effect-creator-app");
-    if (!instance) { ui.notifications.error("Could not find EffectCreatorApp instance."); return; }
-    await instance.#doCreate();
-  }
-
-  async #doCreate() {
+  async _doCreate() {
     const s = this.#state;
     if (!s.name?.trim()) { ui.notifications.warn("Please enter an effect name."); return; }
     const aeData = this._buildAEData();
@@ -331,6 +339,29 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         system: { description: { value: s.description || "" } },
         effects: [aeData]
       };
+      
+      if (s.wrapInFeature && s.wrapType !== "none") {
+        itemData.system.activation = { type: "action", cost: 1, condition: "" };
+        const isArea = s.wrapTargetArea !== "none";
+        itemData.system.target = { 
+          value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1), 
+          type: isArea ? s.wrapTargetArea : "creature" 
+        };
+        if (s.wrapDamageFormula?.trim()) {
+          itemData.system.damage = { parts: [[s.wrapDamageFormula.trim(), s.wrapDamageType]] };
+        }
+        if (s.wrapType === "attack") {
+          itemData.system.actionType = "mwak"; // Default to melee weapon attack representation
+        } else if (s.wrapType === "save") {
+          itemData.system.actionType = "save";
+          const dcv = String(s.wrapSaveDC).trim();
+          itemData.system.save = { 
+            ability: s.wrapSaveAbility, 
+            dc: isNaN(dcv) ? null : parseInt(dcv), 
+            scaling: isNaN(dcv) ? dcv.replace("@attributes.","").replace("@","") : "flat" 
+          };
+        }
+      }
       
       const targetPack = s.wrapInFeature ? "forge-features" : "forge-effects";
       const pack = game.packs.get(`forge-char-creator.${targetPack}`);
@@ -348,7 +379,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         otTrigger: "end", otWhose: "target", otDamage: "", otRollType: "damage", otDamageType: "fire",
         otSave: false, otSaveAbility: "dex", otSaveDC: "14", otOnSave: "nodamage", otSuccesses: "1",
         appMode: "activation", activationTarget: "targets",
-        statuses: [], advRows: [], wrapInFeature: false
+        statuses: [], advRows: [], wrapInFeature: false, wrapType: "none", wrapTargetCount: "1",
+        wrapTargetArea: "none", wrapDamageFormula: "", wrapDamageType: "bludgeoning", wrapSaveAbility: "dex", wrapSaveDC: "14"
       };
       this.render();
     } catch (err) {

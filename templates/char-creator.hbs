@@ -8,6 +8,28 @@
     </div>
   </div>
 
+  <div class="form-group flexrow" style="gap: 10px; margin-bottom: 10px;">
+    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+      <label for="charLevel">Level / CR:</label>
+      <select id="charLevel" name="charLevel" style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
+        {{#each (range 1 20) as |lvl|}}
+        <option value="{{lvl}}">{{lvl}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div style="flex:2; display:flex; flex-direction:column; gap:4px;">
+      <label for="charArchetype">Archetype Template:</label>
+      <select id="charArchetype" name="charArchetype" style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
+        <option value="custom">-- Custom / blank --</option>
+        <option value="warrior">Heavy Warrior / Tank</option>
+        <option value="rogue">Agile Rogue / Skirmisher</option>
+        <option value="mage_int">Intelligence Mage</option>
+        <option value="cleric_wis">Wisdom Cleric / Druid</option>
+        <option value="mage_cha">Charisma Caster (Bard/Sorcerer)</option>
+      </select>
+    </div>
+  </div>
+
   <div class="form-group portrait-group flexrow" style="align-items: center; margin-bottom: 10px;">
     <label for="portraitUpload" style="flex: 1;">Portrait Image:</label>
     <div class="form-fields" style="flex: 2; display: flex; align-items: center; gap: 10px;">
