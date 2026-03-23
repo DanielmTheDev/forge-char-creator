@@ -29,9 +29,7 @@ const ABILITIES = [
 
 const ADV_TYPES = [
   { id: "advantage",    label: "Advantage" },
-  { id: "disadvantage", label: "Disadvantage" },
-  { id: "noAdv",        label: "No Advantage" },
-  { id: "noDisadv",     label: "No Disadvantage" }
+  { id: "disadvantage", label: "Disadvantage" }
 ];
 
 const ADV_ROLL_CATS = [
@@ -181,6 +179,12 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     show("wrapFeatureOptions", s.wrapInFeature);
     show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save");
     show("wrapSaveRow", s.wrapType === "save");
+
+    // Force ApplicationV2 to dynamically recalculate interior bounding box heights
+    // This perfectly prevents the window from clipping un-hidden elements with standard scrollbars.
+    if (this.rendered) {
+      setTimeout(() => this.setPosition({ height: "auto" }), 10);
+    }
   }
 
   // ── Advantage/Disadvantage rows ────────────────────────────────────────────
@@ -247,8 +251,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const hasDamage = s.otDamage && s.otDamage.trim();
     const hasSave = s.otSave && s.otSaveAbility;
     if (s.durationType === "overtime" && (hasDamage || hasSave)) {
-      const whose = s.otWhose === "source" ? "Source" : "Target";
-      const trigger = `turn${s.otTrigger === "start" ? "Start" : "End"}${whose}`;
+      const trigger = s.otTrigger === "start" ? "start" : "end";
       const parts = [`turn=${trigger}`];
       if (hasDamage) {
         parts.push(`damageRoll=${s.otDamage}`);
@@ -271,21 +274,9 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
     // Advantage / Disadvantage rows
     for (const row of (s.advRows || [])) {
-      const prefix = row.grants ? "grants" : "advantage_mode";
-      // Map type to midi flag path
-      const typeMap = {
-        advantage:    "flags.midi-qol.advantage",
-        disadvantage: "flags.midi-qol.disadvantage",
-        noAdv:        "flags.midi-qol.fail.all",
-        noDisadv:     "flags.midi-qol.fail.all"
-      };
-      const catPath = row.cat === "all" ? "all" : row.cat;
-      const base = row.type === "advantage" ? "flags.midi-qol.advantage"
-                 : row.type === "disadvantage" ? "flags.midi-qol.disadvantage"
-                 : row.type === "noAdv" ? "flags.midi-qol.critical.all"
-                 : "flags.midi-qol.fail.all";
-      const key = row.grants ? `flags.midi-qol.grants.${row.type}.${catPath}`
-                              : `${base}.${catPath}`;
+      if (row.type !== "advantage" && row.type !== "disadvantage") continue; 
+      const key = row.grants ? `flags.midi-qol.grants.${row.type}.${row.cat}`
+                             : `flags.midi-qol.${row.type}.${row.cat}`;
       changes.push({ key, mode: 5, value: "1", priority: 20 });
     }
 

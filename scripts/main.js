@@ -79,7 +79,47 @@ import("./forge-hub.js").then(({ ForgeHubApp }) => {
       fabButton.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
     });
 
-    fabButton.addEventListener("click", () => {
+    // Native Drag and Drop physics
+    let isDragging = false, hasDragged = false;
+    let startX, startY, initialLeft, initialTop;
+
+    fabButton.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return; // Only drag on left click
+      isDragging = true;
+      hasDragged = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = fabButton.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+      fabButton.style.transition = "none";
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      if (Math.abs(e.clientX - startX) > 3 || Math.abs(e.clientY - startY) > 3) {
+        hasDragged = true;
+      }
+      fabButton.style.left = `${initialLeft + (e.clientX - startX)}px`;
+      fabButton.style.top = `${initialTop + (e.clientY - startY)}px`;
+      fabButton.style.bottom = "auto";
+      fabButton.style.right = "auto";
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        fabButton.style.transition = "all 0.2s ease";
+      }
+    });
+
+    fabButton.addEventListener("click", (e) => {
+      if (hasDragged) {
+        e.preventDefault();
+        e.stopPropagation();
+        hasDragged = false;
+        return;
+      }
       new ForgeHubApp().render({ force: true });
     });
 
