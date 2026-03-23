@@ -336,7 +336,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         name: s.wrapInFeature ? s.name.trim() : `[AE] ${s.name.trim()}`,
         img: s.img || (s.wrapInFeature ? "icons/svg/feature.svg" : "icons/svg/aura.svg"),
         type: "feat",
-        system: { description: { value: s.description || "" } },
+        system: { description: { value: aeData.description.value } },
         effects: [aeData]
       };
       

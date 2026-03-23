@@ -183,9 +183,12 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         setVal("ability-str", str); setVal("ability-dex", dex); setVal("ability-con", con);
         setVal("ability-int", int); setVal("ability-wis", wis); setVal("ability-cha", cha);
         setVal("spellcasting", spell);
+        
+        // Reset the dropdown back to custom so the user knows it's an unlocked state
+        archSelect.value = "custom";
+        ui.notifications.info(`Auto-filled stats for Level ${lvl} ${arch.replace("_", " ")}`);
       };
 
-      levelSelect.addEventListener("change", applyArchetype);
       archSelect.addEventListener("change", applyArchetype);
     }
 
