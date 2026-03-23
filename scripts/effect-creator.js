@@ -329,39 +329,72 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   async _doCreate() {
     const s = this.#state;
     if (!s.name?.trim()) { ui.notifications.warn("Please enter an effect name."); return; }
-    const aeData = this._buildAEData();
-
-    try {
-      const itemData = {
-        name: s.wrapInFeature ? s.name.trim() : `[AE] ${s.name.trim()}`,
-        img: s.img || (s.wrapInFeature ? "icons/svg/feature.svg" : "icons/svg/aura.svg"),
-        type: "feat",
-        system: { description: { value: aeData.description.value } },
-        effects: [aeData]
-      };
-      
-      if (s.wrapInFeature && s.wrapType !== "none") {
-        itemData.system.activation = { type: "action", cost: 1, condition: "" };
-        const isArea = s.wrapTargetArea !== "none";
-        itemData.system.target = { 
-          value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1), 
-          type: isArea ? s.wrapTargetArea : "creature" 
+      const aeData = this._buildAEData();
+      aeData._id = foundry.utils.randomID();
+  
+      try {
+        const itemData = {
+          name: s.wrapInFeature ? s.name.trim() : `[AE] ${s.name.trim()}`,
+          img: s.img || (s.wrapInFeature ? "icons/svg/feature.svg" : "icons/svg/aura.svg"),
+          type: "feat",
+          system: { description: { value: aeData.description.value } },
+          effects: [aeData]
         };
-        if (s.wrapDamageFormula?.trim()) {
-          itemData.system.damage = { parts: [[s.wrapDamageFormula.trim(), s.wrapDamageType]] };
-        }
-        if (s.wrapType === "attack") {
-          itemData.system.actionType = "mwak"; // Default to melee weapon attack representation
-        } else if (s.wrapType === "save") {
-          itemData.system.actionType = "save";
-          const dcv = String(s.wrapSaveDC).trim();
-          itemData.system.save = { 
-            ability: s.wrapSaveAbility, 
-            dc: isNaN(dcv) ? null : parseInt(dcv), 
-            scaling: isNaN(dcv) ? dcv.replace("@attributes.","").replace("@","") : "flat" 
+        
+        if (s.wrapInFeature && s.wrapType !== "none") {
+          itemData.system.activation = { type: "action", cost: 1, condition: "" };
+          const isArea = s.wrapTargetArea !== "none";
+          itemData.system.target = { 
+            value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1), 
+            type: isArea ? s.wrapTargetArea : "creature" 
           };
+          
+          // --- DND5e V2 Legacy Payload Support ---
+          if (s.wrapDamageFormula?.trim()) {
+            itemData.system.damage = { parts: [[s.wrapDamageFormula.trim(), s.wrapDamageType]] };
+          }
+          if (s.wrapType === "attack") {
+            itemData.system.actionType = "mwak";
+          } else if (s.wrapType === "save") {
+            itemData.system.actionType = "save";
+            const dcv = String(s.wrapSaveDC).trim();
+            itemData.system.save = { 
+              ability: s.wrapSaveAbility, 
+              dc: isNaN(dcv) ? null : parseInt(dcv), 
+              scaling: isNaN(dcv) ? dcv.replace("@attributes.","").replace("@","") : "flat" 
+            };
+          }
+  
+          // --- DND5e V3 Modern Payload (Universal Compatibility) ---
+          const actId = foundry.utils.randomID();
+          itemData.system.activities = {
+            [actId]: {
+              _id: actId,
+              type: s.wrapType === "save" ? "save" : "attack",
+              name: s.wrapType === "save" ? "Save" : "Attack",
+              effects: [{ _id: aeData._id }]
+            }
+          };
+  
+          if (s.wrapType === "attack") {
+            itemData.system.activities[actId].attack = { ability: "str", bonus: "", flat: false, type: { value: "melee" } };
+          } else if (s.wrapType === "save") {
+            const dcv = String(s.wrapSaveDC).trim();
+            itemData.system.activities[actId].save = {
+              ability: [s.wrapSaveAbility],
+              dc: { calculation: isNaN(dcv) ? "spellcasting" : "flat", formula: isNaN(dcv) ? "" : dcv }
+            };
+            itemData.system.activities[actId].damage = { onSave: "half" };
+          }
+  
+          if (s.wrapDamageFormula?.trim()) {
+            itemData.system.activities[actId].damage = itemData.system.activities[actId].damage || {};
+            itemData.system.activities[actId].damage.parts = [{
+              custom: { enabled: true, formula: s.wrapDamageFormula.trim() },
+              types: [s.wrapDamageType]
+            }];
+          }
         }
-      }
       
       const targetPack = s.wrapInFeature ? "forge-features" : "forge-effects";
       const pack = game.packs.get(`forge-char-creator.${targetPack}`);

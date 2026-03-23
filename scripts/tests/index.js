@@ -362,6 +362,18 @@ class ForgeTestingSuite {
         if (capturedItem.system.save.dc !== 16) throw new Error("Save DC mismatch");
         if (capturedItem.system.damage.parts[0][0] !== "8d6") throw new Error("Damage formula mismatch");
         if (capturedItem.system.damage.parts[0][1] !== "fire") throw new Error("Damage type mismatch");
+
+        // D&D5e V3 Modern Assertions
+        const activities = capturedItem.system.activities;
+        if (!activities) throw new Error("D&D5e V3 Activities map is missing");
+        const actId = Object.keys(activities)[0];
+        const act = activities[actId];
+        if (act.type !== "save") throw new Error("V3 Activity type not save");
+        if (act.save.ability[0] !== "dex") throw new Error("V3 Activity save ability mismatch");
+        if (act.save.dc.formula !== "16") throw new Error("V3 Activity save DC mismatch");
+        if (act.damage.parts[0].custom.formula !== "8d6") throw new Error("V3 Activity damage formula mismatch");
+        if (act.damage.parts[0].types[0] !== "fire") throw new Error("V3 Activity damage type mismatch");
+        if (!act.effects[0]?._id) throw new Error("V3 Activity did not dynamically link to the Active Effect ID");
         
         app.close();
         resolve();
