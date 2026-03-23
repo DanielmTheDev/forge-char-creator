@@ -1,8 +1,9 @@
 import { ForgeCharCreatorSettings } from "./data.js";
 import { CharCreatorApp } from "./app.js";
 import { EffectCreatorApp } from "./effect-creator.js";
+import { ForgeHubApp } from "./forge-hub.js";
 
-// Global instances to prevent opening multiples
+// Global instances for direct access
 let charCreatorInstance = null;
 let effectCreatorInstance = null;
 
@@ -21,51 +22,45 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   console.log("Forge Character Creator | Ready");
+  if (ui.controls) ui.controls.initialize();
 });
 
-// ── Character Wizard — Actor Directory ───────────────────────────────────────
-Hooks.on("renderActorDirectory", (app, html, data) => {
-  const settings = game.settings.get("forge-char-creator", "wizardSettings");
-  if (settings?.enableWizard === false) return;
+// ── Global Hub UI & Omni-Search Hooks ────────────────────────────────────────
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.classList.add("forge-char-creator-btn");
-  button.innerHTML = `<i class="fas fa-magic"></i> Forge Creator`;
-  button.title = "Launch Forge Character Creator";
-
-  button.addEventListener("click", () => {
-    if (!charCreatorInstance) charCreatorInstance = new CharCreatorApp();
-    charCreatorInstance.render(true, { focus: true });
+// 1. Native V12 Command Palette / Keybind integration
+Hooks.once("init", () => {
+  game.keybindings.register("forge-char-creator", "openHub", {
+    name: "Open Forge Hub",
+    hint: "Launch the centralized Forge creator dashboard.",
+    editable: [{ key: "KeyF", modifiers: ["Alt"] }],
+    onDown: () => { new ForgeHubApp().render({ force: true }); },
+    restricted: true,
+    precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
   });
-
-  const element = html[0] ?? html;
-  const headerActions = element.querySelector(".header-actions.action-buttons")
-                     || element.querySelector(".directory-header .action-buttons");
-  if (headerActions) headerActions.insertAdjacentElement("beforeend", button);
 });
 
-// ── Effect Creator — Item Directory ──────────────────────────────────────────
-Hooks.on("renderItemDirectory", (app, html, data) => {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.classList.add("forge-effect-creator-btn");
-  button.innerHTML = `<i class="fas fa-sparkles"></i> Forge Effect`;
-  button.title = "Launch Forge Effect Creator";
+// 2. Global Scene Controls (Floating Icon on left)
+Hooks.on("getSceneControlButtons", (controls) => {
+  if (!Array.isArray(controls)) return;
+  const tokenControls = controls.find(c => c.name === "token");
+  if (tokenControls && game?.user?.isGM) {
+    tokenControls.tools.push({
+      name: "forge-hub",
+      title: "The Forge Hub",
+      icon: "fas fa-hammer",
+      button: true,
+      onClick: () => { new ForgeHubApp().render({ force: true }); }
+    });
+  }
+});
 
-  button.addEventListener("click", () => {
-    if (!effectCreatorInstance) {
-      effectCreatorInstance = new EffectCreatorApp();
-      // Expose for internal action lookup
-      globalThis._forgeEffectCreatorInstance = effectCreatorInstance;
-    }
-    effectCreatorInstance.render(true, { focus: true });
+// 3. Third-party Omnisearch support (e.g., Spotlight Omnisearch)
+Hooks.on("omnisearch", (api) => {
+  api.addAction({
+    name: "Forge Character & Effect Creator",
+    icon: '<i class="fas fa-hammer"></i>',
+    callback: () => { new ForgeHubApp().render({ force: true }); }
   });
-
-  const element = html[0] ?? html;
-  const headerActions = element.querySelector(".header-actions.action-buttons")
-                     || element.querySelector(".directory-header .action-buttons");
-  if (headerActions) headerActions.insertAdjacentElement("beforeend", button);
 });
 
 // ── Test Suite (Development Only) ──────────────────────────────────────────────

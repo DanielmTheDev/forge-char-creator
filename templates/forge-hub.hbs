@@ -1,0 +1,35 @@
+<div class="forge-hub-container flexcol" style="gap: 1rem; padding: 1rem; background: url('ui/parchment.jpg') center/cover;">
+    <div style="text-align: center; margin-bottom: 0.5rem;">
+        <h2 style="border: none; margin: 0; font-family: 'Signika', sans-serif; font-size: 1.8rem; text-shadow: 1px 1px 2px black;">Forge UI Launcher</h2>
+        <p style="color: var(--color-text-light-5); font-style: italic; margin-top: 4px;">Select a tool to begin.</p>
+    </div>
+    
+    <div class="flexrow" style="gap: 1rem;">
+        <!-- Character Creator Card -->
+        <div class="forge-card flexcol" data-action="launchCharCreator" style="flex: 1; border: 1px solid var(--color-border-dark-4); background: rgba(0,0,0,0.6); border-radius: 5px; cursor: pointer; padding: 1.5rem 1rem; align-items: center; transition: all 0.2s ease;">
+            <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 0.8rem; color: #a4c639;"></i>
+            <h3 style="border: none; margin: 0; font-size: 1.2rem; text-shadow: 1px 1px 2px black;">Character Creator</h3>
+            <span style="font-size: 0.85rem; text-align: center; color: var(--color-text-light-5); margin-top: 5px;">Generate advanced NPCs with auto-scaling Archetypes.</span>
+        </div>
+        
+        <!-- Effect Creator Card -->
+        <div class="forge-card flexcol" data-action="launchEffectCreator" style="flex: 1; border: 1px solid var(--color-border-dark-4); background: rgba(0,0,0,0.6); border-radius: 5px; cursor: pointer; padding: 1.5rem 1rem; align-items: center; transition: all 0.2s ease;">
+            <i class="fas fa-sparkles" style="font-size: 3rem; margin-bottom: 0.8rem; color: #9f82d1;"></i>
+            <h3 style="border: none; margin: 0; font-size: 1.2rem; text-shadow: 1px 1px 2px black;">Effect Creator</h3>
+            <span style="font-size: 0.85rem; text-align: center; color: var(--color-text-light-5); margin-top: 5px;">Build active effects and Midi-QOL feature wrappers.</span>
+        </div>
+    </div>
+
+    <style>
+    .forge-hub-app .window-content {
+        background: #111;
+        padding: 0;
+    }
+    .forge-card:hover {
+        background: rgba(255,255,255,0.15) !important;
+        border-color: var(--color-border-highlight) !important;
+        box-shadow: 0 0 12px var(--color-shadow-highlight);
+        transform: translateY(-2px);
+    }
+    </style>
+</div>
