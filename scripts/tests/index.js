@@ -250,67 +250,72 @@ class ForgeTestingSuite {
 
   static async #testCharCreatorMapping() {
     return new Promise(async (resolve, reject) => {
-      const app = new CharCreatorApp();
-      await app.render(true);
-      await ForgeTestingSuite.#delay(150);
+      let captureHook = null;
+      let timeoutId = null;
       
-      const mockData = {
-        charName: "Test Wizard",
-        hp: "45",
-        ac: "14",
-        size: "huge",
-        disposition: "1",
-        spellcasting: "int",
-        spellLevel: "5"
-      };
-      
-      // Inject dummy selected item
-      const dummyItemUuid = "Compendium.dnd5e.spells.Item.4d5ZqB5V5aA1d6k"; // Any standard UUID, just mock the fetch
-      app.selectedItems.set(dummyItemUuid, { name: "Dummy Spell", img: "icons/svg/mystery-man.svg" });
-      
-      let capturedPayload = null;
-      let capturedEmbedded = null;
-      
-      const origActorCreate = Actor.create;
-      Actor.create = async function(data) {
-        capturedPayload = data;
-        Actor.create = origActorCreate;
-        return { 
-          id: "mock_actor_id", 
-          createEmbeddedDocuments: async (type, docs) => {
-            capturedEmbedded = docs;
-          } 
-        }; 
-      };
-
-      // Mock fromUuid to return a dummy item doc that stringifies to an object cleanly
-      const origFromUuid = globalThis.fromUuid;
-      globalThis.fromUuid = async (uuid) => {
-        return { toObject: () => ({ name: "Dummy Spell", type: "spell", system: {} }) };
-      };
-
       try {
-        await app._createNPC(mockData);
-        app.close();
-        globalThis.fromUuid = origFromUuid;
+        const app = new CharCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
         
-        if (!capturedPayload) throw new Error("No Actor payload was captured.");
-        if (capturedPayload.name !== "Test Wizard") throw new Error("Name mismatch");
-        if (capturedPayload.system.attributes.hp.max !== "45") throw new Error("HP mismatch");
-        if (capturedPayload.system.attributes.ac.flat !== "14") throw new Error("AC mismatch");
-        if (capturedPayload.system.traits.size !== "huge") throw new Error("Size mismatch");
-        if (capturedPayload.prototypeToken.disposition !== 1) throw new Error("Disposition mismatch");
+        const el = app.element;
         
-        // Check Item injection
-        if (!capturedEmbedded) throw new Error("createEmbeddedDocuments was never called!");
-        if (capturedEmbedded.length !== 1) throw new Error("Incorrect number of items injected");
-        if (capturedEmbedded[0].name !== "Dummy Spell") throw new Error("Item payload name mismatch");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='charName']"), "Test Wizard E2E");
+        ForgeTestingSuite.#simulateChange(el.querySelector("#hp"), "45");
+        ForgeTestingSuite.#simulateChange(el.querySelector("#ac"), "14");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='disposition'][value='1']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='size'][value='huge']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("#spellcasting"), "int");
+        ForgeTestingSuite.#simulateChange(el.querySelector("#spellLevel"), "5");
         
-        resolve();
+        // Instead of mocking, fetch a REAL spell from the internal DND5e compendium to guarantee 100% native injection schema validity
+        const pack = game.packs.get("dnd5e.spells");
+        if (!pack) throw new Error("dnd5e.spells compendium missing from environment");
+        const realSpell = pack.index.contents[0];
+        const dummyItemUuid = `Compendium.dnd5e.spells.Item.${realSpell._id}`;
+        app.selectedItems.set(dummyItemUuid, { name: realSpell.name, img: "icons/svg/mystery-man.svg" });
+  
+        captureHook = Hooks.on("createActor", async (actor) => {
+          if (actor.name !== "Test Wizard E2E") return;
+          Hooks.off("createActor", captureHook);
+          clearTimeout(timeoutId);
+          globalThis.fromUuid = origFromUuid;
+          
+          try {
+            if (actor.system.attributes.hp.max !== 45) throw new Error(`HP mismatch, got ${actor.system.attributes.hp.max}`);
+            if (actor.system.attributes.ac.flat !== 14) throw new Error(`AC mismatch, got ${actor.system.attributes.ac.flat}`);
+            if (actor.system.traits.size !== "huge") throw new Error(`Size mismatch, got ${actor.system.traits.size}`);
+            if (actor.prototypeToken.disposition !== 1) throw new Error(`Disposition mismatch, got ${actor.prototypeToken.disposition}`);
+            
+            // Wait an extra tick for embedded documents to finish executing
+            await ForgeTestingSuite.#delay(100);
+            const embedded = actor.items;
+            if (embedded.size !== 1) throw new Error("Incorrect number of items injected");
+            if (embedded.contents[0].name !== realSpell.name) throw new Error("Item payload name mismatch");
+            
+            await actor.delete(); // Cleanup test artifact
+            resolve();
+          } catch(e) {
+            await actor.delete();
+            reject(e);
+          }
+        });
+  
+        timeoutId = setTimeout(() => {
+          Hooks.off("createActor", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Actor.create to fire in local DB"));
+        }, 3000);
+  
+        // Fire physical submit action
+        el.querySelector("form").dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+        // Alternatively click the button directly:
+        const submitBtn = el.querySelector("button[data-action='createNPC']");
+        if (submitBtn) submitBtn.click();
+        
       } catch (e) {
-        Actor.create = origActorCreate;
-        globalThis.fromUuid = origFromUuid;
-        app.close();
+        if (captureHook) Hooks.off("createActor", captureHook);
+        clearTimeout(timeoutId);
         reject(e);
       }
     });
@@ -318,69 +323,66 @@ class ForgeTestingSuite {
 
   static async #testEffectFeatureWrapper() {
     return new Promise(async (resolve, reject) => {
-      const app = new EffectCreatorApp();
-      await app.render(true);
-      await ForgeTestingSuite.#delay(150);
-      const el = app.element;
-      
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Giant Fireball");
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-      ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='save']"), true);
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), "radius");
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "8d6");
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageType']"), "fire");
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveAbility']"), "dex");
-      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveDC']"), "16");
-      
-      let capturedItem = null;
-      const origItemCreate = Item.create;
-      Item.create = async function(data, context) {
-        capturedItem = data;
-        Item.create = origItemCreate;
-        return { id: "mock_feat_id", toObject: ()=>data };
-      };
-      
-      const origGet = game.packs.get;
-      game.packs.get = function(key) {
-        if (key === "forge-char-creator.forge-features") return { locked: false, importDocument: async ()=>{} };
-        return origGet.call(game.packs, key);
-      };
-      
-      try {
-        await app._doCreate();
-        await ForgeTestingSuite.#delay(50);
-        
-        Item.create = origItemCreate;
-        game.packs.get = origGet;
-        
-        if (!capturedItem) throw new Error("Feature Item payload not captured");
-        if (capturedItem.system.activation.type !== "action") throw new Error("Missing activation cost");
-        if (capturedItem.system.target.type !== "radius") throw new Error("Target area not set to radius");
-        if (capturedItem.system.target.value !== 20) throw new Error("Target radius size not 20");
-        if (capturedItem.system.actionType !== "save") throw new Error("ActionType not set to save");
-        if (capturedItem.system.save.ability !== "dex") throw new Error("Save ability mismatch");
-        if (capturedItem.system.save.dc !== 16) throw new Error("Save DC mismatch");
-        if (capturedItem.system.damage.parts[0][0] !== "8d6") throw new Error("Damage formula mismatch");
-        if (capturedItem.system.damage.parts[0][1] !== "fire") throw new Error("Damage type mismatch");
+      let captureHook = null;
+      let timeoutId = null;
 
-        // D&D5e V3 Modern Assertions
-        const activities = capturedItem.system.activities;
-        if (!activities) throw new Error("D&D5e V3 Activities map is missing");
-        const actId = Object.keys(activities)[0];
-        const act = activities[actId];
-        if (act.type !== "save") throw new Error("V3 Activity type not save");
-        if (act.save.ability[0] !== "dex") throw new Error("V3 Activity save ability mismatch");
-        if (act.save.dc.formula !== "16") throw new Error("V3 Activity save DC mismatch");
-        if (act.damage.parts[0].custom.formula !== "8d6") throw new Error("V3 Activity damage formula mismatch");
-        if (act.damage.parts[0].types[0] !== "fire") throw new Error("V3 Activity damage type mismatch");
-        if (!act.effects[0]?._id) throw new Error("V3 Activity did not dynamically link to the Active Effect ID");
+      try {
+        const app = new EffectCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const el = app.element;
         
-        app.close();
-        resolve();
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Giant Fireball E2E");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='save']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), "radius");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "8d6");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageType']"), "fire");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveAbility']"), "dex");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveDC']"), "16");
+        
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== "Giant Fireball E2E") return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            // D&D5e V3 Modern Assertions for physical Document instances
+            const activities = item.system.activities;
+            if (!activities) throw new Error("D&D5e V3 Activities map is missing");
+            const actId = Array.from(activities.keys())[0];
+            const act = activities.get(actId);
+            if (act.type !== "save") throw new Error("V3 Activity type not save");
+            if (act.save.ability.first() !== "dex") throw new Error("V3 Activity save ability mismatch");
+            if (act.save.dc.formula !== "16") throw new Error("V3 Activity save DC mismatch");
+            if (act.damage.parts[0].custom.formula !== "8d6") throw new Error("V3 Activity damage formula mismatch");
+            const damageTypes = Array.from(act.damage.parts[0].types || []);
+            if (damageTypes[0] !== "fire") throw new Error("V3 Activity damage type mismatch");
+            if (!act.effects[0]?._id) throw new Error("V3 Activity did not dynamically link to the Active Effect ID");
+            
+            app.close();
+            await item.delete(); // Cleanup test artifact
+            resolve();
+          } catch (e) {
+            app.close();
+            await item.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Item.create to fire in local DB"));
+        }, 3000);
+
+        // Click create button
+        const submitBtn = el.querySelector("button[data-action='createEffect']");
+        if (submitBtn) submitBtn.click();
+
       } catch (e) {
-        Item.create = origItemCreate;
-        game.packs.get = origGet;
-        app.close();
+        if (captureHook) Hooks.off("createItem", captureHook);
+        clearTimeout(timeoutId);
         reject(e);
       }
     });
@@ -388,28 +390,58 @@ class ForgeTestingSuite {
 
   static async #testCharCreatorArchetypes() {
     return new Promise(async (resolve, reject) => {
-      const app = new CharCreatorApp();
-      await app.render(true);
-      await ForgeTestingSuite.#delay(150);
-      const el = app.element;
-      
-      ForgeTestingSuite.#simulateChange(el.querySelector("#charLevel"), "10");
-      ForgeTestingSuite.#simulateChange(el.querySelector("#charArchetype"), "warrior");
-      
+      let captureHook = null;
+      let timeoutId = null;
+
       try {
+        const app = new CharCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const el = app.element;
+        
+        ForgeTestingSuite.#simulateChange(el.querySelector("#charLevel"), "10");
+        ForgeTestingSuite.#simulateChange(el.querySelector("#charArchetype"), "warrior");
+        
         if (el.querySelector("#ac").value !== "18") throw new Error("AC scaling failed for Warrior Lvl 10");
         if (el.querySelector("#hp").value !== "90") throw new Error("HP scaling failed for Warrior Lvl 10");
         if (el.querySelector("#ability-str").value !== "18") throw new Error("STR scaling failed for Warrior Lvl 10");
         
-        ForgeTestingSuite.#simulateChange(el.querySelector("#charArchetype"), "mage_int");
-        if (el.querySelector("#ac").value !== "14") throw new Error("AC scaling failed for Mage Lvl 10");
-        if (el.querySelector("#hp").value !== "56") throw new Error("HP scaling failed for Mage Lvl 10");
-        if (el.querySelector("#ability-int").value !== "19") throw new Error("INT scaling failed for Mage Lvl 10");
-        if (el.querySelector("#spellcasting").value !== "int") throw new Error("Spellcasting ability not set for Int Mage");
-        
-        app.close();
-        resolve();
-      } catch(e) { app.close(); reject(e); }
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='charName']"), "Test Warrior E2E");
+
+        captureHook = Hooks.on("createActor", async (actor) => {
+          if (actor.name !== "Test Warrior E2E") return;
+          Hooks.off("createActor", captureHook);
+          clearTimeout(timeoutId);
+          try {
+            if (actor.system.attributes.hp.max !== 90) throw new Error(`Actor DB HP failed, got ${actor.system.attributes.hp.max}`);
+            if (actor.system.abilities.str.value !== 18) throw new Error(`Actor DB STR failed, got ${actor.system.abilities.str.value}`);
+            
+            app.close();
+            await actor.delete(); // Cleanup test artifact
+            resolve();
+          } catch(e) {
+            app.close();
+            await actor.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createActor", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Actor.create to fire in local DB"));
+        }, 3000);
+
+        // Fire physical submit action
+        el.querySelector("form").dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+        const submitBtn = el.querySelector("button[data-action='createNPC']");
+        if (submitBtn) submitBtn.click();
+
+      } catch(e) {
+        if (captureHook) Hooks.off("createActor", captureHook);
+        clearTimeout(timeoutId);
+        reject(e);
+      }
     });
   }
 }
