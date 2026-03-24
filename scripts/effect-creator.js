@@ -373,7 +373,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
             const dcv = String(s.wrapSaveDC).trim();
             itemData.system.activities[actId].save = {
               ability: [s.wrapSaveAbility],
-              dc: { calculation: isNaN(dcv) ? "spellcasting" : "flat", formula: isNaN(dcv) ? "" : dcv }
+              dc: { calculation: isNaN(dcv) ? "spellcasting" : "custom", formula: isNaN(dcv) ? "" : dcv }
             };
             itemData.system.activities[actId].damage = { onSave: "half" };
           }
