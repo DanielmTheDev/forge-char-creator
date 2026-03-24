@@ -34,6 +34,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
+    await runTest("Midi-QOL Integration: Omega Combat Simulator (E2E Feature -> Combat -> Advantage -> Overtime)", this.#testCombatEngineIntegration);
 
     console.log(`%c🧪 Test Run Complete! ${passed} Passed, ${failed} Failed.`, `color: ${failed > 0 ? 'red' : 'green'}; font-size: 1.2em; font-weight: bold;`);
     console.groupEnd();
@@ -440,6 +441,171 @@ class ForgeTestingSuite {
       } catch(e) {
         if (captureHook) Hooks.off("createActor", captureHook);
         clearTimeout(timeoutId);
+        reject(e);
+      }
+    });
+  }
+
+  static async #testCombatEngineIntegration() {
+    return new Promise(async (resolve, reject) => {
+      let attacker, defender, attackerToken, defenderToken, combat, compendiumItem;
+      const scene = canvas.scene;
+      
+      if (!scene) return reject(new Error("No active scene available for combat test!"));
+      if (typeof MidiQOL === "undefined") return reject(new Error("Midi-QOL module is missing or inactive!"));
+
+      try {
+        console.group("Omega Combat Sequence");
+        ui.notifications.info("Omega Test: Spawning DB Actors...");
+        
+        // 1. Database level Actor instantiation (We verified UI injection elsewhere, need speed here)
+        attacker = await Actor.create({
+          name: "Test Attacker E2E", type: "npc",
+          system: { attributes: { hp: { value: 100, max: 100 } } }
+        });
+        defender = await Actor.create({
+          name: "Test Defender E2E", type: "npc",
+          system: { attributes: { hp: { value: 100, max: 100 } }, traits: { size: "med" } }
+        });
+
+        // 2. Generate the Restraining Strike feature via complete native UI actuation
+        const generateFeatureViaUI = async () => {
+          return new Promise(async (res, rej) => {
+            const app = new EffectCreatorApp();
+            await app.render(true);
+            await ForgeTestingSuite.#delay(150);
+            const el = app.element;
+            
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Omega Strike E2E");
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+            ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='save']"), true);
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetCount']"), "1");
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), "creature");
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveAbility']"), "dex");
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveDC']"), "20"); // High to force fail
+            
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='restrained']"), true);
+
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='durationType'][value='overtime']"), true);
+            await ForgeTestingSuite.#delay(50);
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otDamage']"), "10");
+            ForgeTestingSuite.#simulateChange(el.querySelector("[name='otRollType'][value='damage']"), true);
+            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='otDamageType']"), "fire");
+
+            const captureHook = Hooks.on("createItem", (item) => {
+              if (item.name !== "Omega Strike E2E") return;
+              Hooks.off("createItem", captureHook);
+              app.close();
+              res(item);
+            });
+
+            setTimeout(() => { Hooks.off("createItem", captureHook); app.close(); rej(new Error("Timeout creating feature")); }, 4000);
+            const submitBtn = el.querySelector("button[data-action='createEffect']");
+            if (submitBtn) submitBtn.click();
+            else rej(new Error("Submit button not found"));
+          });
+        };
+
+        ui.notifications.info("Omega Test: Actuating Engine UI to build Item Payload...");
+        compendiumItem = await generateFeatureViaUI();
+        const itemData = compendiumItem.toObject();
+        delete itemData._id;
+        delete itemData.folder;
+        
+        // Inject into attacker
+        const [embeddedFeature] = await attacker.createEmbeddedDocuments("Item", [itemData]);
+
+        // 3. Drop physical Tokens onto the Tracker
+        ui.notifications.info("Omega Test: Dropping Tokens onto Scene...");
+        attackerToken = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, x: 100, y: 100, disposition: 1 }, { parent: scene });
+        defenderToken = await TokenDocument.create({ actorId: defender.id, name: defender.name, x: 200, y: 100, disposition: -1 }, { parent: scene });
+
+        // 4. Instantiate Foundry Combat Sequence
+        ui.notifications.info("Omega Test: Initializing Combat Encounter...");
+        combat = await Combat.create({ scene: scene.id });
+        await combat.createEmbeddedDocuments("Combatant", [
+          { tokenId: attackerToken.id, actorId: attacker.id, initiative: 20 },
+          { tokenId: defenderToken.id, actorId: defender.id, initiative: 10 }
+        ]);
+        await combat.startCombat();
+
+        // 5. Force Midi-QOL Execution
+        game.user.updateTokenTargets([defenderToken.id]);
+        ui.notifications.info("Omega Test: Mechanically forcing Feature Execution...");
+        const workflow = await MidiQOL.completeItemUse(embeddedFeature, 
+          { showFullCard: false, createWorkflow: true }, 
+          { workflowOptions: { autoRollDamage: 'always', autoFastDamage: true, autoRollSave: 'always', autoFastSave: true, targetConfirmation: 'none' }}
+        );
+        
+        await ForgeTestingSuite.#delay(2500); // 2.5s for Midi Animations and Database resolutions
+        
+        // 6. Assert Effect Applications
+        const hasRestrained = defender.effects.some(e => e.statuses.has("restrained"));
+        if (!hasRestrained) throw new Error("Defender failed to inherit the Restrained status hook from the attack payload!");
+        
+        const hasOvertime = defender.effects.some(e => e.changes.some(c => c.key === "flags.midi-qol.OverTime"));
+        if (!hasOvertime) throw new Error("Defender failed to inherit the OverTime listener from the attack payload!");
+
+        // 7. Assert OverTime Execution
+        const initialHP = defender.system.attributes.hp.value;
+        ui.notifications.info("Omega Test: Advancing Combat turn for Overtime processing...");
+        await combat.nextTurn();
+        await ForgeTestingSuite.#delay(2500); // 2.5s for Midi Overtime macro to fire, roll, and apply
+        
+        const newHP = defender.system.attributes.hp.value;
+        if (newHP >= initialHP) throw new Error(`OverTime damage hook failed to execute. HP remained ${newHP} on nextTurn()`);
+
+        // 8. Assert Advantage Mechanics via Core Item
+        const [sword] = await attacker.createEmbeddedDocuments("Item", [{
+          name: "Test Sword", type: "weapon",
+          system: {
+            actionType: "mwak", equipped: true,
+            damage: { parts: [[{ custom: { enabled: true, formula: "1d8" }, types: ["slashing"] }]] }, // V3 schema compatible
+            activities: {
+              act1: { type: "attack", attack: { ability: "str", flat: true } }
+            }
+          }
+        }]);
+        
+        ui.notifications.info("Omega Test: Actuating secondary attack to assert Dice Advantage interpolation...");
+        const swordWorkflow = await MidiQOL.completeItemUse(sword, 
+          { showFullCard: false, createWorkflow: true }, 
+          { workflowOptions: { autoRollDamage: 'always', autoFastDamage: true, targetConfirmation: 'none' }}
+        );
+        
+        await ForgeTestingSuite.#delay(1500);
+        
+        if (!swordWorkflow.advantage) throw new Error("Attacker did not gain Advantage against the Restrained target! Internal Advantage map bypassed.");
+
+        ui.notifications.info("Omega Test: 100% Success! Destroying test artifacts...");
+        console.groupEnd();
+        
+        // CLEANUP
+        Hooks.off("createActor", captureHook); // Purge any stray hooks
+        await attacker.delete();
+        await defender.delete();
+        await attackerToken.delete();
+        await defenderToken.delete();
+        if (combat) await combat.delete();
+        if (compendiumItem) await compendiumItem.delete();
+        game.user.updateTokenTargets([]);
+        
+        // Extra cleanup for hung artifacts
+        game.actors.filter(a => a.name.includes("E2E")).forEach(a => a.delete());
+        game.items.filter(i => i.name.includes("E2E")).forEach(i => i.delete());
+        
+        resolve();
+
+      } catch(e) {
+        console.groupEnd();
+        // Emergency Cleanup
+        if (attacker) await attacker.delete().catch(console.error);
+        if (defender) await defender.delete().catch(console.error);
+        if (attackerToken) await attackerToken.delete().catch(console.error);
+        if (defenderToken) await defenderToken.delete().catch(console.error);
+        if (combat) await combat.delete().catch(console.error);
+        if (compendiumItem) await compendiumItem.delete().catch(console.error);
+        game.user.updateTokenTargets([]);
         reject(e);
       }
     });
