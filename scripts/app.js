@@ -306,8 +306,20 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   // ── NPC Creation ──────────────────────────────────────────────────────────
   static async #onCreateNPC(event, target) {
     const form = target.closest("form") ?? target.closest(".forge-char-creator-content");
-    const formData = new FormDataExtended(form);
-    const data = formData.object;
+    // Standard DOM FormData natively intercepts all inputs identically across V12/V13
+    const fd = new FormData(form);
+    const data = {};
+    for (const [k, v] of fd.entries()) data[k] = v;
+    
+    // Explicitly parse the abilities dict rather than trusting expandObject which fails dynamically
+    data.abilities = {
+      str: parseInt(data["abilities.str"]) || 10,
+      dex: parseInt(data["abilities.dex"]) || 10,
+      con: parseInt(data["abilities.con"]) || 10,
+      int: parseInt(data["abilities.int"]) || 10,
+      wis: parseInt(data["abilities.wis"]) || 10,
+      cha: parseInt(data["abilities.cha"]) || 10
+    };
 
     const instance = foundry.applications.instances.get("forge-char-creator-app");
 
