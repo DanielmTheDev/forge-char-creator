@@ -34,6 +34,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates correct AC Modifier Payload", this.#testEffectACModifier);
     await runTest("EffectCreatorApp: Generates correct Ability Score Modifier Payload", this.#testEffectAbilityModifier);
     await runTest("EffectCreatorApp: Generates correct Stacking Flags", this.#testEffectStacking);
+    await runTest("EffectCreatorApp: Auto-Description includes Stacking, Mode, Duration, Grants", this.#testEffectAutoDescriptionAdvanced);
     await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
@@ -385,6 +386,7 @@ class ForgeTestingSuite {
         if (!payload) throw new Error("No payload was captured.");
         if (!payload.flags.dae) throw new Error("Missing DAE flags object.");
         if (payload.flags.dae.stackable !== "multi") throw new Error(`Expected stackable "multi", got "${payload.flags.dae.stackable}"`);
+        if (!payload.description.value.includes("Stacking: Full Stack.")) throw new Error("Auto-description missing stacking text for multi.");
         
         // Verify "count" mode too
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "count");
@@ -395,6 +397,90 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "none");
         const payload3 = app._buildAEData();
         if (payload3.flags.dae?.stackable) throw new Error("Stackable 'none' should not produce DAE flags.");
+        
+        app.close();
+        resolve();
+      } catch (e) {
+        app.close();
+        reject(e);
+      }
+    });
+  }
+
+  // ── Advanced Auto-Description Test (Stacking, Mode, Duration, Grants) ────
+  static async #testEffectAutoDescriptionAdvanced() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      
+      const el = app.element;
+      
+      // Leave description blank to trigger auto-gen
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Advanced Desc Test");
+      
+      // 1. Set Passive mode
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='appMode'][value='passive']"), true);
+      
+      // 2. Set fixed duration of 5 rounds
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='durationType'][value='fixed']"), true);
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='rounds']"), "5");
+      
+      // 3. Set stackable to count
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "count");
+      
+      // 4. Add AC bonus
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='acBonus']"), "2");
+      
+      // 5. Add a grants advantage modifier
+      el.querySelector("#addAdvRow").click();
+      await ForgeTestingSuite.#delay(50);
+      
+      const typeSelect = el.querySelector(".adv-type");
+      const catSelect = el.querySelector(".adv-cat");
+      const grantsCheck = el.querySelector(".adv-grants");
+      ForgeTestingSuite.#simulateChange(typeSelect, "advantage");
+      ForgeTestingSuite.#simulateChange(catSelect, "attack.mwak");
+      ForgeTestingSuite.#simulateChange(grantsCheck, true);
+      
+      try {
+        const payload = app._buildAEData();
+        const desc = payload.description?.value;
+        if (!desc) throw new Error("Description was not generated.");
+        
+        // Verify grants qualifier
+        if (!desc.includes("grants advantage on attack.mwak")) throw new Error(`Grants qualifier missing from description. Got: ${desc}`);
+        
+        // Verify stacking
+        if (!desc.includes("Stacking: Count Stacks.")) throw new Error(`Stacking missing from description. Got: ${desc}`);
+        
+        // Verify passive mode
+        if (!desc.includes("Mode: Passive (always active).")) throw new Error(`Passive mode missing from description. Got: ${desc}`);
+        
+        // Verify duration
+        if (!desc.includes("Duration: 5 rounds.")) throw new Error(`Duration missing from description. Got: ${desc}`);
+        
+        // Verify AC bonus is still there
+        if (!desc.includes("AC +2.")) throw new Error(`AC bonus missing from description. Got: ${desc}`);
+        
+        // Now test activation mode with target(s)
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='appMode'][value='activation']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='activationTarget'][value='targets']"), true);
+        const payload2 = app._buildAEData();
+        const desc2 = payload2.description?.value;
+        if (!desc2.includes("Mode: On Activation (applies to target(s)).")) throw new Error(`Activation mode missing. Got: ${desc2}`);
+        
+        // Test indefinite duration
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='rounds']"), "0");
+        const payload3 = app._buildAEData();
+        const desc3 = payload3.description?.value;
+        if (!desc3.includes("Duration: Indefinite.")) throw new Error(`Indefinite duration missing. Got: ${desc3}`);
+        
+        // Test singular round
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='rounds']"), "1");
+        const payload4 = app._buildAEData();
+        const desc4 = payload4.description?.value;
+        if (!desc4.includes("Duration: 1 round.")) throw new Error(`Singular round missing. Got: ${desc4}`);
         
         app.close();
         resolve();

@@ -374,7 +374,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       }
       
       if (s.advRows?.length) {
-        summaries.push(`Modifiers: ${s.advRows.map(r => `${r.type} on ${r.cat}`).join(", ")}.`);
+        summaries.push(`Modifiers: ${s.advRows.map(r => `${r.grants ? "grants " : ""}${r.type} on ${r.cat}`).join(", ")}.`);
       }
 
       // AC Modifier
@@ -392,7 +392,29 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
           });
         if (mods.length) summaries.push(`Ability Modifiers: ${mods.join(", ")}.`);
       }
-      
+
+      // Stackability
+      if (s.stackable && s.stackable !== "none") {
+        const stackLabel = s.stackable === "multi" ? "Full Stack" : "Count Stacks";
+        summaries.push(`Stacking: ${stackLabel}.`);
+      }
+
+      // Application Mode
+      if (s.appMode === "passive") {
+        summaries.push("Mode: Passive (always active).");
+      } else if (s.appMode === "activation") {
+        const target = s.activationTarget === "wearer" ? "self" : "target(s)";
+        summaries.push(`Mode: On Activation (applies to ${target}).`);
+      }
+
+      // Duration
+      const durationRounds = parseInt(s.rounds);
+      if (s.durationType === "fixed" && durationRounds > 0) {
+        summaries.push(`Duration: ${durationRounds} round${durationRounds !== 1 ? "s" : ""}.`);
+      } else if (s.durationType === "fixed" && (!durationRounds || durationRounds === 0)) {
+        summaries.push("Duration: Indefinite.");
+      }
+
       descriptionText = summaries.join(" ") || "A custom effect.";
     }
 

@@ -2,7 +2,7 @@
   "id": "forge-char-creator",
   "title": "Forge Character Creator",
   "description": "A character creator wizard module for Foundry VTT V13.",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "authors": [
     {
       "name": "Forge Char Creator Developer"
