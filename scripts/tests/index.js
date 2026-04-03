@@ -31,6 +31,9 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates correct OverTime Payload", this.#testEffectOverTime);
     await runTest("EffectCreatorApp: Generates correct OverTime Save-Only Payload", this.#testEffectOverTimeSaveOnly);
     await runTest("EffectCreatorApp: Generates dynamic Auto-Destription string", this.#testEffectAutoDescription);
+    await runTest("EffectCreatorApp: Generates correct AC Modifier Payload", this.#testEffectACModifier);
+    await runTest("EffectCreatorApp: Generates correct Ability Score Modifier Payload", this.#testEffectAbilityModifier);
+    await runTest("EffectCreatorApp: Generates correct Stacking Flags", this.#testEffectStacking);
     await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
@@ -249,6 +252,159 @@ class ForgeTestingSuite {
     });
   }
 
+  // ── AC Modifier Test ────────────────────────────────────────────────────
+  static async #testEffectACModifier() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      
+      const el = app.element;
+      
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "AC Shield E2E");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='acBonus']"), "3");
+      
+      try {
+        const payload = app._buildAEData();
+        app.close();
+        
+        if (!payload) throw new Error("No payload was captured.");
+        const change = payload.changes.find(c => c.key === "system.attributes.ac.bonus");
+        if (!change) throw new Error("Missing AC bonus change in payload.");
+        if (change.mode !== 2) throw new Error(`Expected mode 2 (ADD), got ${change.mode}`);
+        if (change.value !== "3") throw new Error(`Expected value "3", got "${change.value}"`);
+        
+        // Also verify negative works
+        const app2 = new EffectCreatorApp();
+        await app2.render(true);
+        await ForgeTestingSuite.#delay(100);
+        const el2 = app2.element;
+        ForgeTestingSuite.#simulateChange(el2.querySelector("[data-ef='name']"), "AC Penalty");
+        ForgeTestingSuite.#simulateChange(el2.querySelector("[data-ef='acBonus']"), "-2");
+        const payload2 = app2._buildAEData();
+        app2.close();
+        const change2 = payload2.changes.find(c => c.key === "system.attributes.ac.bonus");
+        if (!change2) throw new Error("Missing AC penalty change.");
+        if (change2.value !== "-2") throw new Error(`Expected "-2", got "${change2.value}"`);
+        
+        // Verify zero produces no change
+        const app3 = new EffectCreatorApp();
+        await app3.render(true);
+        await ForgeTestingSuite.#delay(100);
+        const el3 = app3.element;
+        ForgeTestingSuite.#simulateChange(el3.querySelector("[data-ef='name']"), "No AC");
+        ForgeTestingSuite.#simulateChange(el3.querySelector("[data-ef='acBonus']"), "0");
+        const payload3 = app3._buildAEData();
+        app3.close();
+        const change3 = payload3.changes.find(c => c.key === "system.attributes.ac.bonus");
+        if (change3) throw new Error("Zero AC should produce no change entry.");
+        
+        // Verify auto-description includes AC info
+        if (!payload.description.value.includes("AC +3")) throw new Error("Auto-description missing AC bonus text.");
+        
+        resolve();
+      } catch (e) {
+        app.close();
+        reject(e);
+      }
+    });
+  }
+
+  // ── Ability Score Modifier Test ─────────────────────────────────────────
+  static async #testEffectAbilityModifier() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      
+      const el = app.element;
+      
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Bull's Strength E2E");
+      
+      // Add first ability modifier row
+      el.querySelector("#addAbilityRow").click();
+      await ForgeTestingSuite.#delay(50);
+      
+      // Set first row: STR +4
+      let abilitySelects = el.querySelectorAll(".ability-mod-ability");
+      let valueInputs = el.querySelectorAll(".ability-mod-value");
+      ForgeTestingSuite.#simulateChange(abilitySelects[0], "str");
+      ForgeTestingSuite.#simulateChange(valueInputs[0], "4");
+      
+      // Add second row: DEX -2
+      el.querySelector("#addAbilityRow").click();
+      await ForgeTestingSuite.#delay(50);
+      
+      abilitySelects = el.querySelectorAll(".ability-mod-ability");
+      valueInputs = el.querySelectorAll(".ability-mod-value");
+      ForgeTestingSuite.#simulateChange(abilitySelects[1], "dex");
+      ForgeTestingSuite.#simulateChange(valueInputs[1], "-2");
+      
+      try {
+        const payload = app._buildAEData();
+        app.close();
+        
+        if (!payload) throw new Error("No payload was captured.");
+        
+        const strChange = payload.changes.find(c => c.key === "system.abilities.str.value");
+        if (!strChange) throw new Error("Missing STR modifier change.");
+        if (strChange.mode !== 2) throw new Error(`Expected mode 2 (ADD), got ${strChange.mode}`);
+        if (strChange.value !== "4") throw new Error(`STR value expected "4", got "${strChange.value}"`);
+        
+        const dexChange = payload.changes.find(c => c.key === "system.abilities.dex.value");
+        if (!dexChange) throw new Error("Missing DEX modifier change.");
+        if (dexChange.value !== "-2") throw new Error(`DEX value expected "-2", got "${dexChange.value}"`);
+        
+        // Verify auto-description
+        if (!payload.description.value.includes("STR +4")) throw new Error("Auto-description missing STR modifier.");
+        if (!payload.description.value.includes("DEX -2")) throw new Error("Auto-description missing DEX modifier.");
+        
+        resolve();
+      } catch (e) {
+        app.close();
+        reject(e);
+      }
+    });
+  }
+
+  // ── Stacking Test ───────────────────────────────────────────────────────
+  static async #testEffectStacking() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+      
+      const el = app.element;
+      
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Stackable Buff E2E");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "multi");
+      
+      try {
+        const payload = app._buildAEData();
+        
+        if (!payload) throw new Error("No payload was captured.");
+        if (!payload.flags.dae) throw new Error("Missing DAE flags object.");
+        if (payload.flags.dae.stackable !== "multi") throw new Error(`Expected stackable "multi", got "${payload.flags.dae.stackable}"`);
+        
+        // Verify "count" mode too
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "count");
+        const payload2 = app._buildAEData();
+        if (payload2.flags.dae.stackable !== "count") throw new Error(`Expected stackable "count", got "${payload2.flags.dae.stackable}"`);
+        
+        // Verify "none" produces no dae flags
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "none");
+        const payload3 = app._buildAEData();
+        if (payload3.flags.dae?.stackable) throw new Error("Stackable 'none' should not produce DAE flags.");
+        
+        app.close();
+        resolve();
+      } catch (e) {
+        app.close();
+        reject(e);
+      }
+    });
+  }
+
   static async #testCharCreatorMapping() {
     return new Promise(async (resolve, reject) => {
       let captureHook = null;
@@ -280,7 +436,6 @@ class ForgeTestingSuite {
           if (actor.name !== "Test Wizard E2E") return;
           Hooks.off("createActor", captureHook);
           clearTimeout(timeoutId);
-          globalThis.fromUuid = origFromUuid;
           
           try {
             if (actor.system.attributes.hp.max !== 45) throw new Error(`HP mismatch, got ${actor.system.attributes.hp.max}`);

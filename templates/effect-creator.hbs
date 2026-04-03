@@ -169,6 +169,35 @@
     </button>
   </fieldset>
 
+  <!-- ── Stat Modifiers ──────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Stat Modifiers</legend>
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+      <label style="font-size:0.9em; font-weight:bold; white-space:nowrap;">AC Bonus/Penalty:</label>
+      <input type="number" data-ef="acBonus" value="{{s.acBonus}}"
+             style="width:4rem; height:1.8rem; text-align:center;" placeholder="0">
+      <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">(positive = bonus, negative = penalty)</span>
+    </div>
+    <label style="font-size:0.9em; font-weight:bold; display:block; margin-bottom:4px;">Ability Score Modifiers:</label>
+    <div id="abilityRowsContainer" style="margin-bottom:6px;"></div>
+    <button type="button" id="addAbilityRow" style="font-size:0.85em; padding:2px 8px;">
+      <i class="fas fa-plus"></i> Add Ability Modifier
+    </button>
+  </fieldset>
+
+  <!-- ── Stacking ────────────────────────────────────────────────────── -->
+  <fieldset>
+    <legend>Effect Stacking <span class="notes" style="font-size:0.82em; font-weight:normal;">(DAE)</span></legend>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <select data-ef="stackable" style="height:1.8rem; flex:1; max-width:14rem;">
+        <option value="none" {{#if (eq s.stackable "none")}}selected{{/if}}>None (default — replaces)</option>
+        <option value="count" {{#if (eq s.stackable "count")}}selected{{/if}}>Count Stacks</option>
+        <option value="multi" {{#if (eq s.stackable "multi")}}selected{{/if}}>Full Stack (Multi)</option>
+      </select>
+      <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Controls whether multiple copies of this effect stack on a target.</span>
+    </div>
+  </fieldset>
+
   <!-- ── Output Mode ───────────────────────────────────────────────────── -->
   <fieldset>
     <legend>Output</legend>

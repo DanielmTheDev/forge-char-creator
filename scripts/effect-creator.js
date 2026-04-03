@@ -92,6 +92,10 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     statuses: [],
     // Adv/Disadv rows
     advRows: [],
+    // Stat Modifiers
+    acBonus: 0,
+    abilityRows: [],      // [{ability: "str", value: 2}, ...]
+    stackable: "none",    // "none" | "count" | "multi"
     // Output
     wrapInFeature: false,
     wrapType: "none",
@@ -157,8 +161,16 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       this.#renderAdvRows(el);
     });
 
+    // Add Ability Modifier Row
+    const addAbilityBtn = el.querySelector("#addAbilityRow");
+    if (addAbilityBtn) addAbilityBtn.addEventListener("click", () => {
+      this.#state.abilityRows.push({ ability: "str", value: 0 });
+      this.#renderAbilityRows(el);
+    });
+
     this.#reactiveUpdate(el);
     this.#renderAdvRows(el);
+    this.#renderAbilityRows(el);
     this.#updateRawPreview(el);
   }
 
@@ -232,6 +244,48 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     }));
   }
 
+  // ── Ability Score Modifier rows ───────────────────────────────────────────
+  #renderAbilityRows(el) {
+    const container = el.querySelector("#abilityRowsContainer");
+    if (!container) return;
+
+    if (this.#state.abilityRows.length === 0) {
+      container.innerHTML = `<p class="notes" style="font-style:italic; font-size:0.85em; color:var(--color-text-light-5);">No ability modifiers added.</p>`;
+      return;
+    }
+
+    const ABILITY_OPTIONS = [
+      ["str","STR"], ["dex","DEX"], ["con","CON"],
+      ["int","INT"], ["wis","WIS"], ["cha","CHA"]
+    ];
+
+    container.innerHTML = this.#state.abilityRows.map((row, idx) => `
+      <div class="ability-row flexrow" style="gap:6px; align-items:center; margin-bottom:4px; background:rgba(0,0,0,0.15); border-radius:3px; padding:3px 6px;">
+        <select class="ability-mod-ability" data-idx="${idx}" style="flex:1; height:1.8rem;">
+          ${ABILITY_OPTIONS.map(([k,l]) => `<option value="${k}" ${row.ability===k?"selected":""}>${l}</option>`).join("")}
+        </select>
+        <input type="number" class="ability-mod-value" data-idx="${idx}" value="${row.value}" 
+               style="width:4rem; height:1.8rem; text-align:center;" placeholder="+/-">
+        <button type="button" class="ability-mod-del" data-idx="${idx}" 
+                style="flex-shrink:0; padding:0 6px; height:1.8rem; color:var(--color-level-error-high);">×</button>
+      </div>`).join("");
+
+    // Wire events
+    container.querySelectorAll(".ability-mod-ability").forEach(sel => sel.addEventListener("change", () => {
+      this.#state.abilityRows[+sel.dataset.idx].ability = sel.value;
+      this.#updateRawPreview(el);
+    }));
+    container.querySelectorAll(".ability-mod-value").forEach(inp => inp.addEventListener("change", () => {
+      this.#state.abilityRows[+inp.dataset.idx].value = parseInt(inp.value) || 0;
+      this.#updateRawPreview(el);
+    }));
+    container.querySelectorAll(".ability-mod-del").forEach(btn => btn.addEventListener("click", () => {
+      this.#state.abilityRows.splice(+btn.dataset.idx, 1);
+      this.#renderAbilityRows(el);
+      this.#updateRawPreview(el);
+    }));
+  }
+
   // ── Live Raw Preview ───────────────────────────────────────────────────────
   #updateRawPreview(el) {
     const pre = el.querySelector("#efRawPreview");
@@ -280,6 +334,29 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       changes.push({ key, mode: 5, value: "1", priority: 20 });
     }
 
+    // AC Bonus/Penalty
+    const acVal = parseInt(s.acBonus);
+    if (acVal && acVal !== 0) {
+      changes.push({
+        key: "system.attributes.ac.bonus",
+        mode: 2, // ADD
+        value: String(acVal),
+        priority: 20
+      });
+    }
+
+    // Ability Score Modifiers
+    for (const row of (s.abilityRows || [])) {
+      const numVal = parseInt(row.value);
+      if (!numVal || numVal === 0) continue;
+      changes.push({
+        key: `system.abilities.${row.ability}.value`,
+        mode: 2, // ADD
+        value: String(numVal),
+        priority: 20
+      });
+    }
+
     let descriptionText = s.description || "";
     if (!descriptionText.trim()) {
       const summaries = [];
@@ -299,6 +376,22 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       if (s.advRows?.length) {
         summaries.push(`Modifiers: ${s.advRows.map(r => `${r.type} on ${r.cat}`).join(", ")}.`);
       }
+
+      // AC Modifier
+      const acDescVal = parseInt(s.acBonus);
+      if (acDescVal && acDescVal !== 0) {
+        summaries.push(`AC ${acDescVal > 0 ? "+" : ""}${acDescVal}.`);
+      }
+
+      // Ability Score Modifiers
+      if (s.abilityRows?.length) {
+        const mods = s.abilityRows.filter(r => r.value && parseInt(r.value) !== 0)
+          .map(r => {
+            const v = parseInt(r.value);
+            return `${r.ability.toUpperCase()} ${v > 0 ? "+" : ""}${v}`;
+          });
+        if (mods.length) summaries.push(`Ability Modifiers: ${mods.join(", ")}.`);
+      }
       
       descriptionText = summaries.join(" ") || "A custom effect.";
     }
@@ -313,6 +406,12 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       changes,
       flags: {}
     };
+
+    // Stacking (DAE)
+    if (s.stackable && s.stackable !== "none") {
+      aeData.flags.dae = { stackable: s.stackable };
+    }
+
     return aeData;
   }
 
@@ -403,7 +502,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         otTrigger: "end", otWhose: "target", otDamage: "", otRollType: "damage", otDamageType: "fire",
         otSave: false, otSaveAbility: "dex", otSaveDC: "14", otOnSave: "nodamage", otSuccesses: "1",
         appMode: "activation", activationTarget: "targets",
-        statuses: [], advRows: [], wrapInFeature: false, wrapType: "none", wrapTargetCount: "1",
+        statuses: [], advRows: [], acBonus: 0, abilityRows: [], stackable: "none",
+        wrapInFeature: false, wrapType: "none", wrapTargetCount: "1",
         wrapTargetArea: "none", wrapDamageFormula: "", wrapDamageType: "bludgeoning", wrapSaveAbility: "dex", wrapSaveDC: "14"
       };
       this.render();
