@@ -271,7 +271,7 @@ class ForgeTestingSuite {
         app.close();
         
         if (!payload) throw new Error("No payload was captured.");
-        const change = payload.changes.find(c => c.key === "system.attributes.ac.bonus");
+        const change = payload.changes.find(c => c.key === "system.attributes.ac.value");
         if (!change) throw new Error("Missing AC bonus change in payload.");
         if (change.mode !== 2) throw new Error(`Expected mode 2 (ADD), got ${change.mode}`);
         if (change.value !== "3") throw new Error(`Expected value "3", got "${change.value}"`);
@@ -285,7 +285,7 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el2.querySelector("[data-ef='acBonus']"), "-2");
         const payload2 = app2._buildAEData();
         app2.close();
-        const change2 = payload2.changes.find(c => c.key === "system.attributes.ac.bonus");
+        const change2 = payload2.changes.find(c => c.key === "system.attributes.ac.value");
         if (!change2) throw new Error("Missing AC penalty change.");
         if (change2.value !== "-2") throw new Error(`Expected "-2", got "${change2.value}"`);
         
@@ -298,7 +298,7 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el3.querySelector("[data-ef='acBonus']"), "0");
         const payload3 = app3._buildAEData();
         app3.close();
-        const change3 = payload3.changes.find(c => c.key === "system.attributes.ac.bonus");
+        const change3 = payload3.changes.find(c => c.key === "system.attributes.ac.value");
         if (change3) throw new Error("Zero AC should produce no change entry.");
         
         // Verify auto-description includes AC info
@@ -463,8 +463,9 @@ class ForgeTestingSuite {
         
         // Verify AC bonus is still there
         if (!desc.includes("AC +2.")) throw new Error(`AC bonus missing from description. Got: ${desc}`);
+        const acChange = payload.changes.find(c => c.key === "system.attributes.ac.value");
+        if (!acChange) throw new Error("AC value change missing from payload changes.");
         
-        // Now test activation mode with target(s)
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='appMode'][value='activation']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='activationTarget'][value='targets']"), true);
         const payload2 = app._buildAEData();

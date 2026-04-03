@@ -339,7 +339,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const acVal = parseInt(s.acBonus);
     if (acVal && acVal !== 0) {
       changes.push({
-        key: "system.attributes.ac.bonus",
+        key: "system.attributes.ac.value",
         mode: 2, // ADD
         value: String(acVal),
         priority: 20
