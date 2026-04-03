@@ -189,7 +189,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     
     // Output Wrapper logic
     show("wrapFeatureOptions", s.wrapInFeature);
-    show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save");
+    show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save" || s.wrapType === "apply");
+    show("wrapDamageRow", s.wrapType === "attack" || s.wrapType === "save");
     show("wrapSaveRow", s.wrapType === "save");
 
     // Force ApplicationV2 to dynamically recalculate interior bounding box heights
@@ -475,15 +476,19 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
               dc: isNaN(dcv) ? null : parseInt(dcv), 
               scaling: isNaN(dcv) ? dcv.replace("@attributes.","").replace("@","") : "flat" 
             };
+          } else if (s.wrapType === "apply") {
+            itemData.system.actionType = "other";
           }
   
           // --- DND5e V3 Modern Payload (Universal Compatibility) ---
           const actId = foundry.utils.randomID();
+          const actType = s.wrapType === "apply" ? "utility" : (s.wrapType === "save" ? "save" : "attack");
+          const actName = s.wrapType === "apply" ? "Apply" : (s.wrapType === "save" ? "Save" : "Attack");
           itemData.system.activities = {
             [actId]: {
               _id: actId,
-              type: s.wrapType === "save" ? "save" : "attack",
-              name: s.wrapType === "save" ? "Save" : "Attack",
+              type: actType,
+              name: actName,
               effects: [{ _id: aeData._id }]
             }
           };

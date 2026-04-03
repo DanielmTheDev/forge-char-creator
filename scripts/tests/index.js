@@ -36,6 +36,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates correct Stacking Flags", this.#testEffectStacking);
     await runTest("EffectCreatorApp: Auto-Description includes Stacking, Mode, Duration, Grants", this.#testEffectAutoDescriptionAdvanced);
     await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
+    await runTest("EffectCreatorApp: Just Apply creates Utility Activity without Attack/Save", this.#testEffectJustApply);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
     await runTest("Midi-QOL Integration: Omega Combat Simulator (E2E Feature -> Combat -> Advantage -> Overtime)", this.#testCombatEngineIntegration);
@@ -486,6 +487,74 @@ class ForgeTestingSuite {
         resolve();
       } catch (e) {
         app.close();
+        reject(e);
+      }
+    });
+  }
+
+  // ── Just Apply Feature Wrapper Test ─────────────────────────────────────
+  static async #testEffectJustApply() {
+    return new Promise(async (resolve, reject) => {
+      let captureHook = null;
+      let timeoutId = null;
+
+      try {
+        const app = new EffectCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const el = app.element;
+        
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Bless E2E Apply");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='charmed']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='apply']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetCount']"), "3");
+        
+        // Verify payload structure before saving
+        const payload = app._buildAEData();
+        if (!payload.statuses.includes("charmed")) throw new Error("Status missing from AE payload.");
+        
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== "Bless E2E Apply") return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            // D&D5e V3 Assertions
+            const activities = item.system.activities;
+            if (!activities) throw new Error("D&D5e V3 Activities map is missing");
+            const actId = Array.from(activities.keys())[0];
+            const act = activities.get(actId);
+            if (act.type !== "utility") throw new Error(`V3 Activity type should be 'utility', got '${act.type}'`);
+            if (!act.effects[0]?._id) throw new Error("V3 Activity did not link to the Active Effect.");
+            
+            // Verify no attack or save config exists
+            if (act.attack) throw new Error("Just Apply should NOT have attack configuration.");
+            if (act.save?.ability?.length) throw new Error("Just Apply should NOT have save configuration.");
+            
+            app.close();
+            await item.delete();
+            resolve();
+          } catch (e) {
+            app.close();
+            await item.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Item.create to fire for Just Apply test"));
+        }, 3000);
+
+        const submitBtn = el.querySelector("button[data-action='createEffect']");
+        if (submitBtn) submitBtn.click();
+        else reject(new Error("Submit button not found"));
+
+      } catch (e) {
+        if (captureHook) Hooks.off("createItem", captureHook);
+        clearTimeout(timeoutId);
         reject(e);
       }
     });
