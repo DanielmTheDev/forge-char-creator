@@ -1,4 +1,5 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+import { EffectCreatorApp } from "./effect-creator.js";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Preset effect templates
@@ -88,7 +89,10 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     title: "Forge Character Wizard",
     position: { width: 700, height: "auto" },
     window: { icon: "fas fa-user-plus", resizable: true },
-    actions: { createNPC: CharCreatorApp.#onCreateNPC }
+    actions: { 
+      createNPC: CharCreatorApp.#onCreateNPC,
+      createNewFeature: function() { this.#openEffectCreator(); }
+    }
   };
 
   static PARTS = {
@@ -302,6 +306,20 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
   }
 
+
+  // ── Compendium Creation ───────────────────────────────────────────────────
+  #openEffectCreator() {
+    const app = new EffectCreatorApp(
+      { title: "Create Feature for NPC" }, 
+      { wrapInFeature: true, isLocked: true }, 
+      (savedItem) => {
+        this.selectedItems.set(savedItem.uuid, { name: savedItem.name, img: savedItem.img });
+        this.#renderSelectedItems(this.element.querySelector("#selectedItemsBin"));
+        app.close();
+      }
+    );
+    app.render(true);
+  }
 
   // ── NPC Creation ──────────────────────────────────────────────────────────
   static async #onCreateNPC(event, target) {

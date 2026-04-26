@@ -120,6 +120,12 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     return ctx;
   }
 
+  constructor(options = {}, initialState = {}, onComplete = null) {
+    super(options);
+    Object.assign(this.#state, initialState);
+    this.onComplete = onComplete;
+  }
+
   // ── Render hooks ───────────────────────────────────────────────────────────
   _onRender(context, options) {
     super._onRender(context, options);
@@ -520,8 +526,14 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       if (pack.locked) await pack.configure({ locked: false }); // Auto-unlock the compendium for saving
 
       const tempItem = await Item.create(itemData, { temporary: true });
-      await pack.importDocument(tempItem);
+      const savedItem = await pack.importDocument(tempItem);
       ui.notifications.info(`Successfully saved to ${targetPack} compendium.`);
+      
+      if (this.onComplete) {
+         this.onComplete(savedItem);
+         return; // If part of a flow, let the callback manage window closing/resetting
+      }
+
       // Reset state for next effect
       this.#state = {
         name: "", img: "icons/svg/aura.svg", description: "",

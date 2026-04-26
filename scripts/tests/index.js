@@ -40,6 +40,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Midi Damage creates Damage Activity without Attack/Save", this.#testEffectMidiDamage);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
+    await runTest("CharCreatorApp: Create New Feature automatically adds to selected items", this.#testCharCreatorFeatureCreation);
     await runTest("Midi-QOL Integration: Omega Combat Simulator (E2E Feature -> Combat -> Advantage -> Overtime)", this.#testCombatEngineIntegration);
 
     console.log(`%c🧪 Test Run Complete! ${passed} Passed, ${failed} Failed.`, `color: ${failed > 0 ? 'red' : 'green'}; font-size: 1.2em; font-weight: bold;`);
@@ -656,7 +657,7 @@ class ForgeTestingSuite {
         const pack = game.packs.get("dnd5e.spells");
         if (!pack) throw new Error("dnd5e.spells compendium missing from environment");
         const realSpell = pack.index.contents[0];
-        const dummyItemUuid = `Compendium.dnd5e.spells.Item.${realSpell._id}`;
+        const dummyItemUuid = realSpell.uuid || `Compendium.${pack.metadata.id}.Item.${realSpell._id}`;
         app.selectedItems.set(dummyItemUuid, { name: realSpell.name, img: "icons/svg/mystery-man.svg" });
   
         captureHook = Hooks.on("createActor", async (actor) => {
@@ -822,6 +823,91 @@ class ForgeTestingSuite {
 
       } catch(e) {
         if (captureHook) Hooks.off("createActor", captureHook);
+        clearTimeout(timeoutId);
+        reject(e);
+      }
+    });
+  }
+
+  static async #testCharCreatorFeatureCreation() {
+    return new Promise(async (resolve, reject) => {
+      let captureHook = null;
+      let timeoutId = null;
+
+      try {
+        const charApp = new CharCreatorApp();
+        await charApp.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const charEl = charApp.element;
+
+        // 1. Click Create New Feature
+        const createBtn = charEl.querySelector("button[data-action='createNewFeature']");
+        if (!createBtn) throw new Error("Create New Feature button not found.");
+        createBtn.click();
+        
+        await ForgeTestingSuite.#delay(250); // wait for window to render
+
+        // 2. Find the effect creator window
+        const effectEl = document.querySelector(".forge-effect-creator");
+        if (!effectEl) throw new Error("Effect Creator App did not render.");
+
+        // 3. Verify it is locked and checked
+        const wrapCheckbox = effectEl.querySelector("input[data-ef='wrapInFeature']");
+        if (!wrapCheckbox) throw new Error("Wrap checkbox not found in effect creator.");
+        if (!wrapCheckbox.checked) throw new Error("Wrap in Feature was not pre-checked.");
+        if (!wrapCheckbox.disabled) throw new Error("Wrap in Feature was not read-only (disabled).");
+
+        // 4. Fill details
+        ForgeTestingSuite.#simulateChange(effectEl.querySelector("[data-ef='name']"), "E2E Char Feature");
+        ForgeTestingSuite.#simulateChange(effectEl.querySelector("[name='wrapType'][value='apply']"), true);
+
+        // 5. Intercept Item creation
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== "E2E Char Feature") return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            await ForgeTestingSuite.#delay(150); // wait for callback to run
+            
+            // 6. Verify CharApp picked it up
+            const bin = charEl.querySelector("#selectedItemsBin");
+            if (!bin.innerHTML.includes("E2E Char Feature")) throw new Error("Feature was not automatically added to selectedItemsBin.");
+            
+            if (!charApp.selectedItems.has(item.uuid)) throw new Error("Feature UUID not found in charApp.selectedItems Map.");
+
+            charApp.close();
+            await ForgeTestingSuite.#delay(150); // wait for UI animations
+            // The effect app should have closed itself
+            const effectElAfter = document.querySelector(".forge-effect-creator");
+            if (effectElAfter) {
+                effectElAfter.remove();
+                throw new Error("Effect Creator did not auto-close.");
+            }
+
+            await item.delete(); // cleanup
+            resolve();
+          } catch(e) {
+            charApp.close();
+            await item.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          charApp.close();
+          const ef = document.querySelector(".forge-effect-creator");
+          if(ef) ef.remove();
+          reject(new Error("Timeout waiting for Item.create to fire in Feature Creation Test"));
+        }, 3000);
+
+        const effectSubmitBtn = effectEl.querySelector("button[data-action='createEffect']");
+        if (effectSubmitBtn) effectSubmitBtn.click();
+        else reject(new Error("Effect Creator submit button not found"));
+
+      } catch(e) {
+        if (captureHook) Hooks.off("createItem", captureHook);
         clearTimeout(timeoutId);
         reject(e);
       }
