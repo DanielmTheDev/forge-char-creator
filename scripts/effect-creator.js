@@ -55,7 +55,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     title: "Forge Effect Creator",
     position: { width: 750, height: "auto" },
     window: { icon: "fas fa-sparkles", resizable: true },
-    actions: { 
+    actions: {
       createEffect: function() { this._doCreate(); }
     }
   };
@@ -186,11 +186,11 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     show("otRollTypeSection",   s.durationType === "overtime" && !!s.otDamage);
     show("otDamageTypeSection", s.durationType === "overtime" && !!s.otDamage && s.otRollType === "damage");
     show("activationModeRow",   s.appMode === "activation");
-    
+
     // Output Wrapper logic
     show("wrapFeatureOptions", s.wrapInFeature);
-    show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save" || s.wrapType === "apply");
-    show("wrapDamageRow", s.wrapType === "attack" || s.wrapType === "save");
+    show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save" || s.wrapType === "apply" || s.wrapType === "damage");
+    show("wrapDamageRow", s.wrapType === "attack" || s.wrapType === "save" || s.wrapType === "damage");
     show("wrapSaveRow", s.wrapType === "save");
 
     // Force ApplicationV2 to dynamically recalculate interior bounding box heights
@@ -265,9 +265,9 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         <select class="ability-mod-ability" data-idx="${idx}" style="flex:1; height:1.8rem;">
           ${ABILITY_OPTIONS.map(([k,l]) => `<option value="${k}" ${row.ability===k?"selected":""}>${l}</option>`).join("")}
         </select>
-        <input type="number" class="ability-mod-value" data-idx="${idx}" value="${row.value}" 
+        <input type="number" class="ability-mod-value" data-idx="${idx}" value="${row.value}"
                style="width:4rem; height:1.8rem; text-align:center;" placeholder="+/-">
-        <button type="button" class="ability-mod-del" data-idx="${idx}" 
+        <button type="button" class="ability-mod-del" data-idx="${idx}"
                 style="flex-shrink:0; padding:0 6px; height:1.8rem; color:var(--color-level-error-high);">×</button>
       </div>`).join("");
 
@@ -329,7 +329,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
     // Advantage / Disadvantage rows
     for (const row of (s.advRows || [])) {
-      if (row.type !== "advantage" && row.type !== "disadvantage") continue; 
+      if (row.type !== "advantage" && row.type !== "disadvantage") continue;
       const key = row.grants ? `flags.midi-qol.grants.${row.type}.${row.cat}`
                              : `flags.midi-qol.${row.type}.${row.cat}`;
       changes.push({ key, mode: 5, value: "1", priority: 20 });
@@ -362,7 +362,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     if (!descriptionText.trim()) {
       const summaries = [];
       if (s.statuses?.length) summaries.push(`Applies ${s.statuses.join(", ")}.`);
-      
+
       const hasDamage = s.otDamage && s.otDamage.trim();
       const hasSave = s.otSave && s.otSaveAbility;
       if (s.durationType === "overtime" && (hasDamage || hasSave)) {
@@ -373,7 +373,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         if (hasDamage) otStr += `Takes ${s.otDamage} ${s.otRollType === "healing" ? "healing" : s.otDamageType}.`;
         summaries.push(otStr.trim());
       }
-      
+
       if (s.advRows?.length) {
         summaries.push(`Modifiers: ${s.advRows.map(r => `${r.grants ? "grants " : ""}${r.type} on ${r.cat}`).join(", ")}.`);
       }
@@ -444,7 +444,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     if (!s.name?.trim()) { ui.notifications.warn("Please enter an effect name."); return; }
       const aeData = this._buildAEData();
       aeData._id = foundry.utils.randomID();
-  
+
       try {
         const itemData = {
           name: s.wrapInFeature ? s.name.trim() : `[AE] ${s.name.trim()}`,
@@ -453,15 +453,15 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
           system: { description: { value: aeData.description.value } },
           effects: [aeData]
         };
-        
+
         if (s.wrapInFeature && s.wrapType !== "none") {
           itemData.system.activation = { type: "action", cost: 1, condition: "" };
           const isArea = s.wrapTargetArea !== "none";
-          itemData.system.target = { 
-            value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1), 
-            type: isArea ? s.wrapTargetArea : "creature" 
+          itemData.system.target = {
+            value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1),
+            type: isArea ? s.wrapTargetArea : "creature"
           };
-          
+
           // --- DND5e V2 Legacy Payload Support ---
           if (s.wrapDamageFormula?.trim()) {
             itemData.system.damage = { parts: [[s.wrapDamageFormula.trim(), s.wrapDamageType]] };
@@ -476,14 +476,14 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
               dc: isNaN(dcv) ? null : parseInt(dcv), 
               scaling: isNaN(dcv) ? dcv.replace("@attributes.","").replace("@","") : "flat" 
             };
-          } else if (s.wrapType === "apply") {
+          } else if (s.wrapType === "apply" || s.wrapType === "damage") {
             itemData.system.actionType = "other";
           }
-  
+
           // --- DND5e V3 Modern Payload (Universal Compatibility) ---
           const actId = foundry.utils.randomID();
-          const actType = s.wrapType === "apply" ? "utility" : (s.wrapType === "save" ? "save" : "attack");
-          const actName = s.wrapType === "apply" ? "Apply" : (s.wrapType === "save" ? "Save" : "Attack");
+          const actType = s.wrapType === "apply" ? "utility" : (s.wrapType === "save" ? "save" : (s.wrapType === "damage" ? "damage" : "attack"));
+          const actName = s.wrapType === "apply" ? "Apply" : (s.wrapType === "save" ? "Save" : (s.wrapType === "damage" ? "Damage" : "Attack"));
           itemData.system.activities = {
             [actId]: {
               _id: actId,
@@ -492,7 +492,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
               effects: [{ _id: aeData._id }]
             }
           };
-  
+
           if (s.wrapType === "attack") {
             itemData.system.activities[actId].attack = { ability: "str", bonus: "", flat: false, type: { value: "melee" } };
           } else if (s.wrapType === "save") {
@@ -503,7 +503,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
             };
             itemData.system.activities[actId].damage = { onSave: "half" };
           }
-  
+
           if (s.wrapDamageFormula?.trim()) {
             itemData.system.activities[actId].damage = itemData.system.activities[actId].damage || {};
             itemData.system.activities[actId].damage.parts = [{
@@ -512,13 +512,13 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
             }];
           }
         }
-      
+
       const targetPack = s.wrapInFeature ? "forge-features" : "forge-effects";
       const pack = game.packs.get(`forge-char-creator.${targetPack}`);
       if (!pack) { ui.notifications.error(`Could not find ${targetPack} compendium. Reload Foundry.`); return; }
-      
+
       if (pack.locked) await pack.configure({ locked: false }); // Auto-unlock the compendium for saving
-      
+
       const tempItem = await Item.create(itemData, { temporary: true });
       await pack.importDocument(tempItem);
       ui.notifications.info(`Successfully saved to ${targetPack} compendium.`);

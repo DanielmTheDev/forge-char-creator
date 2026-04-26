@@ -37,6 +37,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Auto-Description includes Stacking, Mode, Duration, Grants", this.#testEffectAutoDescriptionAdvanced);
     await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
     await runTest("EffectCreatorApp: Just Apply creates Utility Activity without Attack/Save", this.#testEffectJustApply);
+    await runTest("EffectCreatorApp: Midi Damage creates Damage Activity without Attack/Save", this.#testEffectMidiDamage);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
     await runTest("Midi-QOL Integration: Omega Combat Simulator (E2E Feature -> Combat -> Advantage -> Overtime)", this.#testCombatEngineIntegration);
@@ -547,6 +548,76 @@ class ForgeTestingSuite {
           Hooks.off("createItem", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Item.create to fire for Just Apply test"));
+        }, 3000);
+
+        const submitBtn = el.querySelector("button[data-action='createEffect']");
+        if (submitBtn) submitBtn.click();
+        else reject(new Error("Submit button not found"));
+
+      } catch (e) {
+        if (captureHook) Hooks.off("createItem", captureHook);
+        clearTimeout(timeoutId);
+        reject(e);
+      }
+    });
+  }
+
+  // ── Midi Damage Feature Wrapper Test ─────────────────────────────────────
+  static async #testEffectMidiDamage() {
+    return new Promise(async (resolve, reject) => {
+      let captureHook = null;
+      let timeoutId = null;
+
+      try {
+        const app = new EffectCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const el = app.element;
+        
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Test Midi Damage");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='damage']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "2d6");
+        
+        // Verify payload structure before saving
+        const payload = app._buildAEData();
+        if (payload.name !== "Test Midi Damage") throw new Error("AE name mismatch.");
+        
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== "Test Midi Damage") return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            // D&D5e V3 Assertions
+            const activities = item.system.activities;
+            if (!activities) throw new Error("D&D5e V3 Activities map is missing");
+            const actId = Array.from(activities.keys())[0];
+            const act = activities.get(actId);
+            if (act.type !== "damage") throw new Error(`V3 Activity type should be 'damage', got '${act.type}'`);
+            if (!act.effects[0]?._id) throw new Error("V3 Activity did not link to the Active Effect.");
+            
+            // Verify damage configuration exists
+            if (act.damage?.parts?.[0]?.custom?.formula !== "2d6") throw new Error("Damage formula not mapped to activity.");
+            
+            // Verify no attack or save config exists
+            if (act.attack) throw new Error("Damage should NOT have attack configuration.");
+            if (act.save?.ability?.length) throw new Error("Damage should NOT have save configuration.");
+
+            app.close();
+            await item.delete(); // cleanup
+            resolve();
+          } catch (e) {
+            app.close();
+            await item.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Item.create to fire for Midi Damage test"));
         }, 3000);
 
         const submitBtn = el.querySelector("button[data-action='createEffect']");
