@@ -408,7 +408,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         traits: { size: data.size || "med" },
         attributes: {
           hp: { value: data.hp ?? 10, max: data.hp ?? 10 },
-          ac: { flat: data.ac ?? 10, calc: "flat" },
+          ac: { flat: data.ac ?? 10, calc: "natural" },
           spellcasting: data.spellcasting || "",
           spell: { level: parseInt(data.spellLevel) || 0 }
         },

@@ -273,7 +273,7 @@ class ForgeTestingSuite {
         app.close();
         
         if (!payload) throw new Error("No payload was captured.");
-        const change = payload.changes.find(c => c.key === "system.attributes.ac.value");
+        const change = payload.changes.find(c => c.key === "system.attributes.ac.bonus");
         if (!change) throw new Error("Missing AC bonus change in payload.");
         if (change.mode !== 2) throw new Error(`Expected mode 2 (ADD), got ${change.mode}`);
         if (change.value !== "3") throw new Error(`Expected value "3", got "${change.value}"`);
@@ -287,7 +287,7 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el2.querySelector("[data-ef='acBonus']"), "-2");
         const payload2 = app2._buildAEData();
         app2.close();
-        const change2 = payload2.changes.find(c => c.key === "system.attributes.ac.value");
+        const change2 = payload2.changes.find(c => c.key === "system.attributes.ac.bonus");
         if (!change2) throw new Error("Missing AC penalty change.");
         if (change2.value !== "-2") throw new Error(`Expected "-2", got "${change2.value}"`);
         
@@ -300,7 +300,7 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el3.querySelector("[data-ef='acBonus']"), "0");
         const payload3 = app3._buildAEData();
         app3.close();
-        const change3 = payload3.changes.find(c => c.key === "system.attributes.ac.value");
+        const change3 = payload3.changes.find(c => c.key === "system.attributes.ac.bonus");
         if (change3) throw new Error("Zero AC should produce no change entry.");
         
         // Verify auto-description includes AC info
@@ -465,7 +465,7 @@ class ForgeTestingSuite {
         
         // Verify AC bonus is still there
         if (!desc.includes("AC +2.")) throw new Error(`AC bonus missing from description. Got: ${desc}`);
-        const acChange = payload.changes.find(c => c.key === "system.attributes.ac.value");
+        const acChange = payload.changes.find(c => c.key === "system.attributes.ac.bonus");
         if (!acChange) throw new Error("AC value change missing from payload changes.");
         
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='appMode'][value='activation']"), true);
@@ -672,9 +672,9 @@ class ForgeTestingSuite {
             if (actor.prototypeToken.disposition !== 1) throw new Error(`Disposition mismatch, got ${actor.prototypeToken.disposition}`);
             
             // Wait an extra tick for embedded documents to finish executing
-            await ForgeTestingSuite.#delay(100);
+            await ForgeTestingSuite.#delay(500); // Increased delay for createEmbeddedDocuments to finish
             const embedded = actor.items;
-            if (embedded.size !== 1) throw new Error("Incorrect number of items injected");
+            if (embedded.size !== 1) throw new Error(`Incorrect number of items injected, expected 1, got ${embedded.size}`);
             if (embedded.contents[0].name !== realSpell.name) throw new Error("Item payload name mismatch");
             
             await actor.delete(); // Cleanup test artifact

@@ -83,7 +83,7 @@ Received: false
                 - generic [ref=e29]: Gamemaster [GM]
             - generic [ref=e30]:
               - generic [ref=e31]: Latency 1ms
-              - generic [ref=e32]: FPS 14
+              - generic [ref=e32]: FPS 15
               - button "" [ref=e33] [cursor=pointer]
       - generic:
         - navigation:
@@ -181,527 +181,462 @@ Received: false
             - list [ref=e89]:
               - listitem [ref=e90]:
                 - generic [ref=e91]:
-                  - 'heading "Gamemaster Gamemaster To: Gamemaster" [level=4] [ref=e92]':
-                    - img "Gamemaster" [ref=e94] [cursor=pointer]
+                  - 'heading "after tyrn after tyrn To: Gamemaster" [level=4] [ref=e92]':
+                    - img "after tyrn" [ref=e94] [cursor=pointer]
                     - generic [ref=e95]:
-                      - generic [ref=e96]: Gamemaster
+                      - generic [ref=e96]: after tyrn
                       - generic [ref=e97]: "To: Gamemaster"
                   - generic [ref=e98]:
-                    - time [ref=e99]: 34d 1h ago
+                    - time [ref=e99]: 38d 5h ago
                     - text: 
                     - generic "Additional Controls" [ref=e100] [cursor=pointer]:
                       - generic [ref=e101]: 
                 - generic [ref=e103]:
                   - generic [ref=e104]:
-                    - generic [ref=e105]: 
-                    - text: HP Updated
-                  - generic [ref=e108]:
-                    - img [ref=e109]
-                    - generic [ref=e110]: "-5"
-                    - text:  
-                    - generic [ref=e111]:
-                      - generic [ref=e112]: 
-                      - text: "4930"
-                      - generic [ref=e113]: 
-                      - text: "4925"
-                    - text:    
+                    - generic [ref=e105] [cursor=pointer]:
+                      - img "wer" [ref=e106]
+                      - generic [ref=e107]:
+                        - generic [ref=e108]: wer
+                        - generic [ref=e109]: Feature
+                      - generic [ref=e110]: 
+                    - generic [ref=e112]: "[object Object]"
+                  - generic [ref=e113]:
                     - generic [ref=e114]:
-                      - combobox [ref=e115] [cursor=pointer]:
-                        - option "=" [selected]
-                        - option "1"
-                        - option "½"
-                        - option "2"
-                        - option "¼"
-                        - option "+"
-                      - generic [ref=e116]:
-                        - button "" [ref=e117] [cursor=pointer]:
-                          - generic: 
-                        - button "" [ref=e118] [cursor=pointer]:
-                          - generic: 
-              - listitem [ref=e119]:
-                - generic [ref=e120]:
-                  - 'heading "after tyrn after tyrn To: Gamemaster" [level=4] [ref=e121]':
-                    - img "after tyrn" [ref=e123] [cursor=pointer]
-                    - generic [ref=e124]:
-                      - generic [ref=e125]: after tyrn
-                      - generic [ref=e126]: "To: Gamemaster"
-                  - generic [ref=e127]:
-                    - time [ref=e128]: 34d 1h ago
+                      - generic [ref=e115]:
+                        - generic [ref=e116]: Damage
+                        - generic [ref=e118] [cursor=pointer]:
+                          - generic [ref=e119]: "5"
+                          - generic [ref=e121]:
+                            - list [ref=e122]:
+                              - listitem [ref=e123]: "+5"
+                            - generic [ref=e124]:
+                              - img "Fire" [ref=e125]
+                              - generic [ref=e126]: Fire
+                              - generic [ref=e127]: "5"
+                          - heading "5 " [level=4] [ref=e128]
+                      - generic [ref=e130]:
+                        - strong [ref=e132]: DC 14 Dexterity Saving Throw
+                        - strong [ref=e134]: Damage 0
+                        - list [ref=e135]:
+                          - listitem [ref=e136] [cursor=pointer]:
+                            - generic [ref=e137]: 
+                            - img [ref=e138]
+                            - generic [ref=e141]: Dummy
+                            - generic [ref=e143]: "14"
+                    - list [ref=e144]:
+                      - listitem [ref=e145]:
+                        - generic [ref=e146]: Action
+                      - listitem [ref=e147]:
+                        - generic [ref=e148]: Instantaneous
+                      - listitem [ref=e149]:
+                        - generic [ref=e150]: Self
+              - listitem [ref=e151]:
+                - generic [ref=e152]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e153]':
+                    - img "midi-qol" [ref=e155] [cursor=pointer]
+                    - generic [ref=e156]:
+                      - generic [ref=e157]: midi-qol
+                      - generic [ref=e158]: "To: Gamemaster"
+                  - generic [ref=e159]:
+                    - time [ref=e160]: 38d 4h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e129] [cursor=pointer]:
-                      - generic [ref=e130]: 
-                - generic [ref=e132]:
-                  - generic [ref=e133]:
-                    - generic [ref=e134] [cursor=pointer]:
-                      - img "after turn" [ref=e135]
-                      - generic [ref=e136]:
-                        - generic [ref=e137]: after turn
-                        - generic [ref=e138]: Feature
-                      - generic [ref=e139]: 
-                    - generic [ref=e141]: "[object Object]"
-                  - generic [ref=e142]:
-                    - generic [ref=e144]:
-                      - generic [ref=e145]: Damage
-                      - generic [ref=e147] [cursor=pointer]:
-                        - generic [ref=e148]: "5"
-                        - generic [ref=e150]:
-                          - list [ref=e151]:
-                            - listitem [ref=e152]: "+5"
-                          - generic [ref=e153]:
-                            - img "Fire" [ref=e154]
-                            - generic [ref=e155]: Fire
-                            - generic [ref=e156]: "5"
-                        - heading "5 " [level=4] [ref=e157]
-                    - list [ref=e159]:
-                      - listitem [ref=e160]:
-                        - generic [ref=e161]: Action
-                      - listitem [ref=e162]:
-                        - generic [ref=e163]: Instantaneous
-                      - listitem [ref=e164]:
-                        - generic [ref=e165]: Self
-              - listitem [ref=e166]:
-                - generic [ref=e167]:
-                  - 'heading "Gamemaster Gamemaster To: Gamemaster" [level=4] [ref=e168]':
-                    - img "Gamemaster" [ref=e170] [cursor=pointer]
-                    - generic [ref=e171]:
-                      - generic [ref=e172]: Gamemaster
-                      - generic [ref=e173]: "To: Gamemaster"
-                  - generic [ref=e174]:
-                    - time [ref=e175]: 34d 1h ago
+                    - generic "Additional Controls" [ref=e161] [cursor=pointer]:
+                      - generic [ref=e162]: 
+                - generic [ref=e163]:
+                  - heading "Warning" [level=3] [ref=e164]
+                  - paragraph [ref=e165]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e166]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e167]:
+                - generic [ref=e168]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e169]':
+                    - img "midi-qol" [ref=e171] [cursor=pointer]
+                    - generic [ref=e172]:
+                      - generic [ref=e173]: midi-qol
+                      - generic [ref=e174]: "To: Gamemaster"
+                  - generic [ref=e175]:
+                    - time [ref=e176]: 38d 4h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e176] [cursor=pointer]:
-                      - generic [ref=e177]: 
+                    - generic "Additional Controls" [ref=e177] [cursor=pointer]:
+                      - generic [ref=e178]: 
                 - generic [ref=e179]:
-                  - generic [ref=e180]:
-                    - generic [ref=e181]: 
-                    - text: HP Updated
-                  - generic [ref=e184]:
-                    - img [ref=e185]
-                    - text:        
-                    - generic [ref=e186]: (0)
-                    - generic [ref=e187]:
-                      - combobox [ref=e188] [cursor=pointer]:
-                        - option "=" [selected]
-                        - option "1"
-                        - option "½"
-                        - option "2"
-                        - option "¼"
-                        - option "+"
-                      - generic [ref=e189]:
-                        - button "" [ref=e190] [cursor=pointer]:
-                          - generic: 
-                        - button "" [ref=e191] [cursor=pointer]:
-                          - generic: 
-              - listitem [ref=e192]:
-                - generic [ref=e193]:
-                  - 'heading "after tyrn after tyrn To: Gamemaster" [level=4] [ref=e194]':
-                    - img "after tyrn" [ref=e196] [cursor=pointer]
-                    - generic [ref=e197]:
-                      - generic [ref=e198]: after tyrn
-                      - generic [ref=e199]: "To: Gamemaster"
-                  - generic [ref=e200]:
-                    - time [ref=e201]: 34d 1h ago
+                  - heading "Warning" [level=3] [ref=e180]
+                  - paragraph [ref=e181]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e182]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e183]:
+                - generic [ref=e184]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e185]':
+                    - img "midi-qol" [ref=e187] [cursor=pointer]
+                    - generic [ref=e188]:
+                      - generic [ref=e189]: midi-qol
+                      - generic [ref=e190]: "To: Gamemaster"
+                  - generic [ref=e191]:
+                    - time [ref=e192]: 38d 4h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e202] [cursor=pointer]:
-                      - generic [ref=e203]: 
-                - generic [ref=e205]:
-                  - generic [ref=e206]:
-                    - generic [ref=e207] [cursor=pointer]:
-                      - img "wer" [ref=e208]
-                      - generic [ref=e209]:
-                        - generic [ref=e210]: wer
-                        - generic [ref=e211]: Feature
-                      - generic [ref=e212]: 
-                    - generic [ref=e214]: "[object Object]"
-                  - generic [ref=e215]:
-                    - generic [ref=e216]:
-                      - generic [ref=e217]:
-                        - generic [ref=e218]: Damage
-                        - generic [ref=e220] [cursor=pointer]:
-                          - generic [ref=e221]: "5"
-                          - generic [ref=e223]:
-                            - list [ref=e224]:
-                              - listitem [ref=e225]: "+5"
-                            - generic [ref=e226]:
-                              - img "Fire" [ref=e227]
-                              - generic [ref=e228]: Fire
-                              - generic [ref=e229]: "5"
-                          - heading "5 " [level=4] [ref=e230]
-                      - generic [ref=e232]:
-                        - strong [ref=e234]: DC 14 Dexterity Saving Throw
-                        - strong [ref=e236]: Damage 0
-                        - list [ref=e237]:
-                          - listitem [ref=e238] [cursor=pointer]:
-                            - generic [ref=e239]: 
-                            - img [ref=e240]
-                            - generic [ref=e243]: Dummy
-                            - generic [ref=e245]: "14"
-                    - list [ref=e246]:
-                      - listitem [ref=e247]:
-                        - generic [ref=e248]: Action
-                      - listitem [ref=e249]:
-                        - generic [ref=e250]: Instantaneous
-                      - listitem [ref=e251]:
-                        - generic [ref=e252]: Self
-              - listitem [ref=e253]:
-                - generic [ref=e254]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e255]':
-                    - img "midi-qol" [ref=e257] [cursor=pointer]
-                    - generic [ref=e258]:
-                      - generic [ref=e259]: midi-qol
-                      - generic [ref=e260]: "To: Gamemaster"
-                  - generic [ref=e261]:
-                    - time [ref=e262]: 34d 1h ago
+                    - generic "Additional Controls" [ref=e193] [cursor=pointer]:
+                      - generic [ref=e194]: 
+                - generic [ref=e195]:
+                  - heading "Warning" [level=3] [ref=e196]
+                  - paragraph [ref=e197]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e198]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e199]:
+                - generic [ref=e200]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e201]':
+                    - img "midi-qol" [ref=e203] [cursor=pointer]
+                    - generic [ref=e204]:
+                      - generic [ref=e205]: midi-qol
+                      - generic [ref=e206]: "To: Gamemaster"
+                  - generic [ref=e207]:
+                    - time [ref=e208]: 37d 14h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e263] [cursor=pointer]:
-                      - generic [ref=e264]: 
-                - generic [ref=e265]:
-                  - heading "Warning" [level=3] [ref=e266]
-                  - paragraph [ref=e267]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e268]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e269]:
-                - generic [ref=e270]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e271]':
-                    - img "midi-qol" [ref=e273] [cursor=pointer]
-                    - generic [ref=e274]:
-                      - generic [ref=e275]: midi-qol
-                      - generic [ref=e276]: "To: Gamemaster"
-                  - generic [ref=e277]:
-                    - time [ref=e278]: 34d 57m ago
+                    - generic "Additional Controls" [ref=e209] [cursor=pointer]:
+                      - generic [ref=e210]: 
+                - generic [ref=e211]:
+                  - heading "Warning" [level=3] [ref=e212]
+                  - paragraph [ref=e213]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e214]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e215]:
+                - generic [ref=e216]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e217]':
+                    - img "midi-qol" [ref=e219] [cursor=pointer]
+                    - generic [ref=e220]:
+                      - generic [ref=e221]: midi-qol
+                      - generic [ref=e222]: "To: Gamemaster"
+                  - generic [ref=e223]:
+                    - time [ref=e224]: 37d 11h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e279] [cursor=pointer]:
-                      - generic [ref=e280]: 
-                - generic [ref=e281]:
-                  - heading "Warning" [level=3] [ref=e282]
-                  - paragraph [ref=e283]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e284]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e285]:
-                - generic [ref=e286]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e287]':
-                    - img "midi-qol" [ref=e289] [cursor=pointer]
-                    - generic [ref=e290]:
-                      - generic [ref=e291]: midi-qol
-                      - generic [ref=e292]: "To: Gamemaster"
-                  - generic [ref=e293]:
-                    - time [ref=e294]: 34d 55m ago
+                    - generic "Additional Controls" [ref=e225] [cursor=pointer]:
+                      - generic [ref=e226]: 
+                - generic [ref=e227]:
+                  - heading "Warning" [level=3] [ref=e228]
+                  - paragraph [ref=e229]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e230]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e231]:
+                - generic [ref=e232]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e233]':
+                    - img "midi-qol" [ref=e235] [cursor=pointer]
+                    - generic [ref=e236]:
+                      - generic [ref=e237]: midi-qol
+                      - generic [ref=e238]: "To: Gamemaster"
+                  - generic [ref=e239]:
+                    - time [ref=e240]: 37d 11h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e295] [cursor=pointer]:
-                      - generic [ref=e296]: 
-                - generic [ref=e297]:
-                  - heading "Warning" [level=3] [ref=e298]
-                  - paragraph [ref=e299]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e300]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e301]:
-                - generic [ref=e302]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e303]':
-                    - img "midi-qol" [ref=e305] [cursor=pointer]
-                    - generic [ref=e306]:
-                      - generic [ref=e307]: midi-qol
-                      - generic [ref=e308]: "To: Gamemaster"
-                  - generic [ref=e309]:
-                    - time [ref=e310]: 33d 11h ago
+                    - generic "Additional Controls" [ref=e241] [cursor=pointer]:
+                      - generic [ref=e242]: 
+                - generic [ref=e243]:
+                  - heading "Warning" [level=3] [ref=e244]
+                  - paragraph [ref=e245]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e246]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e247]:
+                - generic [ref=e248]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e249]':
+                    - img "midi-qol" [ref=e251] [cursor=pointer]
+                    - generic [ref=e252]:
+                      - generic [ref=e253]: midi-qol
+                      - generic [ref=e254]: "To: Gamemaster"
+                  - generic [ref=e255]:
+                    - time [ref=e256]: 37d 10h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e311] [cursor=pointer]:
-                      - generic [ref=e312]: 
-                - generic [ref=e313]:
-                  - heading "Warning" [level=3] [ref=e314]
-                  - paragraph [ref=e315]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e316]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e317]:
-                - generic [ref=e318]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e319]':
-                    - img "midi-qol" [ref=e321] [cursor=pointer]
-                    - generic [ref=e322]:
-                      - generic [ref=e323]: midi-qol
-                      - generic [ref=e324]: "To: Gamemaster"
-                  - generic [ref=e325]:
-                    - time [ref=e326]: 33d 8h ago
+                    - generic "Additional Controls" [ref=e257] [cursor=pointer]:
+                      - generic [ref=e258]: 
+                - generic [ref=e259]:
+                  - heading "Warning" [level=3] [ref=e260]
+                  - paragraph [ref=e261]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e262]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e263]:
+                - generic [ref=e264]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e265]':
+                    - img "midi-qol" [ref=e267] [cursor=pointer]
+                    - generic [ref=e268]:
+                      - generic [ref=e269]: midi-qol
+                      - generic [ref=e270]: "To: Gamemaster"
+                  - generic [ref=e271]:
+                    - time [ref=e272]: 37d 10h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e327] [cursor=pointer]:
-                      - generic [ref=e328]: 
-                - generic [ref=e329]:
-                  - heading "Warning" [level=3] [ref=e330]
-                  - paragraph [ref=e331]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e332]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e333]:
-                - generic [ref=e334]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e335]':
-                    - img "midi-qol" [ref=e337] [cursor=pointer]
-                    - generic [ref=e338]:
-                      - generic [ref=e339]: midi-qol
-                      - generic [ref=e340]: "To: Gamemaster"
-                  - generic [ref=e341]:
-                    - time [ref=e342]: 33d 7h ago
+                    - generic "Additional Controls" [ref=e273] [cursor=pointer]:
+                      - generic [ref=e274]: 
+                - generic [ref=e275]:
+                  - heading "Warning" [level=3] [ref=e276]
+                  - paragraph [ref=e277]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e278]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e279]:
+                - generic [ref=e280]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e281]':
+                    - img "midi-qol" [ref=e283] [cursor=pointer]
+                    - generic [ref=e284]:
+                      - generic [ref=e285]: midi-qol
+                      - generic [ref=e286]: "To: Gamemaster"
+                  - generic [ref=e287]:
+                    - time [ref=e288]: 37d 10h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e343] [cursor=pointer]:
-                      - generic [ref=e344]: 
-                - generic [ref=e345]:
-                  - heading "Warning" [level=3] [ref=e346]
-                  - paragraph [ref=e347]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e348]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e349]:
-                - generic [ref=e350]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e351]':
-                    - img "midi-qol" [ref=e353] [cursor=pointer]
-                    - generic [ref=e354]:
-                      - generic [ref=e355]: midi-qol
-                      - generic [ref=e356]: "To: Gamemaster"
-                  - generic [ref=e357]:
-                    - time [ref=e358]: 33d 7h ago
+                    - generic "Additional Controls" [ref=e289] [cursor=pointer]:
+                      - generic [ref=e290]: 
+                - generic [ref=e291]:
+                  - heading "Warning" [level=3] [ref=e292]
+                  - paragraph [ref=e293]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e294]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e295]:
+                - generic [ref=e296]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e297]':
+                    - img "midi-qol" [ref=e299] [cursor=pointer]
+                    - generic [ref=e300]:
+                      - generic [ref=e301]: midi-qol
+                      - generic [ref=e302]: "To: Gamemaster"
+                  - generic [ref=e303]:
+                    - time [ref=e304]: 27d 10h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e359] [cursor=pointer]:
-                      - generic [ref=e360]: 
-                - generic [ref=e361]:
-                  - heading "Warning" [level=3] [ref=e362]
-                  - paragraph [ref=e363]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e364]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e365]:
-                - generic [ref=e366]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e367]':
-                    - img "midi-qol" [ref=e369] [cursor=pointer]
-                    - generic [ref=e370]:
-                      - generic [ref=e371]: midi-qol
-                      - generic [ref=e372]: "To: Gamemaster"
-                  - generic [ref=e373]:
-                    - time [ref=e374]: 33d 7h ago
+                    - generic "Additional Controls" [ref=e305] [cursor=pointer]:
+                      - generic [ref=e306]: 
+                - generic [ref=e307]:
+                  - heading "Warning" [level=3] [ref=e308]
+                  - paragraph [ref=e309]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e310]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e311]:
+                - generic [ref=e312]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e313]':
+                    - img "midi-qol" [ref=e315] [cursor=pointer]
+                    - generic [ref=e316]:
+                      - generic [ref=e317]: midi-qol
+                      - generic [ref=e318]: "To: Gamemaster"
+                  - generic [ref=e319]:
+                    - time [ref=e320]: 27d 9h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e375] [cursor=pointer]:
-                      - generic [ref=e376]: 
-                - generic [ref=e377]:
-                  - heading "Warning" [level=3] [ref=e378]
-                  - paragraph [ref=e379]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e380]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e381]:
-                - generic [ref=e382]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e383]':
-                    - img "midi-qol" [ref=e385] [cursor=pointer]
-                    - generic [ref=e386]:
-                      - generic [ref=e387]: midi-qol
-                      - generic [ref=e388]: "To: Gamemaster"
-                  - generic [ref=e389]:
-                    - time [ref=e390]: 33d 6h ago
+                    - generic "Additional Controls" [ref=e321] [cursor=pointer]:
+                      - generic [ref=e322]: 
+                - generic [ref=e323]:
+                  - heading "Warning" [level=3] [ref=e324]
+                  - paragraph [ref=e325]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e326]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e327]:
+                - generic [ref=e328]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e329]':
+                    - img "midi-qol" [ref=e331] [cursor=pointer]
+                    - generic [ref=e332]:
+                      - generic [ref=e333]: midi-qol
+                      - generic [ref=e334]: "To: Gamemaster"
+                  - generic [ref=e335]:
+                    - time [ref=e336]: 27d 9h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e391] [cursor=pointer]:
-                      - generic [ref=e392]: 
-                - generic [ref=e393]:
-                  - heading "Warning" [level=3] [ref=e394]
-                  - paragraph [ref=e395]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e396]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e397]:
-                - generic [ref=e398]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e399]':
-                    - img "midi-qol" [ref=e401] [cursor=pointer]
-                    - generic [ref=e402]:
-                      - generic [ref=e403]: midi-qol
-                      - generic [ref=e404]: "To: Gamemaster"
-                  - generic [ref=e405]:
-                    - time [ref=e406]: 23d 6h ago
+                    - generic "Additional Controls" [ref=e337] [cursor=pointer]:
+                      - generic [ref=e338]: 
+                - generic [ref=e339]:
+                  - heading "Warning" [level=3] [ref=e340]
+                  - paragraph [ref=e341]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e342]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e343]:
+                - generic [ref=e344]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e345]':
+                    - img "midi-qol" [ref=e347] [cursor=pointer]
+                    - generic [ref=e348]:
+                      - generic [ref=e349]: midi-qol
+                      - generic [ref=e350]: "To: Gamemaster"
+                  - generic [ref=e351]:
+                    - time [ref=e352]: 27d 8h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e407] [cursor=pointer]:
-                      - generic [ref=e408]: 
-                - generic [ref=e409]:
-                  - heading "Warning" [level=3] [ref=e410]
-                  - paragraph [ref=e411]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e412]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e413]:
-                - generic [ref=e414]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e415]':
-                    - img "midi-qol" [ref=e417] [cursor=pointer]
-                    - generic [ref=e418]:
-                      - generic [ref=e419]: midi-qol
-                      - generic [ref=e420]: "To: Gamemaster"
-                  - generic [ref=e421]:
-                    - time [ref=e422]: 23d 6h ago
+                    - generic "Additional Controls" [ref=e353] [cursor=pointer]:
+                      - generic [ref=e354]: 
+                - generic [ref=e355]:
+                  - heading "Warning" [level=3] [ref=e356]
+                  - paragraph [ref=e357]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e358]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e359]:
+                - generic [ref=e360]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e361]':
+                    - img "midi-qol" [ref=e363] [cursor=pointer]
+                    - generic [ref=e364]:
+                      - generic [ref=e365]: midi-qol
+                      - generic [ref=e366]: "To: Gamemaster"
+                  - generic [ref=e367]:
+                    - time [ref=e368]: 27d 7h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e423] [cursor=pointer]:
-                      - generic [ref=e424]: 
-                - generic [ref=e425]:
-                  - heading "Warning" [level=3] [ref=e426]
-                  - paragraph [ref=e427]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e428]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e429]:
-                - generic [ref=e430]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e431]':
-                    - img "midi-qol" [ref=e433] [cursor=pointer]
-                    - generic [ref=e434]:
-                      - generic [ref=e435]: midi-qol
-                      - generic [ref=e436]: "To: Gamemaster"
-                  - generic [ref=e437]:
-                    - time [ref=e438]: 23d 5h ago
+                    - generic "Additional Controls" [ref=e369] [cursor=pointer]:
+                      - generic [ref=e370]: 
+                - generic [ref=e371]:
+                  - heading "Warning" [level=3] [ref=e372]
+                  - paragraph [ref=e373]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e374]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e375]:
+                - generic [ref=e376]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e377]':
+                    - img "midi-qol" [ref=e379] [cursor=pointer]
+                    - generic [ref=e380]:
+                      - generic [ref=e381]: midi-qol
+                      - generic [ref=e382]: "To: Gamemaster"
+                  - generic [ref=e383]:
+                    - time [ref=e384]: 27d 7h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e439] [cursor=pointer]:
-                      - generic [ref=e440]: 
-                - generic [ref=e441]:
-                  - heading "Warning" [level=3] [ref=e442]
-                  - paragraph [ref=e443]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e444]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e445]:
-                - generic [ref=e446]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e447]':
-                    - img "midi-qol" [ref=e449] [cursor=pointer]
-                    - generic [ref=e450]:
-                      - generic [ref=e451]: midi-qol
-                      - generic [ref=e452]: "To: Gamemaster"
-                  - generic [ref=e453]:
-                    - time [ref=e454]: 23d 4h ago
+                    - generic "Additional Controls" [ref=e385] [cursor=pointer]:
+                      - generic [ref=e386]: 
+                - generic [ref=e387]:
+                  - heading "Warning" [level=3] [ref=e388]
+                  - paragraph [ref=e389]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e390]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e391]:
+                - generic [ref=e392]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e393]':
+                    - img "midi-qol" [ref=e395] [cursor=pointer]
+                    - generic [ref=e396]:
+                      - generic [ref=e397]: midi-qol
+                      - generic [ref=e398]: "To: Gamemaster"
+                  - generic [ref=e399]:
+                    - time [ref=e400]: 27d 5h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e455] [cursor=pointer]:
-                      - generic [ref=e456]: 
-                - generic [ref=e457]:
-                  - heading "Warning" [level=3] [ref=e458]
-                  - paragraph [ref=e459]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e460]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e461]:
-                - generic [ref=e462]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e463]':
-                    - img "midi-qol" [ref=e465] [cursor=pointer]
-                    - generic [ref=e466]:
-                      - generic [ref=e467]: midi-qol
-                      - generic [ref=e468]: "To: Gamemaster"
-                  - generic [ref=e469]:
-                    - time [ref=e470]: 23d 3h ago
+                    - generic "Additional Controls" [ref=e401] [cursor=pointer]:
+                      - generic [ref=e402]: 
+                - generic [ref=e403]:
+                  - heading "Warning" [level=3] [ref=e404]
+                  - paragraph [ref=e405]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e406]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e407]:
+                - generic [ref=e408]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e409]':
+                    - img "midi-qol" [ref=e411] [cursor=pointer]
+                    - generic [ref=e412]:
+                      - generic [ref=e413]: midi-qol
+                      - generic [ref=e414]: "To: Gamemaster"
+                  - generic [ref=e415]:
+                    - time [ref=e416]: 27d 5h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e471] [cursor=pointer]:
-                      - generic [ref=e472]: 
-                - generic [ref=e473]:
-                  - heading "Warning" [level=3] [ref=e474]
-                  - paragraph [ref=e475]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e476]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e477]:
-                - generic [ref=e478]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e479]':
-                    - img "midi-qol" [ref=e481] [cursor=pointer]
-                    - generic [ref=e482]:
-                      - generic [ref=e483]: midi-qol
-                      - generic [ref=e484]: "To: Gamemaster"
-                  - generic [ref=e485]:
-                    - time [ref=e486]: 23d 3h ago
+                    - generic "Additional Controls" [ref=e417] [cursor=pointer]:
+                      - generic [ref=e418]: 
+                - generic [ref=e419]:
+                  - heading "Warning" [level=3] [ref=e420]
+                  - paragraph [ref=e421]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e422]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e423]:
+                - generic [ref=e424]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e425]':
+                    - img "midi-qol" [ref=e427] [cursor=pointer]
+                    - generic [ref=e428]:
+                      - generic [ref=e429]: midi-qol
+                      - generic [ref=e430]: "To: Gamemaster"
+                  - generic [ref=e431]:
+                    - time [ref=e432]: 4d 3h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e487] [cursor=pointer]:
-                      - generic [ref=e488]: 
-                - generic [ref=e489]:
-                  - heading "Warning" [level=3] [ref=e490]
-                  - paragraph [ref=e491]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e492]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e493]:
-                - generic [ref=e494]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e495]':
-                    - img "midi-qol" [ref=e497] [cursor=pointer]
-                    - generic [ref=e498]:
-                      - generic [ref=e499]: midi-qol
-                      - generic [ref=e500]: "To: Gamemaster"
-                  - generic [ref=e501]:
-                    - time [ref=e502]: 23d 2h ago
+                    - generic "Additional Controls" [ref=e433] [cursor=pointer]:
+                      - generic [ref=e434]: 
+                - generic [ref=e435]:
+                  - heading "Warning" [level=3] [ref=e436]
+                  - paragraph [ref=e437]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e438]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e439]:
+                - generic [ref=e440]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e441]':
+                    - img "midi-qol" [ref=e443] [cursor=pointer]
+                    - generic [ref=e444]:
+                      - generic [ref=e445]: midi-qol
+                      - generic [ref=e446]: "To: Gamemaster"
+                  - generic [ref=e447]:
+                    - time [ref=e448]: 4d 3h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e503] [cursor=pointer]:
-                      - generic [ref=e504]: 
-                - generic [ref=e505]:
-                  - heading "Warning" [level=3] [ref=e506]
-                  - paragraph [ref=e507]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e508]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e509]:
-                - generic [ref=e510]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e511]':
-                    - img "midi-qol" [ref=e513] [cursor=pointer]
-                    - generic [ref=e514]:
-                      - generic [ref=e515]: midi-qol
-                      - generic [ref=e516]: "To: Gamemaster"
-                  - generic [ref=e517]:
-                    - time [ref=e518]: 23d 1h ago
+                    - generic "Additional Controls" [ref=e449] [cursor=pointer]:
+                      - generic [ref=e450]: 
+                - generic [ref=e451]:
+                  - heading "Warning" [level=3] [ref=e452]
+                  - paragraph [ref=e453]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e454]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e455]:
+                - generic [ref=e456]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e457]':
+                    - img "midi-qol" [ref=e459] [cursor=pointer]
+                    - generic [ref=e460]:
+                      - generic [ref=e461]: midi-qol
+                      - generic [ref=e462]: "To: Gamemaster"
+                  - generic [ref=e463]:
+                    - time [ref=e464]: 4d 3h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e519] [cursor=pointer]:
-                      - generic [ref=e520]: 
-                - generic [ref=e521]:
-                  - heading "Warning" [level=3] [ref=e522]
-                  - paragraph [ref=e523]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e524]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e525]:
-                - generic [ref=e526]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e527]':
-                    - img "midi-qol" [ref=e529] [cursor=pointer]
-                    - generic [ref=e530]:
-                      - generic [ref=e531]: midi-qol
-                      - generic [ref=e532]: "To: Gamemaster"
-                  - generic [ref=e533]:
-                    - time [ref=e534]: 15m 10s ago
+                    - generic "Additional Controls" [ref=e465] [cursor=pointer]:
+                      - generic [ref=e466]: 
+                - generic [ref=e467]:
+                  - heading "Warning" [level=3] [ref=e468]
+                  - paragraph [ref=e469]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e470]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e471]:
+                - generic [ref=e472]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e473]':
+                    - img "midi-qol" [ref=e475] [cursor=pointer]
+                    - generic [ref=e476]:
+                      - generic [ref=e477]: midi-qol
+                      - generic [ref=e478]: "To: Gamemaster"
+                  - generic [ref=e479]:
+                    - time [ref=e480]: 4d 3h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e535] [cursor=pointer]:
-                      - generic [ref=e536]: 
-                - generic [ref=e537]:
-                  - heading "Warning" [level=3] [ref=e538]
-                  - paragraph [ref=e539]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e540]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e541]:
-                - generic [ref=e542]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e543]':
-                    - img "midi-qol" [ref=e545] [cursor=pointer]
-                    - generic [ref=e546]:
-                      - generic [ref=e547]: midi-qol
-                      - generic [ref=e548]: "To: Gamemaster"
-                  - generic [ref=e549]:
-                    - time [ref=e550]: 14m 17s ago
+                    - generic "Additional Controls" [ref=e481] [cursor=pointer]:
+                      - generic [ref=e482]: 
+                - generic [ref=e483]:
+                  - heading "Warning" [level=3] [ref=e484]
+                  - paragraph [ref=e485]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e486]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e487]:
+                - generic [ref=e488]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e489]':
+                    - img "midi-qol" [ref=e491] [cursor=pointer]
+                    - generic [ref=e492]:
+                      - generic [ref=e493]: midi-qol
+                      - generic [ref=e494]: "To: Gamemaster"
+                  - generic [ref=e495]:
+                    - time [ref=e496]: 4d 3h ago
                     - text: 
-                    - generic "Additional Controls" [ref=e551] [cursor=pointer]:
-                      - generic [ref=e552]: 
-                - generic [ref=e553]:
-                  - heading "Warning" [level=3] [ref=e554]
-                  - paragraph [ref=e555]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e556]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e557]:
-                - generic [ref=e558]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e559]':
-                    - img "midi-qol" [ref=e561] [cursor=pointer]
-                    - generic [ref=e562]:
-                      - generic [ref=e563]: midi-qol
-                      - generic [ref=e564]: "To: Gamemaster"
-                  - generic [ref=e565]:
-                    - time [ref=e566]: 10m 30s ago
+                    - generic "Additional Controls" [ref=e497] [cursor=pointer]:
+                      - generic [ref=e498]: 
+                - generic [ref=e499]:
+                  - heading "Warning" [level=3] [ref=e500]
+                  - paragraph [ref=e501]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e502]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e503]:
+                - generic [ref=e504]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e505]':
+                    - img "midi-qol" [ref=e507] [cursor=pointer]
+                    - generic [ref=e508]:
+                      - generic [ref=e509]: midi-qol
+                      - generic [ref=e510]: "To: Gamemaster"
+                  - generic [ref=e511]:
+                    - time [ref=e512]: 3m 16s ago
                     - text: 
-                    - generic "Additional Controls" [ref=e567] [cursor=pointer]:
-                      - generic [ref=e568]: 
-                - generic [ref=e569]:
-                  - heading "Warning" [level=3] [ref=e570]
-                  - paragraph [ref=e571]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e572]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e573]:
-                - generic [ref=e574]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e575]':
-                    - img "midi-qol" [ref=e577] [cursor=pointer]
-                    - generic [ref=e578]:
-                      - generic [ref=e579]: midi-qol
-                      - generic [ref=e580]: "To: Gamemaster"
-                  - generic [ref=e581]:
-                    - time [ref=e582]: 56s ago
+                    - generic "Additional Controls" [ref=e513] [cursor=pointer]:
+                      - generic [ref=e514]: 
+                - generic [ref=e515]:
+                  - heading "Warning" [level=3] [ref=e516]
+                  - paragraph [ref=e517]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e518]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e519]:
+                - generic [ref=e520]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e521]':
+                    - img "midi-qol" [ref=e523] [cursor=pointer]
+                    - generic [ref=e524]:
+                      - generic [ref=e525]: midi-qol
+                      - generic [ref=e526]: "To: Gamemaster"
+                  - generic [ref=e527]:
+                    - time [ref=e528]: 2m 6s ago
                     - text: 
-                    - generic "Additional Controls" [ref=e583] [cursor=pointer]:
-                      - generic [ref=e584]: 
-                - generic [ref=e585]:
-                  - heading "Warning" [level=3] [ref=e586]
-                  - paragraph [ref=e587]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e588]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
-              - listitem [ref=e589]:
-                - generic [ref=e590]:
-                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e591]':
-                    - img "midi-qol" [ref=e593] [cursor=pointer]
-                    - generic [ref=e594]:
-                      - generic [ref=e595]: midi-qol
-                      - generic [ref=e596]: "To: Gamemaster"
-                  - generic [ref=e597]:
-                    - time [ref=e598]: 13s ago
+                    - generic "Additional Controls" [ref=e529] [cursor=pointer]:
+                      - generic [ref=e530]: 
+                - generic [ref=e531]:
+                  - heading "Warning" [level=3] [ref=e532]
+                  - paragraph [ref=e533]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e534]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+              - listitem [ref=e535]:
+                - generic [ref=e536]:
+                  - 'heading "midi-qol midi-qol To: Gamemaster" [level=4] [ref=e537]':
+                    - img "midi-qol" [ref=e539] [cursor=pointer]
+                    - generic [ref=e540]:
+                      - generic [ref=e541]: midi-qol
+                      - generic [ref=e542]: "To: Gamemaster"
+                  - generic [ref=e543]:
+                    - time [ref=e544]: 13s ago
                     - text: 
-                    - generic "Additional Controls" [ref=e599] [cursor=pointer]:
-                      - generic [ref=e600]: 
-                - generic [ref=e601]:
-                  - heading "Warning" [level=3] [ref=e602]
-                  - paragraph [ref=e603]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
-                  - paragraph [ref=e604]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
+                    - generic "Additional Controls" [ref=e545] [cursor=pointer]:
+                      - generic [ref=e546]: 
+                - generic [ref=e547]:
+                  - heading "Warning" [level=3] [ref=e548]
+                  - paragraph [ref=e549]: Midi-qol's built-in chat log pruning is deprecated. It will be removed in version 13.1.
+                  - paragraph [ref=e550]: Please install and activate the 'chatlog-prune' module. Remember to activate chat log pruning in the module settings.
             - generic: 
           - text: +            +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +         +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +   +  +   +  +   +  +   +  +   +  +         +  +   +  +   +  +   +  +   +  +         +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +                     +  +              +  +  +                        +  +   +  +   +  +   +  +   +  +   +  +   +  +   +  +     +  +                               +  +   +  +                  +  +            +  +                  +  +                              +  +   +  +   +  +   +  +   +  +                  • • •            
   - figure:
     - generic:
       - img
       - generic: Game Paused
-  - button "" [ref=e606] [cursor=pointer]:
+  - button "" [ref=e552] [cursor=pointer]:
     - generic: 
 ```
 

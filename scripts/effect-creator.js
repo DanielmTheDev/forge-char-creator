@@ -345,7 +345,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const acVal = parseInt(s.acBonus);
     if (acVal && acVal !== 0) {
       changes.push({
-        key: "system.attributes.ac.value",
+        key: "system.attributes.ac.bonus",
         mode: 2, // ADD
         value: String(acVal),
         priority: 20
@@ -433,12 +433,15 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       statuses: [...(s.statuses || [])],
       duration: s.durationType === "fixed" ? { rounds: parseInt(s.rounds) || 0 } : {},
       changes,
-      flags: {}
+      flags: {
+        dae: { showIcon: true },
+        core: { overlay: true }
+      }
     };
 
     // Stacking (DAE)
     if (s.stackable && s.stackable !== "none") {
-      aeData.flags.dae = { stackable: s.stackable };
+      aeData.flags.dae.stackable = s.stackable;
     }
 
     return aeData;
