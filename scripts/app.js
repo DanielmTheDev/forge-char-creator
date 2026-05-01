@@ -208,6 +208,21 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
+    // Aura ring toggle
+    const enableAura = this.element.querySelector("#enableAura");
+    const auraOptions = this.element.querySelector("#auraOptions");
+    const auraColor = this.element.querySelector("#auraColor");
+    const auraColorText = this.element.querySelector("#auraColorText");
+    
+    if (enableAura && auraOptions) {
+      enableAura.addEventListener("change", (e) => {
+        auraOptions.style.display = e.target.checked ? "flex" : "none";
+      });
+    }
+    if (auraColor && auraColorText) {
+      auraColor.addEventListener("input", (e) => auraColorText.value = e.target.value);
+    }
+
     // Item search on "form" tab
     const searchInput = this.element.querySelector("#itemSearchQuery");
     if (searchInput) {
@@ -402,7 +417,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       name: actorName, type: "npc", folder: folder.id, img: portraitPath,
       prototypeToken: {
         name: actorName, texture: { src: tokenPath },
-        disposition: parseInt(data.disposition) || CONST.TOKEN_DISPOSITIONS.HOSTILE
+        disposition: parseInt(data.disposition) || CONST.TOKEN_DISPOSITIONS.HOSTILE,
+        flags: {}
       },
       system: {
         traits: { size: data.size || "med" },
@@ -419,6 +435,31 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
       }
     };
+
+    if (data.enableAura === "on") {
+      actorData.prototypeToken.flags["token-aura-ring"] = {
+        "aura-rings": [
+          {
+            angle: 360,
+            direction: 0,
+            fill_colour: "#000000",
+            fill_opacity: 0,
+            hide: false,
+            hover_only: false,
+            id: 0,
+            name: "New Aura Ring",
+            radius: parseInt(data.auraRadius) || 20,
+            respect_fog: true,
+            stroke_close: false,
+            stroke_colour: data.auraColor || "#ff0000",
+            stroke_opacity: 0.75,
+            stroke_weight: 4,
+            use_grid_shapes: data.auraGrid === "on",
+            visibility: data.auraVisibility || "PLAYER"
+          }
+        ]
+      };
+    }
 
     try {
       const npc = await Actor.create(actorData);

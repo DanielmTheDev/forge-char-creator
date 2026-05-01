@@ -137,6 +137,46 @@
     </div>
   </fieldset>
 
+  <fieldset class="aura-fieldset" style="margin-top: 10px; position: relative;">
+    <legend style="display: flex; align-items: center; gap: 8px;">
+      <input type="checkbox" id="enableAura" name="enableAura" style="margin: 0;"> Token Aura Ring
+    </legend>
+    <div id="auraOptions" style="display: none; flex-direction: column; gap: 10px; margin-top: 5px;">
+      <div class="flexrow" style="gap: 10px;">
+        <div class="form-group flexcol" style="margin: 0; flex: 1;">
+          <label for="auraRadius">Radius (ft)</label>
+          <div class="form-fields">
+            <input type="number" id="auraRadius" name="auraRadius" value="20" min="0" step="5">
+          </div>
+        </div>
+        <div class="form-group flexcol" style="margin: 0; flex: 1;">
+          <label for="auraColor">Ring Color</label>
+          <div class="form-fields" style="display: flex; gap: 5px; align-items: center;">
+            <input type="color" id="auraColor" name="auraColor" value="#ff0000" style="width: 30px; height: 30px; padding: 0;">
+            <input type="text" id="auraColorText" name="auraColorText" value="#ff0000" style="flex: 1;" oninput="document.getElementById('auraColor').value = this.value">
+          </div>
+        </div>
+      </div>
+      <div class="flexrow" style="gap: 10px;">
+        <div class="form-group flexcol" style="margin: 0; flex: 1;">
+          <label for="auraVisibility">Visible To</label>
+          <div class="form-fields">
+            <select id="auraVisibility" name="auraVisibility">
+              <option value="PLAYER">Players & GM</option>
+              <option value="GAMEMASTER">GM Only</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group flexcol" style="margin: 0; flex: 1;">
+          <label for="auraGrid">Grid-based Shape?</label>
+          <div class="form-fields" style="display: flex; align-items: center; height: 100%;">
+            <input type="checkbox" id="auraGrid" name="auraGrid" style="margin: 0;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
   <div class="form-group" style="margin-top: auto; padding-top: 8px;">
     <button type="button" class="create-btn" data-action="createNPC">
       <i class="fas fa-hammer"></i> Create
