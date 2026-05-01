@@ -6,8 +6,20 @@ This project uses a hybrid testing architecture to test Foundry VTT module logic
 2. **Playwright Runner (`tests/module.spec.js`)**: An external test runner that boots a headless browser, launches the world, logs in as Gamemaster, waits for the canvas to load, and invokes `ForgeTestingSuite.runAll()` via `page.evaluate()`.
 
 ## How to Run Tests
-1. Ensure the local Foundry VTT server is running.
-2. Run `npm run test` from the repository root.
+The repository includes an automated script that handles the entire server lifecycle and test execution.
+
+Run the following from the repository root:
+```bash
+./test.sh
+```
+
+**What this does:**
+1. Starts the local Foundry VTT server in the background using `FoundryVTT-Linux-13.351/resources/app/main.js`.
+2. Waits for the server to initialize.
+3. Executes the Playwright test suite (`npx playwright test`).
+4. Automatically catches exit codes and safely terminates the Foundry server background process upon completion.
+
+*(Note: If you already have the server running manually, you can alternatively just run `npm run test`.)*
 
 ## Adding Tests
 Add new test methods to `ForgeTestingSuite` in `scripts/tests/index.js` and call them sequentially inside `runAll()`.
