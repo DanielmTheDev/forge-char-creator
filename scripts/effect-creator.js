@@ -100,7 +100,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     wrapInFeature: false,
     wrapType: "none",
     wrapTargetCount: "1",
-    wrapTargetArea: "none",
+    wrapTargetArea: "creature",
     wrapDamageFormula: "",
     wrapDamageType: "bludgeoning",
     wrapSaveAbility: "dex",
@@ -117,6 +117,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     ctx.conditions = DND5E_CONDITIONS;
     ctx.advTypes = ADV_TYPES;
     ctx.advCats = ADV_ROLL_CATS;
+    ctx.targetTypes = CONFIG.DND5E.targetTypes;
     return ctx;
   }
 
@@ -465,10 +466,10 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
         if (s.wrapInFeature && s.wrapType !== "none") {
           itemData.system.activation = { type: "action", cost: 1, condition: "" };
-          const isArea = s.wrapTargetArea !== "none";
+          const isArea = ["circle", "cone", "cube", "cylinder", "radius", "line", "sphere", "square", "wall"].includes(s.wrapTargetArea);
           itemData.system.target = {
             value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1),
-            type: isArea ? s.wrapTargetArea : "creature"
+            type: s.wrapTargetArea
           };
 
           // --- DND5e V2 Legacy Payload Support ---
@@ -546,7 +547,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         appMode: "activation", activationTarget: "targets",
         statuses: [], advRows: [], acBonus: 0, abilityRows: [], stackable: "none",
         wrapInFeature: false, wrapType: "none", wrapTargetCount: "1",
-        wrapTargetArea: "none", wrapDamageFormula: "", wrapDamageType: "bludgeoning", wrapSaveAbility: "dex", wrapSaveDC: "14"
+        wrapTargetArea: "creature", wrapDamageFormula: "", wrapDamageType: "bludgeoning", wrapSaveAbility: "dex", wrapSaveDC: "14"
       };
       this.render();
     } catch (err) {

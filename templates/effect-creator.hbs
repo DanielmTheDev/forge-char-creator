@@ -235,10 +235,9 @@
           <div style="display:flex; align-items:center; gap:6px; flex:1;">
             <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Area:</span>
             <select data-ef="wrapTargetArea" style="height:1.8rem; flex:1;">
-              <option value="none" {{#if (eq s.wrapTargetArea "none")}}selected{{/if}}>Creature</option>
-              <option value="radius" {{#if (eq s.wrapTargetArea "radius")}}selected{{/if}}>Radius</option>
-              <option value="cone" {{#if (eq s.wrapTargetArea "cone")}}selected{{/if}}>Cone</option>
-              <option value="line" {{#if (eq s.wrapTargetArea "line")}}selected{{/if}}>Line</option>
+              {{#each targetTypes as |label id|}}
+                <option value="{{id}}" {{#if (eq ../s.wrapTargetArea id)}}selected{{/if}}>{{label}}</option>
+              {{/each}}
             </select>
           </div>
         </div>

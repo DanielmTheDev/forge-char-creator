@@ -36,6 +36,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Generates correct Stacking Flags", this.#testEffectStacking);
     await runTest("EffectCreatorApp: Auto-Description includes Stacking, Mode, Duration, Grants", this.#testEffectAutoDescriptionAdvanced);
     await runTest("EffectCreatorApp: Generates dynamic Feature Wrapper Payloads", this.#testEffectFeatureWrapper);
+    await runTest("EffectCreatorApp: Maps target type correctly (defaults to creature)", this.#testEffectTargeting);
     await runTest("EffectCreatorApp: Just Apply creates Utility Activity without Attack/Save", this.#testEffectJustApply);
     await runTest("EffectCreatorApp: Midi Damage creates Damage Activity without Attack/Save", this.#testEffectMidiDamage);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
@@ -490,6 +491,60 @@ class ForgeTestingSuite {
         resolve();
       } catch (e) {
         app.close();
+        reject(e);
+      }
+    });
+  }
+
+  static async #testEffectTargeting() {
+    return new Promise(async (resolve, reject) => {
+      let captureHook = null;
+      let timeoutId = null;
+
+      try {
+        const app = new EffectCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        
+        const el = app.element;
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Targeting E2E");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='apply']"), true);
+        // Leave wrapTargetArea at default (creature)
+        
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== "Targeting E2E") return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            if (item.system.target.type !== "creature") {
+               throw new Error(`Default target type should be 'creature', got '${item.system.target.type}'`);
+            }
+            
+            app.close();
+            await item.delete(); // Cleanup
+            resolve();
+          } catch (e) {
+            app.close();
+            await item.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Item.create to fire in local DB"));
+        }, 3000);
+
+        const submitBtn = el.querySelector("button[data-action='createEffect']");
+        if (submitBtn) submitBtn.click();
+        else reject(new Error("Create button not found"));
+
+      } catch (e) {
+        if (captureHook) Hooks.off("createItem", captureHook);
+        clearTimeout(timeoutId);
         reject(e);
       }
     });
