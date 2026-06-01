@@ -3,8 +3,8 @@
   "version": "1.3.0",
   "scripts": {
     "test": "playwright test",
-    "content:pack": "node forge-content/build-packs.mjs",
-    "content:unpack": "node forge-content/unpack-packs.mjs",
+    "packs:build": "node scripts/pack-tools/build.mjs",
+    "packs:unpack": "node scripts/pack-tools/unpack.mjs",
     "content:verify": "bash content-verify.sh"
   },
   "dependencies": {

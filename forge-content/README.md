@@ -14,12 +14,13 @@ authored as JSON, compiled to LevelDB compendium packs.
 2. `npm run content:pack` → compiles all packs into `packs/<pack>/`.
 3. Install/refresh in Foundry → item available in the compendium.
 
-## Commands (run from repo root)
-- `npm run content:pack` — JSON source → LevelDB. Injects `_key` (`!items!<id>`,
-  effects `!items.effects!<docId>.<effId>`) into a staging copy first; source stays key-free.
-- `npm run content:unpack` — LevelDB → JSON source. **For IMPORTING external/legacy packs
-  into fresh source only.** It names files `<Name>_<id>.json` and will create duplicates
-  next to hand-named files — do not run it to "round-trip" already-authored source.
+## Commands (run from repo root; shared tooling in scripts/pack-tools/)
+- `npm run packs:build [forge-content]` — JSON source → LevelDB for all modules (or one).
+  Injects `_key` (`!items!<id>`, effects `!items.effects!<docId>.<effId>`) into a staging
+  copy first; source stays key-free.
+- `npm run packs:unpack [forge-content]` — LevelDB → JSON source. **For IMPORTING external/
+  legacy packs into fresh source only.** Names files `<Name>_<id>.json` and will duplicate
+  hand-named files — do not run it to "round-trip" already-authored source.
 
 ## Verify before publish
 - `npm run content:verify` — boots local Foundry, applies each ability on a throwaway

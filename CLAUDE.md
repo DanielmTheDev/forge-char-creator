@@ -34,12 +34,16 @@ See `TODO.md` — running checklist + tracked bugs + decisions log. Keep it upda
 ## Content gate (B) — LOCAL + MANUAL
 Foundry can't run in CI (binary + license gitignored/secret), so the functional gate is local. Discipline: **run `npm run content:verify` before pushing content** (push→publish, ungated by design — 2-person flow). Each ability needs a co-located `<name>.expect.json` ({tier, actor, assert:{acDelta|abilityDelta|effectApplied}}) or the gate fails it as untested. T3 combat scenarios = future.
 
+## Packs are content-as-code (BOTH modules)
+JSON source committed; compiled LevelDB `packs/` gitignored (built on demand / in CI). Shared tooling `scripts/pack-tools/` (module registry in modules.mjs). `FoundryData/.../forge-char-creator` is a symlink to repo, so Foundry compacts `packs/` on every boot — gitignore keeps that invisible.
+
 ## Commands
-- `npm run content:pack` / `content:unpack` — JSON↔LevelDB (see forge-content/README.md).
+- `npm run packs:build [moduleName]` — JSON source → LevelDB for all modules (or one).
+- `npm run packs:unpack [moduleName]` — LevelDB → clean JSON source (import only; renames files).
 - `npm run content:verify` — boot Foundry + run forge-content functional gate. Run before push.
 - `./test.sh` — boot Foundry + run char-creator suite (server lifecycle handled).
 - `npm run test` — Playwright char-creator suite only (server already running).
-- `./build.sh` — zip char-creator for Forge upload. (forge-content publishes via CI on push to main.)
+- `./build.sh` — local char-creator zip. CI (release.yml) builds packs then publishes both modules on push to main.
 
 ## Caveats (see agents.md)
 Foundry init slow — keep generous timeouts. Combat/scene tests can destroy Playwright eval context; runner catches it. Native tests live in `scripts/tests/index.js`, called from `runAll()`.

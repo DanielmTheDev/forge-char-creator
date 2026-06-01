@@ -10,6 +10,7 @@ node_modules/
 test-results/
 dist/
 test-run*.log
+/packs/
 forge-content/packs/
-forge-content/.pack-build/
-forge-content/.pack-unpack/
+.pack-build/
+.pack-unpack/
