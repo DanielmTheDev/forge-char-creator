@@ -14,7 +14,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Build Module Zip
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps (forge-content pack tooling)
+        run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+      - name: Build forge-char-creator zip
         run: |
           mkdir -p dist
           zip -r dist/forge-char-creator.zip ./* \
@@ -27,15 +37,28 @@ jobs:
             -x "DEPLOYMENT.md" \
             -x "workflows/*" \
             -x ".gitignore" \
-            -x ".github/*"
+            -x ".github/*" \
+            -x "forge-content/*" \
+            -x "CLAUDE.md" \
+            -x "TODO.md"
+
+      - name: Compile forge-content packs (JSON -> LevelDB)
+        run: npm run content:pack
+
+      - name: Build forge-content zip
+        run: |
+          cd forge-content
+          zip -r ../dist/forge-content.zip module.json packs
 
       - name: Update Latest Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: latest
           name: Foundry VTT Module Update
-          body: Auto-generated from git commit.
-          files: dist/forge-char-creator.zip
+          body: Auto-generated from git commit. Includes forge-char-creator and forge-content.
+          files: |
+            dist/forge-char-creator.zip
+            dist/forge-content.zip
           draft: false
           prerelease: false
         env:
