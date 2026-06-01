@@ -12,6 +12,13 @@ Simple running list. Check off as done. See CLAUDE.md for full spec.
 - [x] SAFETY. zip symlink-loop froze machine 2x (FoundryData self-symlink + zip following it). build.sh + release.yml hardened with `-ry` + exclude Foundry dirs. See memory zip-symlink-loop-hazard. NEVER run repo-root zip locally.
 - [ ] A2-redo. Re-prove compiled forge-content pack loads via registered module install (probe used Item.create, not real compendium load). LOW priority — user confirmed install works in browser.
 
+## B3 combat harness — BLOCKED (headless midi targeting)
+combatCheck handler scaffolded in checks.mjs (combat setup, linked tokens, deterministic by construction). Verified working: ability authoring (damage activity), actor/token/combat creation. BLOCKER: `MidiQOL.completeActivityUse`/`completeItemUse` return **undefined** in headless — `game.user.targets` won't populate (setTarget + targets.add both no-op without a rendered canvas), so midi aborts "You must target a token". Same class of fragility that makes the Omega sim fail (context-destroyed). API notes learned (midi 13.0.63): options go in `config.midiOptions` (not old 3rd-arg workflowOptions); `completeActivityUse(activityUuidString, {midiOptions:{fastForward,fastForwardAttack,fastForwardDamage,targetsToUse,ignoreUserTargets}})`; targetUuids needs getToken() which fails headless.
+Options to unblock (pick before resuming):
+- (a) Lower-level: roll activity damage + `MidiQOL.applyTokenDamage`/`actor.applyDamage` — skips the use-workflow/targeting handshake. Deterministic, less "full workflow".
+- (b) Run verify HEADED via xvfb (real display) so canvas/targeting works like the user's browser. Heavier infra; most faithful.
+- (c) Defer T3; ship T2-gated passives now.
+
 ## Roadmap (after A)
 - [~] B. Functional gate. DONE B1: `npm run content:verify` boots Foundry, applies each ability on a dummy actor, asserts co-located `<name>.expect.json` (acDelta/abilityDelta/effectApplied). Fails on untested abilities + on wrong assertions (negative-tested). LOCAL + MANUAL (run before push; CI can't run Foundry). TODO B3: T3 combat scenarios (damage/save/duration on real midi workflow).
 - [x] C. Publish automation DONE: release.yml builds forge-content packs in CI, zips, uploads forge-content.zip to rolling `latest` release. Manifest + download verified HTTP 200. PENDING: B should gate publish (currently every push to main publishes, even unverified).
