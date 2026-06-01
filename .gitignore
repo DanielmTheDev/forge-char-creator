@@ -6,3 +6,7 @@ FoundryData/
 .idea/
 .vscode/
 .foundry_license_key
+node_modules/
+test-results/
+dist/
+test-run*.log
