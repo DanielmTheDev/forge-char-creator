@@ -31,10 +31,15 @@ Version drift (pin dnd5e 5.2.0 / midi 13.0.63, re-test on bump) · combinatorial
 ## Task list
 See `TODO.md` — running checklist + tracked bugs + decisions log. Keep it updated.
 
+## Content gate (B) — LOCAL + MANUAL
+Foundry can't run in CI (binary + license gitignored/secret), so the functional gate is local. Discipline: **run `npm run content:verify` before pushing content** (push→publish, ungated by design — 2-person flow). Each ability needs a co-located `<name>.expect.json` ({tier, actor, assert:{acDelta|abilityDelta|effectApplied}}) or the gate fails it as untested. T3 combat scenarios = future.
+
 ## Commands
-- `./test.sh` — boot Foundry + run full suite (handles server lifecycle).
-- `npm run test` — Playwright only (server already running).
-- `./build.sh` — zip char-creator for Forge upload. (forge-content build TBD in C.)
+- `npm run content:pack` / `content:unpack` — JSON↔LevelDB (see forge-content/README.md).
+- `npm run content:verify` — boot Foundry + run forge-content functional gate. Run before push.
+- `./test.sh` — boot Foundry + run char-creator suite (server lifecycle handled).
+- `npm run test` — Playwright char-creator suite only (server already running).
+- `./build.sh` — zip char-creator for Forge upload. (forge-content publishes via CI on push to main.)
 
 ## Caveats (see agents.md)
 Foundry init slow — keep generous timeouts. Combat/scene tests can destroy Playwright eval context; runner catches it. Native tests live in `scripts/tests/index.js`, called from `runAll()`.

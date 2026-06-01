@@ -4,7 +4,8 @@
   "scripts": {
     "test": "playwright test",
     "content:pack": "node forge-content/build-packs.mjs",
-    "content:unpack": "node forge-content/unpack-packs.mjs"
+    "content:unpack": "node forge-content/unpack-packs.mjs",
+    "content:verify": "bash content-verify.sh"
   },
   "dependencies": {
     "playwright": "^1.60.0"

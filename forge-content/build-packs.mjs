@@ -40,7 +40,8 @@ for (const pack of packs) {
   const stageDir = join(STAGE, name);
   mkdirSync(stageDir, { recursive: true });
 
-  const files = readdirSync(srcDir).filter(f => f.endsWith(".json"));
+  // *.expect.json are functional-test specs (see content:verify), not pack docs.
+  const files = readdirSync(srcDir).filter(f => f.endsWith(".json") && !f.endsWith(".expect.json"));
   for (const f of files) {
     const doc = injectKeys(JSON.parse(readFileSync(join(srcDir, f), "utf8")), coll, f);
     writeFileSync(join(stageDir, f), JSON.stringify(doc, null, 2));

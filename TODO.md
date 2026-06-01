@@ -11,7 +11,7 @@ Simple running list. Check off as done. See CLAUDE.md for full spec.
 - [ ] A2-redo. Re-prove the compiled forge-content pack loads via a registered module install (probe used Item.create, not a real compendium load). Quick.
 
 ## Roadmap (after A)
-- [ ] B. Functional test gate (T0-T3) wired into test.sh; nothing publishes until green. ← NEXT
+- [~] B. Functional gate. DONE B1: `npm run content:verify` boots Foundry, applies each ability on a dummy actor, asserts co-located `<name>.expect.json` (acDelta/abilityDelta/effectApplied). Fails on untested abilities + on wrong assertions (negative-tested). LOCAL + MANUAL (run before push; CI can't run Foundry). TODO B3: T3 combat scenarios (damage/save/duration on real midi workflow).
 - [x] C. Publish automation DONE: release.yml builds forge-content packs in CI, zips, uploads forge-content.zip to rolling `latest` release. Manifest + download verified HTTP 200. PENDING: B should gate publish (currently every push to main publishes, even unverified).
 - [ ] D. Image → statblock (vision → JSON → pipeline A). Last, highest risk.
 

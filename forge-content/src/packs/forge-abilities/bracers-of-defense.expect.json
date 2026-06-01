@@ -1,0 +1,7 @@
+{
+  "tier": "T2-apply",
+  "actor": { "type": "npc" },
+  "assert": {
+    "acDelta": 2
+  }
+}

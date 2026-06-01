@@ -21,10 +21,19 @@ authored as JSON, compiled to LevelDB compendium packs.
   into fresh source only.** It names files `<Name>_<id>.json` and will create duplicates
   next to hand-named files — do not run it to "round-trip" already-authored source.
 
+## Verify before publish
+- `npm run content:verify` — boots local Foundry, applies each ability on a throwaway
+  actor, asserts its co-located `<name>.expect.json`. **Run before pushing** (push→publish).
+- Each ability MUST have `<name>.expect.json` or the gate fails it as untested:
+  `{ "tier": "T2-apply", "actor": {"type":"npc"}, "assert": { "acDelta": 2 } }`
+  Supported asserts: `acDelta`, `abilityDelta: {ability, delta}`, `effectApplied: "<name>"`.
+  (`*.expect.json` is excluded from packs — it's test data, not a document.)
+
 ## Conventions
 - Source docs: `_id` required, `_key` forbidden (auto-injected).
 - New pack? Add its primary collection to `COLLECTION` in `build-packs.mjs`
   (Item pack → `items`; Actor pack → `actors`).
+- Every ability ships with a `<name>.expect.json` functional check.
 
 ## Distribution
 Compiled packs are gitignored, so the GitHub-manifest install needs a CI-built
