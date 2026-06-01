@@ -1,0 +1,7 @@
+{
+  "tier": "T3-combat",
+  "defender": { "hp": 100, "ac": 1 },
+  "assert": {
+    "defenderHpDelta": -10
+  }
+}

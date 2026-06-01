@@ -48,11 +48,12 @@ async function combatCheck({ doc, expectation }) {
   const a = expectation.assert ?? {};
   const dcfg = expectation.defender ?? {};
   const hp = dcfg.hp ?? 100;
-  let attacker, defender, atkTok, defTok, combat;
+  let attacker, defender, atkTok, defTok, combat, scene;
   try {
-    const scene = canvas.scene;
-    if (!scene) return { ok: false, fails: ['no active scene to run combat in'] };
     if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+    // Fresh clean scene: the dev world's existing scene has a broken actor that
+    // aborts canvas.draw (canvas.ready stays false), which breaks targeting.
+    scene = await Scene.create({ name: 'T3 Verify Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
 
     attacker = await Actor.create({ name: 'T3 Attacker', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
     defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
@@ -68,8 +69,11 @@ async function combatCheck({ doc, expectation }) {
       { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
     ]);
     await combat.startCombat();
-    // Wait for the canvas to draw the token placeable, then set a real target
-    // (midi reads game.user.targets; placeable must exist first in headless).
+    // Activate the scene AFTER tokens exist so the canvas switches to it + draws
+    // their placeables (view() alone didn't switch the canvas). Wait until the
+    // canvas is actually on our scene and ready, then a tick to render placeables.
+    await canvas.draw(scene);
+    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
     await new Promise(r => setTimeout(r, 800));
     const defPlaceable = canvas.tokens?.get(defTok.id) ?? defTok.object;
     if (defPlaceable) {
@@ -86,23 +90,20 @@ async function combatCheck({ doc, expectation }) {
     // Pass activity by UUID (object gets deep-cloned + can fail the !activity guard).
     // midi's own canonical call uses targetsToUse: new Set([token]) (midi-qol.js
     // ~14876); targetUuids relies on getToken(uuid) which fails headless.
+    // Use targetUuids (NOT targetsToUse — midi's targetsToUse handling is broken:
+    // Array trips its not-a-Set guard, Set crashes on .map). targetUuids resolves
+    // via getToken(uuid), which needs the full canvas (headed/xvfb).
     const wf = await MidiQOL.completeActivityUse(activity.uuid, {
       midiOptions: {
         fastForward: true, fastForwardAttack: true, fastForwardDamage: true,
         autoRollDamage: 'always',
-        targetsToUse: defPlaceable ? [defPlaceable] : undefined,
-        ignoreUserTargets: true,
+        targetUuids: [defTok.uuid], ignoreUserTargets: true,
       },
     });
     await new Promise(r => setTimeout(r, 2500)); // midi workflow + damage application
     const hpAfter = defender.system.attributes.hp.value;
 
-    // KNOWN BLOCKER (B3): in headless, MidiQOL.completeActivityUse returns
-    // undefined — game.user.targets won't populate without a rendered canvas, so
-    // midi aborts with "must target". Same fragility that makes the Omega sim
-    // flake. Unresolved; see TODO B3 (options: lower-level applyTokenDamage, or
-    // run verify headed via xvfb). Handler kept as scaffold.
-    if (!wf) return { ok: false, fails: ['midi workflow did not run (headless targeting blocker — see TODO B3)'] };
+    if (!wf) return { ok: false, fails: ['midi workflow did not run (no target / activity not resolved)'] };
 
     const fails = [];
     if (a.defenderHpDelta !== undefined && (hpAfter - hpBefore) !== a.defenderHpDelta)
@@ -119,6 +120,7 @@ async function combatCheck({ doc, expectation }) {
     if (defTok) await defTok.delete().catch(() => {});
     if (attacker) await attacker.delete().catch(() => {});
     if (defender) await defender.delete().catch(() => {});
+    if (scene) await scene.delete().catch(() => {});
   }
 }
 

@@ -10,6 +10,14 @@ trap cleanup EXIT
 echo "Waiting 12s for server to initialize..."
 sleep 12
 
-echo "Running forge-content verify..."
-npx playwright test --config playwright.content.config.js
+echo "Running forge-content verify (headed under virtual display)..."
+# Headed Chromium needs a display; xvfb-run provides a virtual one so Foundry's
+# canvas fully initializes (required for token targeting in real midi workflows).
+if command -v xvfb-run >/dev/null 2>&1; then
+  xvfb-run -a --server-args="-screen 0 1440x900x24" npx playwright test --config playwright.content.config.js
+else
+  echo "WARNING: xvfb-run not found — running without virtual display (T3 combat will fail)."
+  echo "Install with: sudo apt-get install -y xvfb"
+  npx playwright test --config playwright.content.config.js
+fi
 exit $?
