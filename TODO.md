@@ -11,8 +11,8 @@ Simple running list. Check off as done. See CLAUDE.md for full spec.
 - [ ] A2-redo. Re-prove the compiled forge-content pack loads via a registered module install (probe used Item.create, not a real compendium load). Quick.
 
 ## Roadmap (after A)
-- [ ] B. Functional test gate (T0-T3) wired into test.sh; nothing publishes until green.
-- [ ] C. Publish automation: push → CI build + release → Forge auto-update.
+- [ ] B. Functional test gate (T0-T3) wired into test.sh; nothing publishes until green. ← NEXT
+- [x] C. Publish automation DONE: release.yml builds forge-content packs in CI, zips, uploads forge-content.zip to rolling `latest` release. Manifest + download verified HTTP 200. PENDING: B should gate publish (currently every push to main publishes, even unverified).
 - [ ] D. Image → statblock (vision → JSON → pipeline A). Last, highest risk.
 
 ## Bugs found (fix later, tracked)
