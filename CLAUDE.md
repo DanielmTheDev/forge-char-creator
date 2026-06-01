@@ -10,7 +10,7 @@ Author D&D5e content (effects → items → full NPCs/bosses, eventually from an
 ## Locked decisions
 - **Distribution**: new `forge-content` module IN THIS REPO. Own module.json + packs. Depends on same deps (dnd5e, midi-qol, dae, lib-wrapper, socketlib). User installs both modules.
 - **Source of truth = plain JSON**, one file per document, git-readable. Industry pattern (dnd5e core does this).
-- **Compile**: `@foundryvtt/foundryvtt-cli` packs JSON → LevelDB. Stop committing binary `.ldb` diffs; commit JSON source.
+- **Compile**: `@foundryvtt/foundryvtt-cli` packs JSON → LevelDB. JSON = committed truth; compiled pack = build artifact → **gitignore `packs/` AFTER migration** (regen via `npm run pack`). Caveat: Forge GitHub-manifest install (DEPLOYMENT.md Method 2) needs a CI-built release artifact once packs are ignored; Method 1 zip unaffected.
 - **Reuse** EffectCreatorApp payload LOGIC as the correct-midi-flag reference. Not its UI.
 
 ## Testing gate (nothing publishes until green)
