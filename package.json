@@ -2,7 +2,9 @@
   "name": "forge-char-creator",
   "version": "1.3.0",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "content:pack": "node forge-content/build-packs.mjs",
+    "content:unpack": "node forge-content/unpack-packs.mjs"
   },
   "dependencies": {
     "playwright": "^1.60.0"

@@ -6,8 +6,9 @@ Simple running list. Check off as done. See CLAUDE.md for full spec.
 - [x] A0. Author ONE ability as JSON by hand. (Bracers of Defense, +2 AC passive — /tmp/fc-spike/src)
 - [x] A1. Compile standalone via foundryvtt-cli into LevelDB pack. Round-trip verified. FINDING: docs need `_key` field (`!items!<id>`, effects `!items.effects!<itemId>.<effectId>`) or CLI silently skips them → A3 scaffold should auto-inject `_key` from `_id`.
 - [x] A2. Proved in real Foundry via throwaway probe: doc loads (T1) + passive effect applies (AC +2, T2). Probe deleted. NOTE: playwright 1.60.0 bump required `npx playwright install chromium` once.
-- [ ] A3. THEN formalize forge-content scaffold (module.json, src/packs/, npm pack/unpack scripts) around what we learned. Must auto-inject `_key` from `_id` at pack time.
-- [ ] A4. Migrate existing packs → JSON source; gitignore `packs/`; regen via `npm run pack`. (kills binary churn + junk docs)
+- [x] A3. forge-content scaffold built: module.json, src/packs/forge-abilities/, build-packs.mjs (auto-injects `_key`), unpack-packs.mjs (strips `_key`), npm content:pack/unpack, README. Compiled packs/ gitignored. FINDINGS: CLI `pack --in` reads dir directly but `unpack --in` reads <dir>/<name> (asymmetric); `unpack` renames files to `<Name>_<id>.json` so it's import-only, not for round-tripping authored source.
+- [ ] A4. Migrate existing forge-char-creator packs → JSON source (use content:unpack pattern); gitignore those `packs/`; regen via pack. (kills binary churn + junk docs)
+- [ ] A2-redo. Re-prove the compiled forge-content pack loads via a registered module install (probe used Item.create, not a real compendium load). Quick.
 
 ## Roadmap (after A)
 - [ ] B. Functional test gate (T0-T3) wired into test.sh; nothing publishes until green.

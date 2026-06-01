@@ -1,0 +1,36 @@
+{
+  "id": "forge-content",
+  "title": "Forge Content",
+  "description": "Content-as-code compendium module for Foundry VTT V13 / dnd5e: abilities, items, and (later) NPCs/bosses authored as JSON and compiled to packs.",
+  "version": "0.1.0",
+  "authors": [
+    { "name": "Forge Content Developer" }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+  "relationships": {
+    "systems": [
+      { "id": "dnd5e", "type": "system", "compatibility": { "minimum": "5.0.0" } }
+    ],
+    "recommends": [
+      { "id": "midi-qol", "type": "module" },
+      { "id": "dae", "type": "module" }
+    ]
+  },
+  "url": "https://github.com/DanielmTheDev/forge-char-creator",
+  "manifest": "https://raw.githubusercontent.com/DanielmTheDev/forge-char-creator/main/forge-content/module.json",
+  "download": "https://github.com/DanielmTheDev/forge-char-creator/releases/latest/download/forge-content.zip",
+  "packs": [
+    {
+      "name": "forge-abilities",
+      "label": "Forge Abilities",
+      "path": "packs/forge-abilities",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" }
+    }
+  ]
+}
