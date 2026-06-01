@@ -5,9 +5,10 @@
     "test": "playwright test"
   },
   "dependencies": {
-    "playwright": "^1.59.1"
+    "playwright": "^1.60.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1"
+    "@foundryvtt/foundryvtt-cli": "^3.0.3",
+    "@playwright/test": "^1.60.0"
   }
 }
