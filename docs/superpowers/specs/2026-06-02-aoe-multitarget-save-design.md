@@ -3,6 +3,31 @@
 Date: 2026-06-02
 Roadmap: boss-combat mechanics #1 (TODO.md "NEXT UP"). Biggest, harness-shaped. Build first.
 
+## UPDATE 2026-06-02 (implementation finding — supersedes the "sphere" decision below)
+
+A **ranged** template (the originally-chosen sphere, 60ft range) **cannot run in the headless
+gate**. In midi 13.0.63 a ranged template sets `expectedTemplateCount=1` (midi-qol.js ~24283)
+and the workflow aborts (`preAbort`, `WorkflowState_AwaitTemplate`) because no template is
+placed — in real play that's the interactive "Place Template" click, which xvfb/fast-forward
+can't perform. Injecting a pre-made template via `workflowOptions.templateUuid` does NOT help:
+the `Workflow` constructor runs the `templateUuid` setter (~24271) and then **resets
+`this.templateUuids = []` two lines later (~24287)**, and `needTemplate` checks that wiped
+array. `templateUuids` only populates through midi's real placement flow.
+
+**Resolution (user-approved):** Example Blast is a **self-centered 20ft-radius emanation**
+(`range:{units:"self"}`, `target.template:{type:"radius",size:"20",units:"ft"}`,
+`affects:{type:"creature",special:"-self"}`). `activityHasAutoPlaceTemplate` (~19914) is then
+true → midi's `_placeEmanationTemplate` (~8052) auto-creates the template on the caster and
+auto-targets creatures inside it (autoTarget default `wallsBlockIgnoreDefeated` ≠ none). No
+interactive placement → gate-deterministic. The **mechanic proven is identical** (N targets,
+per-target independent saves, half-on-save); only the flavor changes (thrown sphere → burst
+around caster). Verified GREEN: 3 defenders, forced 2 fail (−12) + 1 success (−6).
+
+Everything below describing a `sphere`/ranged template + the `MidiQOL.templateTokens`
+auto-target + `targetUuids` fallback is **historical** — `MidiQOL.templateTokens` does not
+exist in midi 13.0.63, and `targetUuids` is not a valid fallback for a template activity
+(it satisfies *targets*, not the *template* requirement, so it still aborts).
+
 ## Problem
 
 The functional gate (`forge-content/verify/checks.mjs`) is hardwired to ONE defender.
