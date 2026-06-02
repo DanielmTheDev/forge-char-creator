@@ -1,0 +1,12 @@
+{
+  "tier": "T3-grant",
+  "setup": ["example-strike"],
+  "defender": { "hp": 100, "ac": 5 },
+  "assert": {
+    "effectApplied": "Example Boon",
+    "flagPresent": "flags.midi-qol.advantage.attack.all",
+    "buffedAdvantage": true,
+    "midAdvantage": true,
+    "expiredAdvantage": false
+  }
+}
