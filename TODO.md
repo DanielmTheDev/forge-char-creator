@@ -22,6 +22,12 @@ T3-combat gate works: Searing Bolt (flat 10 fire) → exact -10 on rigged defend
 - PREREQ: `sudo apt-get install -y xvfb` on the dev machine.
 - Next: combat .expect.json vocab can grow (conditionApplied already supported; add saveResult, effectExpiresTurn, advantage).
 
+## NEXT: Attack rolls (new mechanic) — separate folder
+- Build a test ability that makes a real attack roll (to-hit). Put it in a NEW folder (add to `_folders.json` + set the ability's `folder`).
+- Harness is READY: `runScenario` snapshot already captures `attack:{hit,crit,fumble,advantage,disadvantage,total}`; `assertResult` already has `attackHit`/`attackCrit`/`attackAdvantage` keys.
+- Determinism: force hit/miss via midi flags (like the save flags) — look for `flags.midi-qol.grants.attack.fail/success.all` on the DEFENDER, or rig attacker bonus + defender AC extremes. Avoid nat-1/20 flake; force the outcome. Add a `forceAttack`/scenario opt to runScenario mirroring `forceSave`.
+- Also testable now: advantage (e.g. attack vs a prone/marked foe → assert `attackAdvantage:true`), crit.
+
 ## Saving throws (NEW mechanic) — DONE ✅
 - Radiant Rebuke (Derek, light magic): Recharge 5–6, DEX save, 12 radiant, half on save.
 - Save-activity execution solved (the old `undefined` wall was just a 15-char activity id — builder now enforces 16-char ids via keys.mjs).
