@@ -1,0 +1,34 @@
+{
+  "name": "Example Blast",
+  "img": "icons/magic/fire/explosion-fireball-medium-orange.webp",
+  "type": "feat",
+  "_id": "exampleblast0001",
+  "system": {
+    "description": {
+      "value": "<p>Reference ability proving area-of-effect, save-each resolution. Every creature in a 20-foot-radius sphere makes a DC 14 Dexterity save, taking <strong>12 fire damage</strong>, or half as much on a success. Each target saves independently. Pattern reused by future AoE abilities.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "blastaoe00000001": {
+        "_id": "blastaoe00000001",
+        "type": "save",
+        "activation": { "type": "action", "value": 1 },
+        "range": { "value": 60, "units": "ft" },
+        "target": {
+          "template": { "type": "sphere", "size": "20", "units": "ft" },
+          "affects": { "type": "creature" }
+        },
+        "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "14" } },
+        "damage": { "onSave": "half", "parts": [{ "types": ["fire"], "custom": { "enabled": true, "formula": "12" } }] }
+      }
+    },
+    "identifier": "example-blast",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [],
+  "flags": {},
+  "folder": "folderexample001"
+}
