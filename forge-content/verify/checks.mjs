@@ -467,7 +467,12 @@ async function aoeCheck({ doc, expectation }) {
     const hpBefore = defenders.map(d => d.system.attributes.hp.value);
     const wf = await MidiQOL.completeActivityUse(activity.uuid, { midiOptions });
     if (!wf) return { ok: false, fails: ['midi workflow did not run (emanation auto-place / aborted)'] };
-    console.log(`[T3-aoe] midi auto-targeted ${wf.targets?.size ?? 0} tokens (expected ${N})`);
+    const targeted = wf.targets?.size ?? 0;
+    console.log(`[T3-aoe] midi auto-targeted ${targeted} tokens (expected ${N})`);
+    // Hard invariant: midi must have hit exactly N. Without this, a future target that
+    // asserts ONLY conditionApplied/effectApplied (no negative HP delta) could false-pass
+    // when midi short-targets it. Caught here regardless of which assert keys are used.
+    if (targeted !== N) fails.push(`auto-targeted ${targeted} tokens, expected ${N}`);
     await new Promise(r => setTimeout(r, 2500)); // damage + per-target saves settle
 
     // --- Per-target asserts (reuse the combatCheck assert key vocabulary) ---
