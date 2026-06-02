@@ -193,8 +193,119 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
   return { ok: fails.length === 0, fails };
 }
 
+// T3-grant: a buff ability that applies an effect to an ALLY which grants the
+// ally advantage on attacks, expiring at the end of the source actor's next
+// turn. Distinct from combatCheck because it needs three actors (caster, ally,
+// dummy) and reads advantage off the ALLY's own attack workflow — once while
+// buffed, once after the caster's first turn-end (must still be active), once
+// after the caster's second turn-end (must be gone). Self-contained: shipped to
+// the browser via page.evaluate, browser globals only.
+//
+// expectation: { setup:[<ally attack ability identifier>], defender?:{hp,ac},
+//   assert:{ effectApplied?, flagPresent?, buffedAdvantage?, midAdvantage?, expiredAdvantage? } }
+async function grantCheck({ doc, expectation, setupDocs = [] }) {
+  if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+  if (!setupDocs.length) return { ok: false, fails: ['grantCheck needs setup:[<ally attack ability>] in expect.json'] };
+  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const a = expectation.assert ?? {};
+  const dcfg = expectation.defender ?? {};
+  const hp = dcfg.hp ?? 100;
+  const allyAttackDoc = setupDocs[0];
+
+  let caster, ally, dummy, casterTok, allyTok, dummyTok, combat, scene;
+  const fails = [];
+  try {
+    scene = await Scene.create({ name: 'T3 Grant Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
+    caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
+    ally   = await Actor.create({ name: 'T3 Ally',   type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
+    dummy  = await Actor.create({ name: 'T3 Dummy',  type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 5 } } } });
+    // Force the ally's attacks to hit so each workflow resolves cleanly; we only read advantage.
+    await dummy.update({ 'flags.midi-qol.grants.attack.success.all': 1 });
+
+    casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
+    allyTok   = await TokenDocument.create({ actorId: ally.id,   name: ally.name,   actorLink: true, x: 200, y: 100, disposition: 1 }, { parent: scene });
+    dummyTok  = await TokenDocument.create({ actorId: dummy.id,  name: dummy.name,  actorLink: true, x: 300, y: 100, disposition: -1 }, { parent: scene });
+
+    combat = await Combat.create({ scene: scene.id, active: true });
+    await combat.activate();
+    // Initiative order: caster (30) -> ally (20) -> dummy (10).
+    await combat.createEmbeddedDocuments('Combatant', [
+      { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
+      { tokenId: allyTok.id,   actorId: ally.id,   initiative: 20 },
+      { tokenId: dummyTok.id,  actorId: dummy.id,  initiative: 10 },
+    ]);
+    await combat.startCombat();
+    await canvas.draw(scene);
+    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 800));
+
+    // Use actor's freshly-created copy of an ability (first activity) against a token.
+    const use = async (actor, docData, targetTok) => {
+      const [item] = await actor.createEmbeddedDocuments('Item', [strip(docData)]);
+      const activity = [...item.system.activities][0];
+      const wf = await MidiQOL.completeActivityUse(activity.uuid, {
+        midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [targetTok.uuid], ignoreUserTargets: true },
+      });
+      await new Promise(r => setTimeout(r, 2000));
+      return wf;
+    };
+
+    // Advance combat turns until we reach the given combatant's turn in the given round.
+    const advanceUntil = async (round, tokenId) => {
+      for (let i = 0; i < 12; i++) {
+        if (combat.round === round && combat.combatant?.tokenId === tokenId) return true;
+        await combat.nextTurn();
+        await new Promise(r => setTimeout(r, 1500));
+      }
+      return combat.round === round && combat.combatant?.tokenId === tokenId;
+    };
+
+    const startRound = combat.round;
+
+    // 1) Caster (its turn) grants the buff to the ally.
+    await use(caster, doc, allyTok);
+    const effLive = [...ally.effects].map(e => e.name);
+    if (a.effectApplied && !effLive.includes(a.effectApplied)) fails.push(`effect "${a.effectApplied}" not applied to ally`);
+    if (a.flagPresent && !foundry.utils.getProperty({ flags: foundry.utils.deepClone(ally.flags ?? {}) }, a.flagPresent)) fails.push(`flag "${a.flagPresent}" not present on ally`);
+
+    // 2) Buffed ally attacks — advantage should come from the granted effect.
+    const wfBuffed = await use(ally, allyAttackDoc, dummyTok);
+    const buffedAdv = !!wfBuffed?.advantage;
+    if (a.buffedAdvantage !== undefined && buffedAdv !== a.buffedAdvantage) fails.push(`buffedAdvantage expected ${a.buffedAdvantage}, got ${buffedAdv}`);
+
+    // 3) After the caster's FIRST turn-end (ally's turn, same round): buff must persist.
+    await advanceUntil(startRound, allyTok.id);
+    const wfMid = await use(ally, allyAttackDoc, dummyTok);
+    const midAdv = !!wfMid?.advantage;
+    if (a.midAdvantage !== undefined && midAdv !== a.midAdvantage) fails.push(`midAdvantage expected ${a.midAdvantage} (buff must survive caster's first turn-end), got ${midAdv}`);
+
+    // 4) After the caster's SECOND turn-end (ally's turn, next round): buff must be gone.
+    await advanceUntil(startRound + 1, allyTok.id);
+    const effAfter = [...ally.effects].map(e => e.name);
+    if (a.effectApplied && effAfter.includes(a.effectApplied)) fails.push(`effect "${a.effectApplied}" did not expire after caster's next turn`);
+    const wfExpired = await use(ally, allyAttackDoc, dummyTok);
+    const expiredAdv = !!wfExpired?.advantage;
+    if (a.expiredAdvantage !== undefined && expiredAdv !== a.expiredAdvantage) fails.push(`expiredAdvantage expected ${a.expiredAdvantage}, got ${expiredAdv}`);
+
+    return { ok: fails.length === 0, fails };
+  } catch (err) {
+    return { ok: false, fails: [err.message, ...fails] };
+  } finally {
+    try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
+    if (combat) await combat.delete().catch(() => {});
+    if (casterTok) await casterTok.delete().catch(() => {});
+    if (allyTok) await allyTok.delete().catch(() => {});
+    if (dummyTok) await dummyTok.delete().catch(() => {});
+    if (caster) await caster.delete().catch(() => {});
+    if (ally) await ally.delete().catch(() => {});
+    if (dummy) await dummy.delete().catch(() => {});
+    if (scene) await scene.delete().catch(() => {});
+  }
+}
+
 // tier -> in-browser handler. content.spec dispatches on expectation.tier.
 export const CHECKS = {
   'T2-apply': applyCheck,
   'T3-combat': combatCheck,
+  'T3-grant': grantCheck,
 };
