@@ -1,0 +1,45 @@
+{
+  "name": "Example Boon",
+  "img": "icons/magic/light/explosion-star-glow-yellow.webp",
+  "type": "feat",
+  "_id": "exampleboon00001",
+  "system": {
+    "description": {
+      "value": "<p>As an action, point out an opening to one ally within 30 ft. That ally has <strong>advantage on attack rolls</strong> until the end of your next turn. Reference ability proving ally-targeted buff grants.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "boongrant0000001": {
+        "_id": "boongrant0000001",
+        "type": "utility",
+        "activation": { "type": "action", "value": 1 },
+        "range": { "value": 30, "units": "ft" },
+        "target": { "affects": { "type": "ally", "count": "1" } },
+        "effects": [{ "_id": "exampleboonef001" }]
+      }
+    },
+    "identifier": "example-boon",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [
+    {
+      "name": "Example Boon",
+      "img": "icons/magic/light/explosion-star-glow-yellow.webp",
+      "type": "base",
+      "_id": "exampleboonef001",
+      "transfer": false,
+      "disabled": false,
+      "duration": { "rounds": 1 },
+      "changes": [
+        { "key": "flags.midi-qol.advantage.attack.all", "mode": 5, "value": "1", "priority": 20 }
+      ],
+      "statuses": [],
+      "flags": { "dae": { "specialDuration": ["turnEndSource"] } }
+    }
+  ],
+  "flags": {},
+  "folder": null
+}
