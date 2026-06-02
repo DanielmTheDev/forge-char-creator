@@ -93,8 +93,10 @@ File: `forge-content/verify/checks.mjs`
 Flow:
 
 1. Create three actors: **caster** (gets the buff item embedded), **ally**
-   (gets an attack item — reuse `example-strike`, named by
-   `expect.allyAttack`), **dummy defender** (`expect.defender.hp/ac`). Place
+   (gets an attack item — reuse `example-strike`, supplied via the existing
+   `expect.setup:[...]` mechanism that resolves docs by identifier and passes
+   them as `setupDocs`, so no runner change), **dummy defender**
+   (`expect.defender.hp/ac`). Place
    tokens; start combat with caster + ally as combatants, ordered so the caster
    acts, then the ally.
 2. Caster uses the buff item targeting the ally → the effect lands on the ally.
@@ -103,11 +105,15 @@ Flow:
 3. Ally uses its attack against the dummy, forcing a hit (we only read the
    advantage state, not the hit math) → assert `workflow.advantage === true`
    (`expect.assert.buffedAdvantage`).
-4. Advance combat past the **caster's next turn-end** so `turnEndSource` fires
-   (advance turns until the caster's second turn-end elapses). The new
-   turn-advance logic is the riskiest piece — Times-Up timing.
-5. Ally attacks the dummy again → assert `workflow.advantage === false`
-   (`expect.assert.expiredAdvantage`) and the effect is gone from the ally.
+4. Advance to the ally's turn in the **same** round (i.e. just past the caster's
+   *first* turn-end); ally attacks again → assert `workflow.advantage === true`
+   (`expect.assert.midAdvantage`). This proves the buff lasts until the end of
+   the caster's *next* turn, not merely the casting turn.
+5. Advance to the ally's turn in the **next** round (past the caster's *second*
+   turn-end) so `turnEndSource` + `rounds:1` fires; ally attacks again → assert
+   `workflow.advantage === false` (`expect.assert.expiredAdvantage`) and the
+   effect is gone from the ally. The turn-advance logic is the riskiest piece —
+   Times-Up timing.
 
 `expect.json`
 (`forge-content/src/packs/forge-abilities/example-boon.expect.json`):
@@ -115,12 +121,13 @@ Flow:
 ```jsonc
 {
   "tier": "T3-grant",
-  "allyAttack": "example-strike",
+  "setup": ["example-strike"],
   "defender": { "hp": 100, "ac": 5 },
   "assert": {
     "effectApplied": "Example Boon",
     "flagPresent": "flags.midi-qol.advantage.attack.all",
     "buffedAdvantage": true,
+    "midAdvantage": true,
     "expiredAdvantage": false
   }
 }
