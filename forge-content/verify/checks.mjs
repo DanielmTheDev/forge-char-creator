@@ -246,6 +246,7 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
       const wf = await MidiQOL.completeActivityUse(activity.uuid, {
         midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [targetTok.uuid], ignoreUserTargets: true },
       });
+      if (!wf) throw new Error('midi workflow returned null (no target / activity not resolved)');
       await new Promise(r => setTimeout(r, 2000));
       return wf;
     };
@@ -274,13 +275,13 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
     if (a.buffedAdvantage !== undefined && buffedAdv !== a.buffedAdvantage) fails.push(`buffedAdvantage expected ${a.buffedAdvantage}, got ${buffedAdv}`);
 
     // 3) After the caster's FIRST turn-end (ally's turn, same round): buff must persist.
-    await advanceUntil(startRound, allyTok.id);
+    if (!await advanceUntil(startRound, allyTok.id)) { fails.push('advanceUntil(mid) timed out — never reached ally turn in round 1'); return { ok: false, fails }; }
     const wfMid = await use(ally, allyAttackDoc, dummyTok);
     const midAdv = !!wfMid?.advantage;
     if (a.midAdvantage !== undefined && midAdv !== a.midAdvantage) fails.push(`midAdvantage expected ${a.midAdvantage} (buff must survive caster's first turn-end), got ${midAdv}`);
 
     // 4) After the caster's SECOND turn-end (ally's turn, next round): buff must be gone.
-    await advanceUntil(startRound + 1, allyTok.id);
+    if (!await advanceUntil(startRound + 1, allyTok.id)) { fails.push('advanceUntil(expired) timed out — never reached ally turn in round 2'); return { ok: false, fails }; }
     const effAfter = [...ally.effects].map(e => e.name);
     if (a.effectApplied && effAfter.includes(a.effectApplied)) fails.push(`effect "${a.effectApplied}" did not expire after caster's next turn`);
     const wfExpired = await use(ally, allyAttackDoc, dummyTok);
