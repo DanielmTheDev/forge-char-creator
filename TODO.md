@@ -2,22 +2,16 @@
 
 Simple running list. Check off as done. See CLAUDE.md for full spec.
 
-## NEXT UP — macros in pipeline (battle-tested) + conditional save→buff ability
-**Goal ability**: one item — target makes a save; **on fail** → damage to target AND a boon (buff effect) auto-granted to **all allies within X ft** (TIER 2, LOCKED — no interactive pick).
-**Bigger win**: this introduces **macro-driven abilities** to forge-content. Foundation for all future "if X then do Y to Z" logic. MUST be battle-tested here: macro actually fires in real midi combat + a deterministic gate path proves it. No hand-waving.
-
-What's already proven (reuse): save+damage-on-fail (Radiant Rebuke, `damage.onSave:"none"`); ally buff effect (Example Boon — utility activity applies adv flag to ally); [[times-up-duration-expiry]] for bounded duration.
-
-What's NEW / must be solved:
-- **Macro storage = content-as-code.** Macro JS must live IN the item JSON (so it packs/commits), not a separate world macro. Likely `flags.midi-qol.onUseMacroName: "[postActiveEffects]ItemMacro"` + `flags.itemacro.macro.command:"<js>"`. PREREQ DECISION: needs **Item Macro** module (or midi built-in itemacro) — add to deps + test world + recommend to user. CONFIRM packing tooling passes the macro flag through untouched.
-- **Conditional branch on save result.** Macro reads `workflow.failedSaves` (postSave/postActiveEffects timing) → only buff if non-empty.
-- **Cross-recipient apply.** Damage hits enemy target; boon goes to a DIFFERENT set (allies). Macro iterates ally tokens → `createEmbeddedDocuments("ActiveEffect", [effectData])`. NOT native to one activity.
-- **Tier = 2, LOCKED.** Boon auto-applies to all allies within X ft on fail — automatic, NO interactive pick → deterministic → testable here. (Tier 3 player-hand-pick rejected: interactive targeting fights the gate, poorly supported. Revisit only if a future ability truly needs the pick.)
-- **NEW gate path for macros.** Current gate forces save/attack/targets via midi flags; has no macro-execution assertion. Need a tier (e.g. `T3-macro`) or extend `combatCheck`: force save fail → assert target HP delta AND ally got the boon effect/flag; force save success → assert NO boon (negative). Determinism via forced save + fixed ally set in range.
-
-Open risks: macro = version-drift surface (midi/Item Macro pinned, re-test on bump); async macro flakiness in gate (generous waits); security/trust — macro JS in content (we author it, fine, but note for future image→statblock auto-gen: do NOT auto-run untrusted generated macros).
-
-First step when resumed: brainstorm → confirm macro-storage/dep decision (Item Macro module) + radius/save/damage/boon specifics, then spec, then plan. (Tier already locked = 2.)
+## Macro-driven abilities — DONE ✅
+First "if X then do Y to Z" content logic. Example Rally (Examples folder): DEX DC14 save, range 30ft; on FAIL → 10 force to target (`damage.onSave:"none"`) AND every same-disposition ally within 30ft of caster gains 5 temp HP. Green 2x via new T3-macro gate (both branches). Spec+plan: `docs/superpowers/specs|plans/2026-06-02-macro-save-buff-ability.*`.
+- **Macro = content-as-code, NO Item Macro module.** (Overturns old prereq guess.) Store JS inline at `flags.dae.macro.command` + reference via `flags.midi-qol.onUseMacroName:"[postActiveEffects]ItemMacro"`. midi-qol 13.0.63 `resolveItemMacro` (midi-qol.js:14282) reads `flags.dae.macro` (DAE — already a dep) ?? `flags.itemacro.macro`, then EXECUTES it itself (`new CONFIG.Macro... .command`). DAE only needed to read the flag (already dep). Pack tooling passes flags untouched. See [[forge-content-macro-storage]].
+- **Macro scope** (midi-qol.js:26821): `{ workflow, token (caster), actor, item, args[0].macroPass }`. `workflow.failedSaves` = Set of failed token PLACEABLES (verified). Conditional branch = `if (!workflow.failedSaves?.size) return`. Cross-recipient = scan `canvas.tokens.placeables` by disposition+distance, `actor.update` each.
+- **Temp HP via direct `actor.update`**, NOT an AE: dnd5e temp HP is a stored resource (AE override locks it + reverts to 0 on expiry) and has no native duration. Real-play-correct + deterministic. (Durationed boon-via-macro = future, would use Times-Up [[times-up-duration-expiry]].)
+- **New gate tier `T3-macro`** (`macroCheck` in checks.mjs): caster + N allies + enemy in real combat; force save fail → enemy −10 + each ally tempHp 5; force success → enemy 0 + allies tempHp 0 (negative proves conditional). Determinism: forced save flag, flat dmg, flat temp HP, fixed ally positions in range.
+- Distance: macro uses `canvas.grid.measurePath([a,b]).distance` w/ pixel-fallback.
+- `_id` gotcha: `keys.mjs` rejected a 15-char activity id at build — caught, not silent.
+- Risks carried: midi/DAE version-drift surface (re-test on bump); async macro flakiness (generous waits in gate); security — macro JS authored by us = trusted, but future image→statblock auto-gen MUST NOT auto-run untrusted generated macros.
+- Next testable: multi-pass macros; macro-granted durationed effects (Times-Up); template/AoE-targeted macros.
 
 ## Now — Option 2: one-ability spike (bottom-up, scaffold after)
 - [x] A0. Author ONE ability as JSON by hand. (Bracers of Defense, +2 AC passive — /tmp/fc-spike/src)
