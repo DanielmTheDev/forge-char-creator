@@ -53,6 +53,13 @@ T3-combat gate works: Searing Bolt (flat 10 fire) → exact -10 on rigged defend
 - KEY: [[times-up-duration-expiry]] — Times-Up installed + enabled in test world; forge-content symlinked + enabled.
 - Harness gained: multi-step combo `setup`, advanceTurns + tick counting, range asserts (hpDeltaMin/Max), effect/flag asserts, `negative` hard-gate re-run, keep embedded effect _ids (activity→effect link).
 
+## Grant ally advantage (buff, NEW mechanics) — DONE ✅
+- Example Boon (Examples): action, targets an **ally**, grants advantage on attack rolls until end of caster's next turn.
+- NEW: first **utility** activity that applies an effect (works on-use to a target — unlike on-hit, where you need the hit-producing activity, see Squire's Mark line above).
+- NEW: authored advantage grant — effect change `flags.midi-qol.advantage.attack.all` mode:5 on the recipient (same flag the harness used to force adv; now shipped as content).
+- NEW: "until end of source's next turn" duration = DAE `flags.dae.specialDuration:["turnEndSource"]` + `duration.rounds:1`. Worked first try (needs DAE + [[times-up-duration-expiry]]).
+- NEW harness `grantCheck` (tier `T3-grant`): 3 actors (caster/ally/dummy). Caster buffs ally → ally attacks dummy; advantage read off ally's own workflow at 3 moments — buffed (true), after caster's 1st turn-end (still true = proves "next turn" not "this turn"), after 2nd turn-end (false = expired). Hard-fails on advanceUntil timeout / null workflow. Ally attack item supplied via existing `setup:[example-strike]`. Green 2.7m.
+
 ## Roadmap (after A)
 - [~] B. Functional gate. DONE B1: `npm run content:verify` boots Foundry, applies each ability on a dummy actor, asserts co-located `<name>.expect.json` (acDelta/abilityDelta/effectApplied). Fails on untested abilities + on wrong assertions (negative-tested). LOCAL + MANUAL (run before push; CI can't run Foundry). TODO B3: T3 combat scenarios (damage/save/duration on real midi workflow).
 - [x] C. Publish automation DONE: release.yml builds forge-content packs in CI, zips, uploads forge-content.zip to rolling `latest` release. Manifest + download verified HTTP 200. PENDING: B should gate publish (currently every push to main publishes, even unverified).
