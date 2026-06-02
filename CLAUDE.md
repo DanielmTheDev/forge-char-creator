@@ -42,6 +42,7 @@ PREREQ: `content:verify` runs **headed under xvfb** (`sudo apt-get install -y xv
 ## Ability authoring rules
 - **Every ability MUST have a concise `system.description.value`** the user understands at a glance — what it does, its dice/effect, recharge/cost. Plain, short, scannable. No untitled/empty descriptions.
 - Every ability ships a fitting Foundry core icon + a `<name>.expect.json` functional check.
+- **All `_id`s — doc, embedded effects, AND activity ids (the activities map key = the activity `_id`) — must be exactly 16 alphanumeric chars.** A wrong-length id silently drops the activity/item at Foundry-load. `scripts/pack-tools/keys.mjs` enforces this at build (`npm run packs:build` throws).
 
 ## Packs are content-as-code (BOTH modules)
 JSON source committed; compiled LevelDB `packs/` gitignored (built on demand / in CI). Shared tooling `scripts/pack-tools/` (module registry in modules.mjs). `FoundryData/.../forge-char-creator` is a symlink to repo, so Foundry compacts `packs/` on every boot — gitignore keeps that invisible.

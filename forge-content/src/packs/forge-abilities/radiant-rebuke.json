@@ -1,0 +1,36 @@
+{
+  "name": "Radiant Rebuke",
+  "img": "icons/magic/light/explosion-star-large-blue-yellow.webp",
+  "type": "feat",
+  "_id": "radiantrebuke001",
+  "system": {
+    "description": {
+      "value": "<p>Derek calls down a flash of judgment light. One creature within 30 ft makes a DC 14 Dexterity save, taking <strong>12 radiant damage</strong>, or half as much on a success. Recharge 5–6.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [{ "period": "recharge", "formula": "5" }]
+    },
+    "activities": {
+      "rebukesave000001": {
+        "_id": "rebukesave000001",
+        "type": "save",
+        "activation": { "type": "action", "value": 1 },
+        "range": { "value": 30, "units": "ft" },
+        "target": { "affects": { "type": "creature", "count": "1" } },
+        "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "14" } },
+        "damage": { "onSave": "half", "parts": [{ "types": ["radiant"], "custom": { "enabled": true, "formula": "12" } }] }
+      }
+    },
+    "identifier": "radiant-rebuke",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [],
+  "flags": {},
+  "folder": "folderderek00001"
+}

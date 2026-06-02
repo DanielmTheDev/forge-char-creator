@@ -54,7 +54,7 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
 
   // One full combat scenario (fresh scene/actors), cleans up after itself.
   // Returns { delta, conditionApplied, effectApplied, flagPresent } or { error }.
-  const runScenario = async (withSetup) => {
+  const runScenario = async (withSetup, opts = {}) => {
     let attacker, defender, atkTok, defTok, combat, scene;
     try {
       // Fresh clean scene: the dev world's scene has a broken actor that aborts
@@ -62,6 +62,9 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
       scene = await Scene.create({ name: 'T3 Verify Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
       attacker = await Actor.create({ name: 'T3 Attacker', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
       defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
+      // Deterministically force the defender's save outcome via midi flags.
+      if (opts.forceSave === 'fail') await defender.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
+      if (opts.forceSave === 'success') await defender.update({ 'flags.midi-qol.success.ability.save.all': 1 });
       // actorLink:true so the token uses the base actor (npc tokens unlink by
       // default => midi would hit a synthetic token-actor, not the doc we read).
       atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
@@ -133,10 +136,24 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
     }
   };
 
+  const fails = [];
+
+  // Save-based abilities: run once per forced save outcome (fail/success) and
+  // assert the resulting damage (e.g. full vs half-on-save). Deterministic via
+  // midi's fail/success.ability.save.all flags.
+  if (expectation.saveScenarios) {
+    for (const s of expectation.saveScenarios) {
+      const r = await runScenario(false, { forceSave: s.force });
+      if (r.error) { fails.push(`save[${s.force}]: ${r.error}`); continue; }
+      if (s.assert?.defenderHpDelta !== undefined && r.delta !== s.assert.defenderHpDelta)
+        fails.push(`save[${s.force}] hpDelta expected ${s.assert.defenderHpDelta}, got ${r.delta}`);
+    }
+    return { ok: fails.length === 0, fails };
+  }
+
   const m = await runScenario(true);
   if (m.error) return { ok: false, fails: [m.error] };
 
-  const fails = [];
   if (a.defenderHpDelta !== undefined && m.delta !== a.defenderHpDelta) fails.push(`defenderHpDelta expected ${a.defenderHpDelta}, got ${m.delta}`);
   if (a.hpDeltaMin !== undefined && m.delta < a.hpDeltaMin) fails.push(`hpDelta ${m.delta} below min ${a.hpDeltaMin}`);
   if (a.hpDeltaMax !== undefined && m.delta > a.hpDeltaMax) fails.push(`hpDelta ${m.delta} above max ${a.hpDeltaMax}`);

@@ -1,0 +1,8 @@
+{
+  "tier": "T3-combat",
+  "defender": { "hp": 100, "ac": 1 },
+  "saveScenarios": [
+    { "force": "fail", "assert": { "defenderHpDelta": -12 } },
+    { "force": "success", "assert": { "defenderHpDelta": -6 } }
+  ]
+}
