@@ -399,10 +399,127 @@ async function macroCheck({ doc, expectation }) {
   return { ok: fails.length === 0, fails };
 }
 
+// T3-aoe: a save-each AoE ability — ONE cast hits N defenders, each rolling its own
+// save, taking per-target damage (half on save). Proves multi-target independence:
+// forced mix of fail/success across targets yields different per-target HP deltas.
+// Self-contained (shipped to the browser via page.evaluate). Targeting tries midi
+// template-auto-target first, falls back to explicit targetUuids[N] (proven path)
+// so the gate never flakes — logs which path ran.
+//
+// expectation: { template?:{type,size,units},
+//   targets:[{ hp, ac, force:'fail'|'success', assert:{ defenderHpDelta?, conditionApplied?, effectApplied? } }] }
+async function aoeCheck({ doc, expectation }) {
+  if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const targetCfgs = expectation.targets ?? [];
+  const N = targetCfgs.length;
+
+  let caster, casterTok, combat, scene;
+  const defenders = [], defToks = [];
+  let template;
+  try {
+    scene = await Scene.create({ name: 'T3 AoE Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
+    caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
+    casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
+
+    // N defenders clustered tightly around (600,600) so a 20ft (= 1 grid square radius
+    // at 5ft/square... grid.size 100 = 5ft? scene grid distance defaults to 5ft) sphere
+    // covers all of them. Positions are fixed => deterministic template coverage.
+    const CX = 600, CY = 600;
+    for (let i = 0; i < N; i++) {
+      const cfg = targetCfgs[i];
+      const def = await Actor.create({ name: `T3 Def ${i}`, type: 'npc', system: { attributes: { hp: { value: cfg.hp ?? 100, max: cfg.hp ?? 100 }, ac: { calc: 'flat', flat: cfg.ac ?? 1 } } } });
+      // Per-defender forced save outcome — this is what proves independence.
+      if (cfg.force === 'fail') await def.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
+      if (cfg.force === 'success') await def.update({ 'flags.midi-qol.success.ability.save.all': 1 });
+      const tok = await TokenDocument.create({ actorId: def.id, name: def.name, actorLink: true, x: CX + (i % 2) * 20, y: CY + i * 20, disposition: -1 }, { parent: scene });
+      defenders.push(def); defToks.push(tok);
+    }
+
+    combat = await Combat.create({ scene: scene.id, active: true });
+    await combat.activate();
+    await combat.createEmbeddedDocuments('Combatant', [
+      { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
+      ...defToks.map((t, i) => ({ tokenId: t.id, actorId: defenders[i].id, initiative: 20 - i })),
+    ]);
+    await combat.startCombat();
+    await canvas.draw(scene);
+    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 800));
+
+    // --- Targeting: primary = template auto-target; fallback = explicit targetUuids[N] ---
+    game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false }));
+    let targetingPath = 'none';
+    const tcfg = expectation.template ?? { type: 'sphere', size: '20', units: 'ft' };
+    try {
+      const [tmpl] = await scene.createEmbeddedDocuments('MeasuredTemplate', [{
+        t: 'circle', x: CX + 10, y: CY + (N * 20) / 2, distance: Number(tcfg.size) || 20, direction: 0, angle: 0, width: 0,
+      }]);
+      template = tmpl;
+      await new Promise(r => setTimeout(r, 300));
+      // midi util: tokens whose center is inside the template. API may differ across midi
+      // builds — wrapped so a failure cleanly drops to the explicit fallback below.
+      let under = [];
+      if (typeof MidiQOL.templateTokens === 'function') under = MidiQOL.templateTokens(tmpl) ?? [];
+      const underToks = under.map(u => u.object ?? u).filter(Boolean);
+      if (underToks.length === N) {
+        for (const pt of underToks) pt.setTarget(true, { user: game.user, releaseOthers: false });
+        if (game.user.targets.size === N) targetingPath = 'template-auto';
+      }
+    } catch (e) { console.log('aoe auto-target attempt failed:', e.message); }
+
+    let midiOptions;
+    if (targetingPath === 'template-auto') {
+      midiOptions = { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', ignoreUserTargets: false };
+    } else {
+      // Fallback: the proven single-target path, generalized to N target UUIDs.
+      game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false }));
+      midiOptions = { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: defToks.map(t => t.uuid), ignoreUserTargets: true };
+      targetingPath = 'explicit-targetUuids';
+    }
+    console.log(`[T3-aoe] targeting path: ${targetingPath} (N=${N})`);
+
+    // --- ONE cast against all N targets ---
+    const [item] = await caster.createEmbeddedDocuments('Item', [strip(doc)]);
+    const activity = [...item.system.activities][0];
+    const hpBefore = defenders.map(d => d.system.attributes.hp.value);
+    const wf = await MidiQOL.completeActivityUse(activity.uuid, { midiOptions });
+    if (!wf) return { ok: false, fails: [`midi workflow did not run (targeting=${targetingPath})`] };
+    await new Promise(r => setTimeout(r, 2500)); // damage + per-target saves settle
+
+    // --- Per-target asserts (reuse the combatCheck assert key vocabulary) ---
+    const fails = [];
+    for (let i = 0; i < N; i++) {
+      const cfg = targetCfgs[i];
+      const a = cfg.assert ?? {};
+      const def = defenders[i];
+      const delta = def.system.attributes.hp.value - hpBefore[i];
+      const statuses = [...def.effects].flatMap(e => [...(e.statuses ?? [])]);
+      const effectNames = [...def.effects].map(e => e.name);
+      if (a.defenderHpDelta !== undefined && delta !== a.defenderHpDelta) fails.push(`target[${i}] (${cfg.force}): hpDelta expected ${a.defenderHpDelta}, got ${delta}`);
+      if (a.conditionApplied && !statuses.includes(a.conditionApplied)) fails.push(`target[${i}]: condition "${a.conditionApplied}" not applied`);
+      if (a.effectApplied && !effectNames.includes(a.effectApplied)) fails.push(`target[${i}]: effect "${a.effectApplied}" not applied`);
+    }
+    return { ok: fails.length === 0, fails };
+  } catch (err) {
+    return { ok: false, fails: [err.message] };
+  } finally {
+    try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
+    if (template) await template.delete().catch(() => {});
+    if (combat) await combat.delete().catch(() => {});
+    for (const t of defToks) await t.delete().catch(() => {});
+    if (casterTok) await casterTok.delete().catch(() => {});
+    for (const d of defenders) await d.delete().catch(() => {});
+    if (caster) await caster.delete().catch(() => {});
+    if (scene) await scene.delete().catch(() => {});
+  }
+}
+
 // tier -> in-browser handler. content.spec dispatches on expectation.tier.
 export const CHECKS = {
   'T2-apply': applyCheck,
   'T3-combat': combatCheck,
   'T3-grant': grantCheck,
   'T3-macro': macroCheck,
+  'T3-aoe': aoeCheck,
 };
