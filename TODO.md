@@ -2,7 +2,7 @@
 
 Simple running list. Check off as done. See CLAUDE.md for full spec.
 
-## NEXT UP — boss-combat mechanics (3 things, build in order)
+## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
 
 What's already proven (reuse): save+dmg half/none (Radiant Rebuke), attack+on-hit (Example Strike), adv/disadv (Example Strike), condition apply, DoT+Times-Up duration, ally buff grant (Example Boon), macro conditional cross-recipient (Example Rally). Gate harness in `forge-content/verify/checks.mjs` (CHECKS map by tier), boot pieces in boot.mjs, expect.json per ability.
@@ -25,7 +25,7 @@ What's NEW / to solve:
 - **Gate challenge:** reactions normally prompt the reacting user (interactive — fights the gate). Need auto-fire path: midi `configSettings.autoItemEffects`/reaction auto-roll, or `MidiQOL.completeActivityUse` triggered from a macro at the right pass, fully fast-forwarded. Determinism via forced dmg/attack. New tier likely `T3-reaction`: actor A attacks/damages actor B (who has the reaction) → assert A took the riposte dmg (HP delta on the ORIGINAL attacker).
 Risks: reaction prompts are the most interactive/least-gate-friendly midi surface — budget for flakiness, generous waits, confirm an auto-fire setting exists in installed midi BEFORE committing to the approach.
 
-First step when resumed (fresh context): start with #1. brainstorm → confirm template-auto-target vs explicit-targetUuids decision + AoE ability specifics (shape/save/dmg/N targets), then spec, then plan. Reuse Searing Bolt/Radiant Rebuke as the dmg/save base.
+First step when resumed (fresh context): start with #5 Recharge (small, isolated). Brainstorm → spec → plan. Investigate how dnd5e 5.2.5 rolls recharge (Item#rollRecharge / activity recovery) + how to force the d6 deterministically; add a gate assert (`rechargeRestored:true` or uses.spent→0) to an existing handler. Radiant Rebuke already HAS recharge defined — reuse it. New gate handlers: rely on the dispatcher's flag-based combat isolation (see memory gate-handler-isolation); tag any new test combat with flags.forge-content.test. Then #6 Reactions.
 
 ## Macro-driven abilities — DONE ✅
 First "if X then do Y to Z" content logic. Example Rally (Examples folder): DEX DC14 save, range 30ft; on FAIL → 10 force to target (`damage.onSave:"none"`) AND every same-disposition ally within 30ft of caster gains 5 temp HP. Green 2x via new T3-macro gate (both branches). Spec+plan: `docs/superpowers/specs|plans/2026-06-02-macro-save-buff-ability.*`.
