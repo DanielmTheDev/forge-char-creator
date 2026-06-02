@@ -2,6 +2,25 @@
 
 Simple running list. Check off as done. See CLAUDE.md for full spec.
 
+## NEXT UP — macros in pipeline (battle-tested) + conditional save→buff ability
+**Goal ability**: one item — target makes a save; **on fail** → damage to target AND a boon (buff effect) granted to allies. (Decision pending tier — see below.)
+**Bigger win**: this introduces **macro-driven abilities** to forge-content. Foundation for all future "if X then do Y to Z" logic. MUST be battle-tested here: macro actually fires in real midi combat + a deterministic gate path proves it. No hand-waving.
+
+What's already proven (reuse): save+damage-on-fail (Radiant Rebuke, `damage.onSave:"none"`); ally buff effect (Example Boon — utility activity applies adv flag to ally); [[times-up-duration-expiry]] for bounded duration.
+
+What's NEW / must be solved:
+- **Macro storage = content-as-code.** Macro JS must live IN the item JSON (so it packs/commits), not a separate world macro. Likely `flags.midi-qol.onUseMacroName: "[postActiveEffects]ItemMacro"` + `flags.itemacro.macro.command:"<js>"`. PREREQ DECISION: needs **Item Macro** module (or midi built-in itemacro) — add to deps + test world + recommend to user. CONFIRM packing tooling passes the macro flag through untouched.
+- **Conditional branch on save result.** Macro reads `workflow.failedSaves` (postSave/postActiveEffects timing) → only buff if non-empty.
+- **Cross-recipient apply.** Damage hits enemy target; boon goes to a DIFFERENT set (allies). Macro iterates ally tokens → `createEmbeddedDocuments("ActiveEffect", [effectData])`. NOT native to one activity.
+- **Tier decision (ask user before building):**
+  - Tier 2 = "all allies within X ft" — automatic, NO interactive pick → deterministic → testable here. RECOMMENDED.
+  - Tier 3 = player hand-picks allies — interactive targeting, fights the gate (gate forces targets via flags, no dialog). Poorly supported. Only if pick is essential.
+- **NEW gate path for macros.** Current gate forces save/attack/targets via midi flags; has no macro-execution assertion. Need a tier (e.g. `T3-macro`) or extend `combatCheck`: force save fail → assert target HP delta AND ally got the boon effect/flag; force save success → assert NO boon (negative). Determinism via forced save + fixed ally set in range.
+
+Open risks: macro = version-drift surface (midi/Item Macro pinned, re-test on bump); async macro flakiness in gate (generous waits); security/trust — macro JS in content (we author it, fine, but note for future image→statblock auto-gen: do NOT auto-run untrusted generated macros).
+
+First step when resumed: brainstorm → confirm tier (2 vs 3) + macro-storage/dep decision, then spec, then plan.
+
 ## Now — Option 2: one-ability spike (bottom-up, scaffold after)
 - [x] A0. Author ONE ability as JSON by hand. (Bracers of Defense, +2 AC passive — /tmp/fc-spike/src)
 - [x] A1. Compile standalone via foundryvtt-cli into LevelDB pack. Round-trip verified. FINDING: docs need `_key` field (`!items!<id>`, effects `!items.effects!<itemId>.<effectId>`) or CLI silently skips them → A3 scaffold should auto-inject `_key` from `_id`.
