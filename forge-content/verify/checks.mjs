@@ -304,9 +304,105 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
   }
 }
 
+// T3-macro: an onUse-macro ability — target makes a save; on FAIL the target takes
+// damage AND every ally within `radius` ft of the caster gains temp HP (applied by
+// the item's inline macro, not a native activity). Proves conditional + cross-
+// recipient macro logic. Self-contained: shipped to the browser via page.evaluate.
+//
+// expectation: { defender?:{hp,ac}, allies?:int, tempHp?:int, radius?:int,
+//   scenarios:[{ force:'fail'|'success', assert:{ defenderHpDelta?, allyTempHp? } }] }
+async function macroCheck({ doc, expectation }) {
+  if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const dcfg = expectation.defender ?? {};
+  const hp = dcfg.hp ?? 100;
+  const allyCount = expectation.allies ?? 2;
+  const scenarios = expectation.scenarios ?? [];
+
+  const runScenario = async (force, assert) => {
+    let caster, defender, casterTok, defTok, combat, scene;
+    const allies = [], allyToks = [];
+    try {
+      scene = await Scene.create({ name: 'T3 Macro Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
+      caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
+      defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
+      // Force the defender's save outcome deterministically.
+      if (force === 'fail') await defender.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
+      if (force === 'success') await defender.update({ 'flags.midi-qol.success.ability.save.all': 1 });
+      // actorLink so midi reads the base actor, not a synthetic token-actor.
+      casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
+      defTok = await TokenDocument.create({ actorId: defender.id, name: defender.name, actorLink: true, x: 200, y: 100, disposition: -1 }, { parent: scene });
+      for (let i = 0; i < allyCount; i++) {
+        // Allies share the caster's disposition (1) and sit within 30 ft (<= 2 squares).
+        const al = await Actor.create({ name: `T3 Ally ${i}`, type: 'npc', system: { attributes: { hp: { value: 100, max: 100, temp: 0 } } } });
+        const at = await TokenDocument.create({ actorId: al.id, name: al.name, actorLink: true, x: 100, y: 200 + i * 100, disposition: 1 }, { parent: scene });
+        allies.push(al); allyToks.push(at);
+      }
+      combat = await Combat.create({ scene: scene.id, active: true });
+      await combat.activate();
+      await combat.createEmbeddedDocuments('Combatant', [
+        { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
+        { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
+        ...allyToks.map((t, i) => ({ tokenId: t.id, actorId: allies[i].id, initiative: 20 - i })),
+      ]);
+      await combat.startCombat();
+      // canvas.draw switches + renders the scene so token placeables exist and the
+      // macro's canvas.tokens.placeables scan + targeting work.
+      await canvas.draw(scene);
+      for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 800));
+      const defPlaceable = canvas.tokens?.get(defTok.id) ?? defTok.object;
+      if (defPlaceable) {
+        defPlaceable.setTarget(true, { user: game.user, releaseOthers: true });
+        if (!game.user.targets.size) { game.user.targets.add(defPlaceable); defPlaceable.isTargeted = true; }
+      }
+
+      const [item] = await caster.createEmbeddedDocuments('Item', [strip(doc)]);
+      const activity = [...item.system.activities][0];
+      const hpBefore = defender.system.attributes.hp.value;
+      const wf = await MidiQOL.completeActivityUse(activity.uuid, {
+        midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [defTok.uuid], ignoreUserTargets: true },
+      });
+      if (!wf) return ['midi workflow did not run (no target / activity not resolved)'];
+      await new Promise(r => setTimeout(r, 2500)); // damage + macro + ally updates settle
+
+      const f = [];
+      const delta = defender.system.attributes.hp.value - hpBefore;
+      if (assert.defenderHpDelta !== undefined && delta !== assert.defenderHpDelta) f.push(`defenderHpDelta expected ${assert.defenderHpDelta}, got ${delta}`);
+      if (assert.allyTempHp !== undefined) {
+        for (const al of allies) {
+          const t = al.system.attributes.hp.temp ?? 0;
+          if (t !== assert.allyTempHp) f.push(`${al.name} tempHp expected ${assert.allyTempHp}, got ${t}`);
+        }
+      }
+      return f;
+    } catch (err) {
+      return [err.message];
+    } finally {
+      try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
+      if (combat) await combat.delete().catch(() => {});
+      for (const t of allyToks) await t.delete().catch(() => {});
+      if (casterTok) await casterTok.delete().catch(() => {});
+      if (defTok) await defTok.delete().catch(() => {});
+      for (const al of allies) await al.delete().catch(() => {});
+      if (caster) await caster.delete().catch(() => {});
+      if (defender) await defender.delete().catch(() => {});
+      if (scene) await scene.delete().catch(() => {});
+    }
+  };
+
+  const fails = [];
+  for (const sc of scenarios) {
+    const r = await runScenario(sc.force, sc.assert ?? {});
+    for (const msg of r) fails.push(`scenario[${sc.force}]: ${msg}`);
+  }
+  return { ok: fails.length === 0, fails };
+}
+
 // tier -> in-browser handler. content.spec dispatches on expectation.tier.
 export const CHECKS = {
   'T2-apply': applyCheck,
   'T3-combat': combatCheck,
   'T3-grant': grantCheck,
+  'T3-macro': macroCheck,
 };
