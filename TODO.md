@@ -5,7 +5,7 @@ Simple running list. Check off as done. See CLAUDE.md for full spec.
 ## OPEN WORK — dispatch list (parallelizable; each item self-contained)
 Master checklist for an agent army. Each links to its detail section below. Independent unless noted. **Every change touching the gate path needs a green `npm run content:verify` run (xvfb+Foundry, local) before commit — gate-green discipline.**
 
-- [ ] **G1. Gate handler dedup refactor** — 4 T3 handlers share ~60% scaffolding. See `## Gate hardening → G1`. NEEDS GATE RUN. Touches `checks.mjs` — serialize-aware (read constraint first).
+- [x] **G1. Gate handler dedup refactor** — DONE. Shared scaffolding installed on `globalThis.__fcGate` via `installGateHelpers()` (page.evaluate once after boot in `content.spec.mjs`); 4 T3 handlers read it like any browser global. Helpers: `strip/makeScene/makeActor/makeToken/makeCombat/drawAndWait/targetToken/clearTargets/useActivity/cleanup`. `applyCheck`(T2) untouched. Iterated combat→grant/macro/aoe, gate-green at each step (3× full `content:verify`, all 3.7-3.8m, 1 passed). See `## Gate hardening → G1`.
 - [ ] **G2. macroCheck radius coverage gap** — distance filter untested. See `## Gate hardening → G2`. NEEDS GATE RUN.
 - [ ] **#5. Recharge actually firing** — SMALL. See `## NEXT UP → 5`. Start here (isolated).
 - [ ] **#6. Reaction abilities** — MEDIUM. See `## NEXT UP → 6`. Most interactive/flaky midi surface.
@@ -20,11 +20,12 @@ COMMITTED, gate-unverified — do NOT redo (review post-hoc): `example-rally.exp
 
 ## Gate hardening (found 2026-06-02 review)
 
-### G1. T3 handler dedup refactor — NEEDS GATE RUN
-The 4 T3 handlers in `forge-content/verify/checks.mjs` (`combatCheck`, `grantCheck`, `macroCheck`, `aoeCheck`) duplicate ~60% scaffolding: the `strip` helper, scene+actor+token+combat create, `canvas.draw` + the `for(40)…300ms` canvas-ready wait loop, the `MidiQOL.completeActivityUse` wrapper, and the `finally` teardown.
-- **WHY it's duplicated (constraint — read before touching):** each handler is shipped to the Foundry browser via `page.evaluate(handler, arg)`, which serializes ONLY that one function — referenced module-scope helpers are NOT shipped. So handlers are self-contained BY NECESSITY. A naive "extract a shared module helper and call it" WILL break at runtime (ReferenceError in browser). `applyCheck` (T2) is non-combat — leave it alone.
-- **Proper fix:** ship ONE harness function to the browser that inlines the shared scaffolding once and dispatches per-tier internally (e.g. `page.evaluate(harness, {tier, doc, expectation, setupDocs})` with `switch(tier)`), OR build each handler by composing a shared source STRING prepended at module load. Pick whichever keeps `content.spec.mjs`'s `page.evaluate(handler, …)` contract clean.
-- **Risk:** rewriting the verification path. MUST re-run `npm run content:verify` to green (all tiers: T2-apply, T3-combat, T3-grant, T3-macro, T3-aoe) before commit. Suite is order-sensitive — preserve the `isolate()` flag-purge in `content.spec.mjs` ([[gate-handler-isolation]]).
+### G1. T3 handler dedup refactor — DONE ✅
+The 4 T3 handlers in `forge-content/verify/checks.mjs` (`combatCheck`, `grantCheck`, `macroCheck`, `aoeCheck`) duplicated ~60% scaffolding: `strip`, scene+actor+token+combat create, `canvas.draw`+`for(40)…300ms` wait loop, the `completeActivityUse` wrapper, the `finally` teardown.
+- **Constraint:** each handler ships to the browser via `page.evaluate(handler, arg)` — serializes ONLY that fn, module-scope helpers NOT shipped. So a shared *module* helper would ReferenceError in-browser.
+- **Fix taken (cleaner than the two options first sketched):** install the shared pieces on a BROWSER GLOBAL once. `installGateHelpers()` (exported from checks.mjs) runs via `page.evaluate` right after `bootFoundry` in `content.spec.mjs` and sets `globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup }`. Each handler destructures what it needs off `__fcGate` — same as reading `game`/`canvas`/`MidiQOL`. Handlers stay single self-contained fns (contract unchanged); only the genuinely per-tier logic (actor topology, scenario loops, asserts) remains in each. `applyCheck` (T2, non-combat) left untouched.
+- **Notes for next time:** `useActivity(actor, doc, targetUuids, {settle, midiOptions})` — settle ms after the cast; aoe passes `settle:0` to read `wf.targets` for its hard invariant before settling manually. `cleanup([docs…])` deletes in caller order (combat→tokens→actors→scene). `makeCombat` stamps the `forge-content.test` flag so `isolate()` still purges test combats ([[gate-handler-isolation]]).
+- **Verified:** iterated combat → grant/macro/aoe, full `npm run content:verify` green at each checkpoint (3 runs, ~3.7-3.8m each, `1 passed`). `isolate()` flag-purge preserved.
 
 ### G2. macroCheck radius filter untested — coverage gap — NEEDS GATE RUN
 `macroCheck` places ALL allies WITHIN 30ft, so the macro's `RADIUS = 30` distance filter is never exercised: if the macro applied temp-HP to EVERY same-disposition token regardless of distance, the test still passes.

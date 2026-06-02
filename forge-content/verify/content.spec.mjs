@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bootFoundry } from './boot.mjs';
-import { CHECKS } from './checks.mjs';
+import { CHECKS, installGateHelpers } from './checks.mjs';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'packs');
 
@@ -47,6 +47,10 @@ test.describe('forge-content verify', () => {
     expect(missingSetup, `expect.json setup references unknown abilities: ${missingSetup.join(', ')}`).toEqual([]);
 
     await bootFoundry(page);
+
+    // Install shared T3 scaffolding on globalThis.__fcGate once (persists across
+    // the per-handler page.evaluate calls). See checks.mjs installGateHelpers.
+    await page.evaluate(installGateHelpers);
 
     // Test isolation between handlers. A handler that runs combat can leave a stale
     // ACTIVE combat behind (its scene already deleted). The next handler's granted

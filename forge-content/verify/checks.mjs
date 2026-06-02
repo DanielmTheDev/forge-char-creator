@@ -2,6 +2,73 @@
 // context via page.evaluate, so it MUST be self-contained (only browser globals
 // like Actor / foundry / game — no module-scope references, no outer helpers).
 // Returns { ok, fails: string[] }. Add a tier => register a handler in CHECKS.
+//
+// SHARED SCAFFOLDING: the T3 combat handlers below duplicated ~60% setup/teardown.
+// Module-scope helpers can't be shared (page.evaluate ships only the one handler
+// fn), but a browser GLOBAL can — installGateHelpers() runs once after boot and
+// puts the shared pieces on globalThis.__fcGate, which every handler reads like
+// any other browser global (game/canvas/MidiQOL). content.spec calls it once
+// before the handler loop. Keep helpers self-contained (browser globals only).
+
+// Install the shared T3 scaffolding onto globalThis.__fcGate. Shipped to the
+// browser once via page.evaluate (browser globals only — no module refs).
+export function installGateHelpers() {
+  // Clone a doc for embedding: drop _id/_key so Foundry mints fresh ones; keep
+  // effect _ids (activity refs depend on them).
+  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  // Fresh 1000x1000 scene, 100px/5ft grid. (The dev world's own scene has a broken
+  // actor that aborts canvas.draw, so every handler builds its own.)
+  const makeScene = (name) => Scene.create({ name, width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
+  // Linked npc actor. ac omitted => no flat AC; temp omitted => no temp-HP key.
+  const makeActor = (name, { hp = 100, ac, temp } = {}) => {
+    const attributes = { hp: { value: hp, max: hp, ...(temp !== undefined ? { temp } : {}) } };
+    if (ac !== undefined) attributes.ac = { calc: 'flat', flat: ac };
+    return Actor.create({ name, type: 'npc', system: { attributes } });
+  };
+  // actorLink:true so the token uses the base actor (unlinked npc tokens spawn a
+  // synthetic token-actor midi would mutate instead of the doc we read).
+  const makeToken = (actor, scene, { x, y, disposition }) =>
+    TokenDocument.create({ actorId: actor.id, name: actor.name, actorLink: true, x, y, disposition }, { parent: scene });
+  // Active test combat (flagged forge-content.test so isolate() can purge it) +
+  // its combatants, started. combatants: [{ tokenId, actorId, initiative }, ...].
+  const makeCombat = async (scene, combatants) => {
+    const combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
+    await combat.activate();
+    await combat.createEmbeddedDocuments('Combatant', combatants);
+    await combat.startCombat();
+    return combat;
+  };
+  // Switch + render the canvas to a scene and wait for it to be ready (token
+  // placeables exist + targeting populates). view()/activate() didn't switch it.
+  const drawAndWait = async (scene) => {
+    await canvas.draw(scene);
+    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 800));
+  };
+  // Target a single token (with the manual-add fallback when setTarget didn't take).
+  const targetToken = (tokDoc) => {
+    const p = canvas.tokens?.get(tokDoc.id) ?? tokDoc.object;
+    if (p) { p.setTarget(true, { user: game.user, releaseOthers: true }); if (!game.user.targets.size) { game.user.targets.add(p); p.isTargeted = true; } }
+    return p;
+  };
+  const clearTargets = () => { try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {} };
+  // Create the ability on `actor`, run its first activity through a real midi
+  // workflow against targetUuids (NOT targetsToUse — midi's is broken), fully
+  // fast-forwarded. opts.settle ms wait after (damage/macros/AE transfer). opts.midiOptions
+  // merges into the midi call. Returns the workflow (null if midi didn't resolve).
+  const useActivity = async (actor, docData, targetUuids, opts = {}) => {
+    const [item] = await actor.createEmbeddedDocuments('Item', [strip(docData)]);
+    const activity = [...item.system.activities][0];
+    const wf = await MidiQOL.completeActivityUse(activity.uuid, {
+      midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids, ignoreUserTargets: true, ...(opts.midiOptions ?? {}) },
+    });
+    if (opts.settle) await new Promise(r => setTimeout(r, opts.settle));
+    return wf;
+  };
+  // Delete a list of docs (any order the caller passes; nulls skipped). Use in finally.
+  const cleanup = async (docs) => { for (const d of docs) if (d) await d.delete().catch(() => {}); };
+  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup };
+}
 
 // T2: instantiate the item on a throwaway actor and assert static/applied effects.
 // expectation.assert: { acDelta?, abilityDelta?{ability,delta}, effectApplied? }
@@ -55,7 +122,7 @@ async function applyCheck({ doc, expectation }) {
 // setupDocs: abilities used on the defender BEFORE the main one (combo setup).
 async function combatCheck({ doc, expectation, setupDocs = [] }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
-  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const { makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup } = globalThis.__fcGate;
   const a = expectation.assert ?? {};
   const dcfg = expectation.defender ?? {};
   const hp = dcfg.hp ?? 100;
@@ -65,11 +132,9 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
   const runScenario = async (withSetup, opts = {}) => {
     let attacker, defender, atkTok, defTok, combat, scene;
     try {
-      // Fresh clean scene: the dev world's scene has a broken actor that aborts
-      // canvas.draw (canvas.ready stays false), which breaks targeting.
-      scene = await Scene.create({ name: 'T3 Verify Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
-      attacker = await Actor.create({ name: 'T3 Attacker', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-      defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
+      scene = await makeScene('T3 Verify Scene');
+      attacker = await makeActor('T3 Attacker');
+      defender = await makeActor('T3 Defender', { hp, ac: dcfg.ac ?? 1 });
       // Deterministically force the defender's save outcome via midi flags.
       if (opts.forceSave === 'fail') await defender.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
       if (opts.forceSave === 'success') await defender.update({ 'flags.midi-qol.success.ability.save.all': 1 });
@@ -82,41 +147,16 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
       // Grants: attacks AGAINST the defender get adv/disadv (flags live on the defender).
       if (opts.grantAdvantage) await defender.update({ 'flags.midi-qol.grants.advantage.attack.all': 1 });
       if (opts.grantDisadvantage) await defender.update({ 'flags.midi-qol.grants.disadvantage.attack.all': 1 });
-      // actorLink:true so the token uses the base actor (npc tokens unlink by
-      // default => midi would hit a synthetic token-actor, not the doc we read).
-      atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
-      defTok = await TokenDocument.create({ actorId: defender.id, name: defender.name, actorLink: true, x: 200, y: 100, disposition: -1 }, { parent: scene });
-      combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
-      await combat.activate();
-      await combat.createEmbeddedDocuments('Combatant', [
+      atkTok = await makeToken(attacker, scene, { x: 100, y: 100, disposition: 1 });
+      defTok = await makeToken(defender, scene, { x: 200, y: 100, disposition: -1 });
+      combat = await makeCombat(scene, [
         { tokenId: atkTok.id, actorId: attacker.id, initiative: 20 },
         { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
       ]);
-      await combat.startCombat();
-      // canvas.draw switches + renders the scene (view()/activate() didn't here);
-      // needed so the token placeable exists and targeting populates game.user.targets.
-      await canvas.draw(scene);
-      for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
-      await new Promise(r => setTimeout(r, 800));
-      const defPlaceable = canvas.tokens?.get(defTok.id) ?? defTok.object;
-      if (defPlaceable) {
-        defPlaceable.setTarget(true, { user: game.user, releaseOthers: true });
-        if (!game.user.targets.size) { game.user.targets.add(defPlaceable); defPlaceable.isTargeted = true; }
-      }
+      await drawAndWait(scene);
+      targetToken(defTok);
 
-      // Use an ability (its first activity) on the defender via a real midi workflow.
-      // targetUuids (NOT targetsToUse — midi's is broken) + ignoreUserTargets; activity
-      // by UUID (object would be deep-cloned + can fail midi's !activity guard).
-      const use = async (docData) => {
-        const [item] = await attacker.createEmbeddedDocuments('Item', [strip(docData)]);
-        const activity = [...item.system.activities][0];
-        const wf = await MidiQOL.completeActivityUse(activity.uuid, {
-          midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [defTok.uuid], ignoreUserTargets: true },
-        });
-        await new Promise(r => setTimeout(r, 2000));
-        return wf;
-      };
-
+      const use = (docData) => useActivity(attacker, docData, [defTok.uuid], { settle: 2000 });
       if (withSetup) for (const s of setupDocs) await use(s); // combo setup (e.g. Derek marks)
       const hpBefore = defender.system.attributes.hp.value;
       const wf = await use(doc);
@@ -145,13 +185,8 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
     } catch (err) {
       return { error: err.message };
     } finally {
-      try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
-      if (combat) await combat.delete().catch(() => {});
-      if (atkTok) await atkTok.delete().catch(() => {});
-      if (defTok) await defTok.delete().catch(() => {});
-      if (attacker) await attacker.delete().catch(() => {});
-      if (defender) await defender.delete().catch(() => {});
-      if (scene) await scene.delete().catch(() => {});
+      clearTargets();
+      await cleanup([combat, atkTok, defTok, attacker, defender, scene]);
     }
   };
 
@@ -206,7 +241,7 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
 async function grantCheck({ doc, expectation, setupDocs = [] }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
   if (!setupDocs.length) return { ok: false, fails: ['grantCheck needs setup:[<ally attack ability>] in expect.json'] };
-  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const { makeScene, makeActor, makeToken, makeCombat, drawAndWait, clearTargets, useActivity, cleanup } = globalThis.__fcGate;
   const a = expectation.assert ?? {};
   const dcfg = expectation.defender ?? {};
   const hp = dcfg.hp ?? 100;
@@ -215,39 +250,29 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
   let caster, ally, dummy, casterTok, allyTok, dummyTok, combat, scene;
   const fails = [];
   try {
-    scene = await Scene.create({ name: 'T3 Grant Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
-    caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-    ally   = await Actor.create({ name: 'T3 Ally',   type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-    dummy  = await Actor.create({ name: 'T3 Dummy',  type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 5 } } } });
+    scene = await makeScene('T3 Grant Scene');
+    caster = await makeActor('T3 Caster');
+    ally   = await makeActor('T3 Ally');
+    dummy  = await makeActor('T3 Dummy', { hp, ac: dcfg.ac ?? 5 });
     // Force the ally's attacks to hit so each workflow resolves cleanly; we only read advantage.
     await dummy.update({ 'flags.midi-qol.grants.attack.success.all': 1 });
 
-    casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
-    allyTok   = await TokenDocument.create({ actorId: ally.id,   name: ally.name,   actorLink: true, x: 200, y: 100, disposition: 1 }, { parent: scene });
-    dummyTok  = await TokenDocument.create({ actorId: dummy.id,  name: dummy.name,  actorLink: true, x: 300, y: 100, disposition: -1 }, { parent: scene });
+    casterTok = await makeToken(caster, scene, { x: 100, y: 100, disposition: 1 });
+    allyTok   = await makeToken(ally,   scene, { x: 200, y: 100, disposition: 1 });
+    dummyTok  = await makeToken(dummy,  scene, { x: 300, y: 100, disposition: -1 });
 
-    combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
-    await combat.activate();
     // Initiative order: caster (30) -> ally (20) -> dummy (10).
-    await combat.createEmbeddedDocuments('Combatant', [
+    combat = await makeCombat(scene, [
       { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
       { tokenId: allyTok.id,   actorId: ally.id,   initiative: 20 },
       { tokenId: dummyTok.id,  actorId: dummy.id,  initiative: 10 },
     ]);
-    await combat.startCombat();
-    await canvas.draw(scene);
-    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
-    await new Promise(r => setTimeout(r, 800));
+    await drawAndWait(scene);
 
     // Use actor's freshly-created copy of an ability (first activity) against a token.
     const use = async (actor, docData, targetTok) => {
-      const [item] = await actor.createEmbeddedDocuments('Item', [strip(docData)]);
-      const activity = [...item.system.activities][0];
-      const wf = await MidiQOL.completeActivityUse(activity.uuid, {
-        midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [targetTok.uuid], ignoreUserTargets: true },
-      });
+      const wf = await useActivity(actor, docData, [targetTok.uuid], { settle: 2000 });
       if (!wf) throw new Error('midi workflow returned null (no target / activity not resolved)');
-      await new Promise(r => setTimeout(r, 2000));
       return wf;
     };
 
@@ -292,15 +317,8 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
   } catch (err) {
     return { ok: false, fails: [err.message, ...fails] };
   } finally {
-    try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
-    if (combat) await combat.delete().catch(() => {});
-    if (casterTok) await casterTok.delete().catch(() => {});
-    if (allyTok) await allyTok.delete().catch(() => {});
-    if (dummyTok) await dummyTok.delete().catch(() => {});
-    if (caster) await caster.delete().catch(() => {});
-    if (ally) await ally.delete().catch(() => {});
-    if (dummy) await dummy.delete().catch(() => {});
-    if (scene) await scene.delete().catch(() => {});
+    clearTargets();
+    await cleanup([combat, casterTok, allyTok, dummyTok, caster, ally, dummy, scene]);
   }
 }
 
@@ -317,7 +335,7 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
 //   scenarios:[{ force:'fail'|'success', assert:{ defenderHpDelta?, allyTempHp? } }] }
 async function macroCheck({ doc, expectation }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
-  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const { makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup } = globalThis.__fcGate;
   const dcfg = expectation.defender ?? {};
   const hp = dcfg.hp ?? 100;
   const allyCount = expectation.allies ?? 2;
@@ -327,48 +345,32 @@ async function macroCheck({ doc, expectation }) {
     let caster, defender, casterTok, defTok, combat, scene;
     const allies = [], allyToks = [];
     try {
-      scene = await Scene.create({ name: 'T3 Macro Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
-      caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-      defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
+      scene = await makeScene('T3 Macro Scene');
+      caster = await makeActor('T3 Caster');
+      defender = await makeActor('T3 Defender', { hp, ac: dcfg.ac ?? 1 });
       // Force the defender's save outcome deterministically.
       if (force === 'fail') await defender.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
       if (force === 'success') await defender.update({ 'flags.midi-qol.success.ability.save.all': 1 });
-      // actorLink so midi reads the base actor, not a synthetic token-actor.
-      casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
-      defTok = await TokenDocument.create({ actorId: defender.id, name: defender.name, actorLink: true, x: 200, y: 100, disposition: -1 }, { parent: scene });
+      casterTok = await makeToken(caster, scene, { x: 100, y: 100, disposition: 1 });
+      defTok = await makeToken(defender, scene, { x: 200, y: 100, disposition: -1 });
       for (let i = 0; i < allyCount; i++) {
         // Allies share the caster's disposition (1) and sit within 30 ft (<= 2 squares).
-        const al = await Actor.create({ name: `T3 Ally ${i}`, type: 'npc', system: { attributes: { hp: { value: 100, max: 100, temp: 0 } } } });
-        const at = await TokenDocument.create({ actorId: al.id, name: al.name, actorLink: true, x: 100, y: 200 + i * 100, disposition: 1 }, { parent: scene });
+        const al = await makeActor(`T3 Ally ${i}`, { temp: 0 });
+        const at = await makeToken(al, scene, { x: 100, y: 200 + i * 100, disposition: 1 });
         allies.push(al); allyToks.push(at);
       }
-      combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
-      await combat.activate();
-      await combat.createEmbeddedDocuments('Combatant', [
+      combat = await makeCombat(scene, [
         { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
         { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
         ...allyToks.map((t, i) => ({ tokenId: t.id, actorId: allies[i].id, initiative: 20 - i })),
       ]);
-      await combat.startCombat();
-      // canvas.draw switches + renders the scene so token placeables exist and the
-      // macro's canvas.tokens.placeables scan + targeting work.
-      await canvas.draw(scene);
-      for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
-      await new Promise(r => setTimeout(r, 800));
-      const defPlaceable = canvas.tokens?.get(defTok.id) ?? defTok.object;
-      if (defPlaceable) {
-        defPlaceable.setTarget(true, { user: game.user, releaseOthers: true });
-        if (!game.user.targets.size) { game.user.targets.add(defPlaceable); defPlaceable.isTargeted = true; }
-      }
+      await drawAndWait(scene);
+      targetToken(defTok);
 
-      const [item] = await caster.createEmbeddedDocuments('Item', [strip(doc)]);
-      const activity = [...item.system.activities][0];
       const hpBefore = defender.system.attributes.hp.value;
-      const wf = await MidiQOL.completeActivityUse(activity.uuid, {
-        midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [defTok.uuid], ignoreUserTargets: true },
-      });
+      // settle 2500: damage + macro + ally updates need longer than a plain hit.
+      const wf = await useActivity(caster, doc, [defTok.uuid], { settle: 2500 });
       if (!wf) return ['midi workflow did not run (no target / activity not resolved)'];
-      await new Promise(r => setTimeout(r, 2500)); // damage + macro + ally updates settle
 
       const f = [];
       const delta = defender.system.attributes.hp.value - hpBefore;
@@ -383,15 +385,8 @@ async function macroCheck({ doc, expectation }) {
     } catch (err) {
       return [err.message];
     } finally {
-      try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
-      if (combat) await combat.delete().catch(() => {});
-      for (const t of allyToks) await t.delete().catch(() => {});
-      if (casterTok) await casterTok.delete().catch(() => {});
-      if (defTok) await defTok.delete().catch(() => {});
-      for (const al of allies) await al.delete().catch(() => {});
-      if (caster) await caster.delete().catch(() => {});
-      if (defender) await defender.delete().catch(() => {});
-      if (scene) await scene.delete().catch(() => {});
+      clearTargets();
+      await cleanup([combat, ...allyToks, casterTok, defTok, ...allies, caster, defender, scene]);
     }
   };
 
@@ -421,7 +416,7 @@ async function macroCheck({ doc, expectation }) {
 //   assert:{ defenderHpDelta?, conditionApplied?, effectApplied? } }] }
 async function aoeCheck({ doc, expectation }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
-  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
+  const { makeScene, makeActor, makeToken, makeCombat, drawAndWait, clearTargets, useActivity, cleanup } = globalThis.__fcGate;
   const targetCfgs = expectation.targets ?? [];
   const N = targetCfgs.length;
 
@@ -429,47 +424,37 @@ async function aoeCheck({ doc, expectation }) {
   const defenders = [], defToks = [];
   const fails = [];
   try {
-    scene = await Scene.create({ name: 'T3 AoE Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
-    caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-    casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 300, y: 300, disposition: 1 }, { parent: scene });
+    scene = await makeScene('T3 AoE Scene');
+    caster = await makeActor('T3 Caster');
+    casterTok = await makeToken(caster, scene, { x: 300, y: 300, disposition: 1 });
 
     // N defenders in a row near the caster, all within the ability's 30ft range (=600px
     // at 100px/5ft) of the caster's center (350,350). Fixed positions => deterministic.
     for (let i = 0; i < N; i++) {
       const cfg = targetCfgs[i];
-      const def = await Actor.create({ name: `T3 Def ${i}`, type: 'npc', system: { attributes: { hp: { value: cfg.hp ?? 100, max: cfg.hp ?? 100 }, ac: { calc: 'flat', flat: cfg.ac ?? 1 } } } });
+      const def = await makeActor(`T3 Def ${i}`, { hp: cfg.hp ?? 100, ac: cfg.ac ?? 1 });
       // Per-defender forced save outcome — this is what proves independence.
       if (cfg.force === 'fail') await def.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
       if (cfg.force === 'success') await def.update({ 'flags.midi-qol.success.ability.save.all': 1 });
-      const tok = await TokenDocument.create({ actorId: def.id, name: def.name, actorLink: true, x: 150 + i * 150, y: 150, disposition: -1 }, { parent: scene });
+      const tok = await makeToken(def, scene, { x: 150 + i * 150, y: 150, disposition: -1 });
       defenders.push(def); defToks.push(tok);
     }
 
-    combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
-    await combat.activate();
-    await combat.createEmbeddedDocuments('Combatant', [
+    combat = await makeCombat(scene, [
       { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
       ...defToks.map((t, i) => ({ tokenId: t.id, actorId: defenders[i].id, initiative: 20 - i })),
     ]);
-    await combat.startCombat();
-    await canvas.draw(scene);
-    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
-    await new Promise(r => setTimeout(r, 800));
+    await drawAndWait(scene);
 
     // --- Targeting: explicit targetUuids for all N defenders (NOT targetsToUse — midi's
     // is broken). ignoreUserTargets:true so midi uses exactly these N, no template. Clear
     // any stray targets first. Same path as combatCheck/macroCheck, generalized to N.
-    game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false }));
-    const midiOptions = {
-      fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always',
-      targetUuids: defToks.map(t => t.uuid), ignoreUserTargets: true,
-    };
+    clearTargets();
 
-    // --- ONE cast against all N explicit targets ---
-    const [item] = await caster.createEmbeddedDocuments('Item', [strip(doc)]);
-    const activity = [...item.system.activities][0];
+    // --- ONE cast against all N explicit targets. settle:0 so we can read wf.targets
+    // for the hard invariant BEFORE the post-cast settle (done manually below). ---
     const hpBefore = defenders.map(d => d.system.attributes.hp.value);
-    const wf = await MidiQOL.completeActivityUse(activity.uuid, { midiOptions });
+    const wf = await useActivity(caster, doc, defToks.map(t => t.uuid), { settle: 0 });
     if (!wf) return { ok: false, fails: ['midi workflow did not run (no targets / activity not resolved)'] };
     const targeted = wf.targets?.size ?? 0;
     console.log(`[T3-aoe] midi targeted ${targeted} tokens (expected ${N})`);
@@ -495,13 +480,8 @@ async function aoeCheck({ doc, expectation }) {
   } catch (err) {
     return { ok: false, fails: [err.message, ...fails] };
   } finally {
-    try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
-    if (combat) await combat.delete().catch(() => {});
-    for (const t of defToks) await t.delete().catch(() => {});
-    if (casterTok) await casterTok.delete().catch(() => {});
-    for (const d of defenders) await d.delete().catch(() => {});
-    if (caster) await caster.delete().catch(() => {});
-    if (scene) await scene.delete().catch(() => {});
+    clearTargets();
+    await cleanup([combat, ...defToks, casterTok, ...defenders, caster, scene]);
   }
 }
 
