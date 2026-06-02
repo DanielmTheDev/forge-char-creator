@@ -1,6 +1,5 @@
 {
   "tier": "T3-aoe",
-  "template": { "type": "radius", "size": "20", "units": "ft" },
   "targets": [
     { "hp": 100, "ac": 1, "force": "fail",    "assert": { "defenderHpDelta": -12 } },
     { "hp": 100, "ac": 1, "force": "fail",    "assert": { "defenderHpDelta": -12 } },
