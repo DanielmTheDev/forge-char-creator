@@ -48,10 +48,24 @@ test.describe('forge-content verify', () => {
 
     await bootFoundry(page);
 
+    // Test isolation between handlers. A handler that runs combat can leave a stale
+    // ACTIVE combat behind (its scene already deleted). The next handler's granted
+    // effects then get stamped with that stale combat's round (DAE reads
+    // game.combat.current.round), so a turnEndSource buff expires a turn early — which
+    // made T3-grant pass or fail purely on suite ORDER. Purge lingering TEST combats
+    // (orphaned, or on a "T3 " verify scene) before every handler; never touches real
+    // campaign combats. Also bounds combat accumulation across the run.
+    const isolate = async () => {
+      for (const c of [...game.combats]) {
+        if (!c.scene || c.scene.name?.startsWith('T3 ')) await c.delete().catch(() => {});
+      }
+    };
+
     const results = [];
     for (const item of ITEMS) {
       const handler = CHECKS[item.expectation.tier];
       const setupDocs = (item.expectation.setup ?? []).map(s => byId.get(s));
+      await page.evaluate(isolate);
       const r = await page.evaluate(handler, { doc: item.doc, expectation: item.expectation, setupDocs });
       results.push({ name: item.doc.name, tier: item.expectation.tier, ...r });
       console.log(`${r.ok ? '✓' : '✘'} [${item.expectation.tier}] ${item.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
