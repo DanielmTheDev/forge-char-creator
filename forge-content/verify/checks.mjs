@@ -309,7 +309,11 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
 // the item's inline macro, not a native activity). Proves conditional + cross-
 // recipient macro logic. Self-contained: shipped to the browser via page.evaluate.
 //
-// expectation: { defender?:{hp,ac}, allies?:int, tempHp?:int, radius?:int,
+// NOTE: the macro's own RADIUS/TEMP are hardcoded inside its inline command (the
+// macro is shipped on the item, not parameterized from here), so assert.allyTempHp
+// must mirror the macro's TEMP. Only `allies` (count) is read from expectation.
+//
+// expectation: { defender?:{hp,ac}, allies?:int,
 //   scenarios:[{ force:'fail'|'success', assert:{ defenderHpDelta?, allyTempHp? } }] }
 async function macroCheck({ doc, expectation }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };

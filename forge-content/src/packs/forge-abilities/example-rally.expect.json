@@ -2,8 +2,6 @@
   "tier": "T3-macro",
   "defender": { "hp": 100, "ac": 1 },
   "allies": 2,
-  "tempHp": 5,
-  "radius": 30,
   "scenarios": [
     { "force": "fail",    "assert": { "defenderHpDelta": -10, "allyTempHp": 5 } },
     { "force": "success", "assert": { "defenderHpDelta": 0,  "allyTempHp": 0 } }

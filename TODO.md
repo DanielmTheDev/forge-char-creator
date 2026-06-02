@@ -2,6 +2,36 @@
 
 Simple running list. Check off as done. See CLAUDE.md for full spec.
 
+## OPEN WORK — dispatch list (parallelizable; each item self-contained)
+Master checklist for an agent army. Each links to its detail section below. Independent unless noted. **Every change touching the gate path needs a green `npm run content:verify` run (xvfb+Foundry, local) before commit — gate-green discipline.**
+
+- [ ] **G1. Gate handler dedup refactor** — 4 T3 handlers share ~60% scaffolding. See `## Gate hardening → G1`. NEEDS GATE RUN. Touches `checks.mjs` — serialize-aware (read constraint first).
+- [ ] **G2. macroCheck radius coverage gap** — distance filter untested. See `## Gate hardening → G2`. NEEDS GATE RUN.
+- [ ] **#5. Recharge actually firing** — SMALL. See `## NEXT UP → 5`. Start here (isolated).
+- [ ] **#6. Reaction abilities** — MEDIUM. See `## NEXT UP → 6`. Most interactive/flaky midi surface.
+- [ ] **BUG-1. Pack test residue** — 6 `Overtime_Poison_E2E_*` junk docs in forge-features pack. See `## Bugs found`.
+- [ ] **BUG-2. `[object Object]` description** — Fire_Aura effect. See `## Bugs found`.
+- [ ] **C-gate. Publish should be gated by B** — every push to main publishes unverified. See `## Roadmap → C`.
+- [ ] **A2-redo. Real compendium-load proof** — LOW. See `## Now → A2-redo`.
+- [ ] **D. Image → statblock** — LAST, highest risk, gated by B. See `## Roadmap → D`.
+- [ ] **Icons-API. Generated-icon authoring** — FUTURE, discuss first. See `## Icons`.
+
+COMMITTED, gate-unverified — do NOT redo (review post-hoc): `example-rally.expect.json` dead keys `tempHp`/`radius` removed (handler never read them; RADIUS/TEMP hardcoded in the inline macro) + `macroCheck` doc-comment corrected. Pure clarity, behavior-neutral by inspection (committed without a `content:verify` run since user was away; re-run gate to confirm green at next opportunity).
+
+## Gate hardening (found 2026-06-02 review)
+
+### G1. T3 handler dedup refactor — NEEDS GATE RUN
+The 4 T3 handlers in `forge-content/verify/checks.mjs` (`combatCheck`, `grantCheck`, `macroCheck`, `aoeCheck`) duplicate ~60% scaffolding: the `strip` helper, scene+actor+token+combat create, `canvas.draw` + the `for(40)…300ms` canvas-ready wait loop, the `MidiQOL.completeActivityUse` wrapper, and the `finally` teardown.
+- **WHY it's duplicated (constraint — read before touching):** each handler is shipped to the Foundry browser via `page.evaluate(handler, arg)`, which serializes ONLY that one function — referenced module-scope helpers are NOT shipped. So handlers are self-contained BY NECESSITY. A naive "extract a shared module helper and call it" WILL break at runtime (ReferenceError in browser). `applyCheck` (T2) is non-combat — leave it alone.
+- **Proper fix:** ship ONE harness function to the browser that inlines the shared scaffolding once and dispatches per-tier internally (e.g. `page.evaluate(harness, {tier, doc, expectation, setupDocs})` with `switch(tier)`), OR build each handler by composing a shared source STRING prepended at module load. Pick whichever keeps `content.spec.mjs`'s `page.evaluate(handler, …)` contract clean.
+- **Risk:** rewriting the verification path. MUST re-run `npm run content:verify` to green (all tiers: T2-apply, T3-combat, T3-grant, T3-macro, T3-aoe) before commit. Suite is order-sensitive — preserve the `isolate()` flag-purge in `content.spec.mjs` ([[gate-handler-isolation]]).
+
+### G2. macroCheck radius filter untested — coverage gap — NEEDS GATE RUN
+`macroCheck` places ALL allies WITHIN 30ft, so the macro's `RADIUS = 30` distance filter is never exercised: if the macro applied temp-HP to EVERY same-disposition token regardless of distance, the test still passes.
+- **Fix:** add one ally placed OUTSIDE 30ft (e.g. >7 squares from caster) and assert it gets `allyTempHp:0` while in-range allies get the macro's TEMP. Wire an `outOfRangeAllies` count (or per-ally position list) into `example-rally.expect.json` + `macroCheck`.
+- Caster sits at (100,100), grid 100px/5ft. In-range allies currently at x=100, y=200+i*100. An out-of-range ally needs center >600px from caster center (place e.g. at (900,900)).
+- **Risk:** behavior change to gate. Re-run `npm run content:verify` to green before commit.
+
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
 
