@@ -402,11 +402,12 @@ async function macroCheck({ doc, expectation }) {
 // T3-aoe: a save-each AoE ability — ONE cast hits N defenders, each rolling its own
 // save, taking per-target damage (half on save). Proves multi-target independence:
 // forced mix of fail/success across targets yields different per-target HP deltas.
-// Self-contained (shipped to the browser via page.evaluate). Targeting tries midi
-// template-auto-target first, falls back to explicit targetUuids[N] (proven path)
-// so the gate never flakes — logs which path ran.
+// Self-contained (shipped to the browser via page.evaluate). The ability is a self-
+// centered emanation (range:self + radius template) so midi AUTO-PLACES the template
+// and auto-targets the creatures inside it — no interactive placement, headless-safe.
+// (A ranged template aborts headless; see the targeting comment below.)
 //
-// expectation: { template?:{type,size,units},
+// expectation: { template?:{type,size,units},  // informational; midi auto-places from the ability
 //   targets:[{ hp, ac, force:'fail'|'success', assert:{ defenderHpDelta?, conditionApplied?, effectApplied? } }] }
 async function aoeCheck({ doc, expectation }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
