@@ -416,24 +416,24 @@ async function aoeCheck({ doc, expectation }) {
 
   let caster, casterTok, combat, scene;
   const defenders = [], defToks = [];
-  let template;
   const fails = [];
   try {
     scene = await Scene.create({ name: 'T3 AoE Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
     caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-    casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
+    casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 300, y: 300, disposition: 1 }, { parent: scene });
 
-    // N defenders clustered tightly within ~40px of (600,600). Scene grid is 100px/
-    // 5ft, so a 20ft-radius sphere = 4 squares = 400px radius — comfortably covers the
-    // whole cluster. Positions are fixed => deterministic template coverage.
-    const CX = 600, CY = 600;
+    // Self-centered 20ft-radius emanation: midi auto-places the template ON the caster and
+    // auto-targets creatures inside it. Scene grid 100px/5ft => 20ft = 400px radius. Place
+    // the N defenders within ~212px of the caster's center (350,350) so all sit inside the
+    // emanation; the caster itself is excluded by the ability's affects.special "-self".
+    // Fixed positions => deterministic target set.
     for (let i = 0; i < N; i++) {
       const cfg = targetCfgs[i];
       const def = await Actor.create({ name: `T3 Def ${i}`, type: 'npc', system: { attributes: { hp: { value: cfg.hp ?? 100, max: cfg.hp ?? 100 }, ac: { calc: 'flat', flat: cfg.ac ?? 1 } } } });
       // Per-defender forced save outcome — this is what proves independence.
       if (cfg.force === 'fail') await def.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
       if (cfg.force === 'success') await def.update({ 'flags.midi-qol.success.ability.save.all': 1 });
-      const tok = await TokenDocument.create({ actorId: def.id, name: def.name, actorLink: true, x: CX + (i % 2) * 20, y: CY + i * 20, disposition: -1 }, { parent: scene });
+      const tok = await TokenDocument.create({ actorId: def.id, name: def.name, actorLink: true, x: 150 + i * 150, y: 150, disposition: -1 }, { parent: scene });
       defenders.push(def); defToks.push(tok);
     }
 
@@ -448,48 +448,25 @@ async function aoeCheck({ doc, expectation }) {
     for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
     await new Promise(r => setTimeout(r, 800));
 
-    // --- Targeting: primary = template auto-target; fallback = explicit targetUuids[N] ---
+    // --- Targeting: the ability is a self-centered emanation (range:self +
+    // template.type "radius") => activityHasAutoPlaceTemplate is true (midi-qol.js
+    // ~19914), so midi (_placeEmanationTemplate, ~8052) AUTO-CREATES the MeasuredTemplate
+    // on the caster and auto-targets the creatures inside it (autoTarget default
+    // "wallsBlockIgnoreDefeated" != none). No interactive placement, no template injection.
+    // A RANGED template (sphere) instead sets expectedTemplateCount=1 and ABORTS headless
+    // (no placement UI); workflowOptions.templateUuid can't fix it — the Workflow ctor
+    // resets templateUuids = [] AFTER the setter runs (~24287). Caster is excluded via the
+    // ability's affects.special "-self". Deterministic: fixed positions, no walls/defeated.
     game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false }));
-    let targetingPath = 'none';
-    const tcfg = expectation.template ?? { type: 'sphere', size: '20', units: 'ft' };
-    try {
-      const [tmpl] = await scene.createEmbeddedDocuments('MeasuredTemplate', [{
-        t: 'circle', x: CX + 10, y: CY + (N * 20) / 2, distance: Number(tcfg.size) || 20, direction: 0, angle: 0, width: 0,
-      }]);
-      template = tmpl;
-      await new Promise(r => setTimeout(r, 300));
-      // midi util: tokens whose center is inside the template. API may differ across midi
-      // builds — wrapped so a failure cleanly drops to the explicit fallback below.
-      let under = [];
-      if (typeof MidiQOL.templateTokens === 'function') under = MidiQOL.templateTokens(tmpl) ?? [];
-      const underToks = under.map(u => u.object ?? u).filter(Boolean);
-      const defTokIds = new Set(defToks.map(t => t.id));
-      // Trust auto-target only if the tokens under the template are EXACTLY the N
-      // defenders (count AND identity) — a stray/leaked token in the shared world
-      // must not let a wrong target set pass as 'template-auto'.
-      if (underToks.length === N && underToks.every(pt => defTokIds.has(pt.id))) {
-        for (const pt of underToks) pt.setTarget(true, { user: game.user, releaseOthers: false });
-        if (game.user.targets.size === N && [...game.user.targets].every(t => defTokIds.has(t.id))) targetingPath = 'template-auto';
-      }
-    } catch (e) { console.log('aoe auto-target attempt failed:', e.message); }
+    const midiOptions = { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always' };
 
-    let midiOptions;
-    if (targetingPath === 'template-auto') {
-      midiOptions = { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', ignoreUserTargets: false };
-    } else {
-      // Fallback: the proven single-target path, generalized to N target UUIDs.
-      game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false }));
-      midiOptions = { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: defToks.map(t => t.uuid), ignoreUserTargets: true };
-      targetingPath = 'explicit-targetUuids';
-    }
-    console.log(`[T3-aoe] targeting path: ${targetingPath} (N=${N})`);
-
-    // --- ONE cast against all N targets ---
+    // --- ONE cast; midi auto-places the emanation + computes the N targets ---
     const [item] = await caster.createEmbeddedDocuments('Item', [strip(doc)]);
     const activity = [...item.system.activities][0];
     const hpBefore = defenders.map(d => d.system.attributes.hp.value);
     const wf = await MidiQOL.completeActivityUse(activity.uuid, { midiOptions });
-    if (!wf) return { ok: false, fails: [`midi workflow did not run (targeting=${targetingPath})`] };
+    if (!wf) return { ok: false, fails: ['midi workflow did not run (emanation auto-place / aborted)'] };
+    console.log(`[T3-aoe] midi auto-targeted ${wf.targets?.size ?? 0} tokens (expected ${N})`);
     await new Promise(r => setTimeout(r, 2500)); // damage + per-target saves settle
 
     // --- Per-target asserts (reuse the combatCheck assert key vocabulary) ---
@@ -509,7 +486,8 @@ async function aoeCheck({ doc, expectation }) {
     return { ok: false, fails: [err.message, ...fails] };
   } finally {
     try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
-    if (template) await template.delete().catch(() => {});
+    // midi auto-creates the emanation MeasuredTemplate; remove any left on the scene.
+    try { for (const t of [...(scene?.templates ?? [])]) await t.delete().catch(() => {}); } catch {}
     if (combat) await combat.delete().catch(() => {});
     for (const t of defToks) await t.delete().catch(() => {});
     if (casterTok) await casterTok.delete().catch(() => {});

@@ -5,7 +5,7 @@
   "_id": "exampleblast0001",
   "system": {
     "description": {
-      "value": "<p>Reference ability proving area-of-effect, save-each resolution. Every creature in a 20-foot-radius sphere makes a DC 14 Dexterity save, taking <strong>12 fire damage</strong>, or half as much on a success. Each target saves independently. Pattern reused by future AoE abilities.</p>",
+      "value": "<p>Reference ability proving area-of-effect, save-each resolution. Each other creature within 20 feet of you makes a DC 14 Dexterity save, taking <strong>12 fire damage</strong>, or half as much on a success. Each target saves independently. Pattern reused by future AoE abilities.</p>",
       "chat": ""
     },
     "activities": {
@@ -13,10 +13,10 @@
         "_id": "blastaoe00000001",
         "type": "save",
         "activation": { "type": "action", "value": 1 },
-        "range": { "value": 60, "units": "ft" },
+        "range": { "units": "self" },
         "target": {
-          "template": { "type": "sphere", "size": "20", "units": "ft" },
-          "affects": { "type": "creature" }
+          "template": { "type": "radius", "size": "20", "units": "ft" },
+          "affects": { "type": "creature", "special": "-self" }
         },
         "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "14" } },
         "damage": { "onSave": "half", "parts": [{ "types": ["fire"], "custom": { "enabled": true, "formula": "12" } }] }
