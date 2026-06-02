@@ -1,0 +1,40 @@
+{
+  "name": "Example Rally",
+  "img": "icons/magic/holy/barrier-shield-winged-blue.webp",
+  "type": "feat",
+  "_id": "examplerally0001",
+  "system": {
+    "description": {
+      "value": "<p>Reference ability proving macro-driven cross-recipient logic. One creature within 30 ft makes a DC 14 Dexterity save. <strong>On a failed save</strong> it takes 10 force damage, and every ally within 30 ft of you gains <strong>5 temporary hit points</strong>. Nothing happens on a success.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "rallysave0000001": {
+        "_id": "rallysave0000001",
+        "type": "save",
+        "activation": { "type": "action", "value": 1 },
+        "range": { "value": 30, "units": "ft" },
+        "target": { "affects": { "type": "creature", "count": "1" } },
+        "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "14" } },
+        "damage": { "onSave": "none", "parts": [{ "types": ["force"], "custom": { "enabled": true, "formula": "10" } }] }
+      }
+    },
+    "identifier": "example-rally",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [],
+  "flags": {
+    "midi-qol": { "onUseMacroName": "[postActiveEffects]ItemMacro" },
+    "dae": {
+      "macro": {
+        "name": "Example Rally",
+        "type": "script",
+        "command": "if (args?.[0]?.macroPass !== 'postActiveEffects') return;\nif (!workflow.failedSaves?.size) return;\nconst RADIUS = 30, TEMP = 5;\nconst me = token;\nconst ftBetween = (a, b) => canvas.grid.measurePath ? canvas.grid.measurePath([a, b]).distance : (Math.hypot(b.x - a.x, b.y - a.y) / canvas.dimensions.size) * canvas.dimensions.distance;\nconst allies = canvas.tokens.placeables.filter(t => t.id !== me.id && t.actor && t.document.disposition === me.document.disposition && ftBetween(me.center, t.center) <= RADIUS);\nfor (const ally of allies) {\n  const cur = ally.actor.system.attributes.hp.temp ?? 0;\n  await ally.actor.update({ 'system.attributes.hp.temp': Math.max(cur, TEMP) });\n}"
+      }
+    }
+  },
+  "folder": "folderexample001"
+}
