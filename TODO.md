@@ -18,7 +18,7 @@ Risks: template auto-target nondeterminism (mitigate w/ explicit targetUuids fal
 
 ### 5. Recharge actually firing — SMALL.
 Why: Radiant Rebuke HAS `uses.recovery:[{period:"recharge",formula:"5"}]` but the gate never asserts the recharge ROLL happens / re-enables the ability. Untested = unproven.
-What's NEW: advance a combat turn, force the recharge die (recharge succeeds on ≥ formula), assert `item.system.uses.spent` resets to 0 (or `uses.value` back to max) after a start-of-turn recharge roll. Force the d6 deterministically (midi/dnd5e recharge roll — find the roll hook or set the die). Likely small extension to an existing handler or a `T2`/`T3` assert key `rechargeRestored:true`. Investigate how dnd5e 5.2.0 rolls recharge (Item#rollRecharge or activity recovery) + how to force the die.
+What's NEW: advance a combat turn, force the recharge die (recharge succeeds on ≥ formula), assert `item.system.uses.spent` resets to 0 (or `uses.value` back to max) after a start-of-turn recharge roll. Force the d6 deterministically (midi/dnd5e recharge roll — find the roll hook or set the die). Likely small extension to an existing handler or a `T2`/`T3` assert key `rechargeRestored:true`. Investigate how dnd5e 5.2.5 rolls recharge (Item#rollRecharge or activity recovery) + how to force the die.
 
 ### 6. Reaction abilities (trigger-based) — MEDIUM.
 Why: bosses have reactions (parry/riposte, Hellish Rebuke-style retaliate). No trigger-based ability proven. Reactions fire OFF another workflow, not the actor's own turn.

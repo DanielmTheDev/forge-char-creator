@@ -20,7 +20,7 @@ Runs inside real Foundry via `./test.sh` (boots server + Playwright + native sui
 - Determinism: force dice / auto-fast-forward so asserts are exact, not flaky.
 
 ## Known limits (surfaced, not hidden)
-Version drift (pin dnd5e 5.2.0 / midi 13.0.63, re-test on bump) · combinatorial interaction gaps · manual-click paths uncovered · async hook flakiness.
+Version drift (pin dnd5e 5.2.5 / midi 13.0.63, re-test on bump) · combinatorial interaction gaps · manual-click paths uncovered · async hook flakiness.
 
 ## Roadmap (build in order, spec each separately)
 - **A. Content pipeline** — JSON source dir → `npm run pack`/`unpack` round-trip. FOUNDATION. ← current
