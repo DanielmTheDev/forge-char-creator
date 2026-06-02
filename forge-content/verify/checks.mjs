@@ -46,6 +46,7 @@ async function applyCheck({ doc, expectation }) {
 // expectation (one of):
 //   { assert, defender?, advanceTurns?, negative?:{hpDeltaMin?} }  // main (+ optional combo setup + negative re-run)
 //   { saveScenarios:[{force:'fail'|'success', assert}], defender? }  // one run per forced save outcome
+//   { attackScenarios:[{force:'hit'|'miss', assert}], defender? }  // one run per forced to-hit outcome
 // assert keys (all optional): defenderHpDelta, hpDeltaMin, hpDeltaMax,
 //   conditionApplied, effectApplied, flagPresent, ticks, attackHit, attackCrit, attackAdvantage.
 // setupDocs: abilities used on the defender BEFORE the main one (combo setup).
@@ -69,6 +70,9 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
       // Deterministically force the defender's save outcome via midi flags.
       if (opts.forceSave === 'fail') await defender.update({ 'flags.midi-qol.fail.ability.save.all': 1 });
       if (opts.forceSave === 'success') await defender.update({ 'flags.midi-qol.success.ability.save.all': 1 });
+      // Deterministically force the attack to-hit outcome via midi grants flags.
+      if (opts.forceAttack === 'hit') await defender.update({ 'flags.midi-qol.grants.attack.success.all': 1 });
+      if (opts.forceAttack === 'miss') await defender.update({ 'flags.midi-qol.grants.attack.fail.all': 1 });
       // actorLink:true so the token uses the base actor (npc tokens unlink by
       // default => midi would hit a synthetic token-actor, not the doc we read).
       atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
@@ -163,6 +167,8 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
   const scenarios = [];
   if (expectation.saveScenarios) {
     for (const s of expectation.saveScenarios) scenarios.push({ label: `save[${s.force}]`, opts: { withSetup: false, forceSave: s.force }, assert: s.assert ?? {} });
+  } else if (expectation.attackScenarios) {
+    for (const s of expectation.attackScenarios) scenarios.push({ label: `attack[${s.force}]`, opts: { withSetup: false, forceAttack: s.force }, assert: s.assert ?? {} });
   } else {
     scenarios.push({ label: 'main', opts: { withSetup: true }, assert: a });
     if (expectation.negative) scenarios.push({ label: 'negative', opts: { withSetup: false }, assert: { hpDeltaMin: expectation.negative.hpDeltaMin ?? 0 } });

@@ -1,0 +1,45 @@
+{
+  "name": "Example Strike",
+  "img": "icons/weapons/swords/sword-broad-steel.webp",
+  "type": "feat",
+  "_id": "examplestrike001",
+  "system": {
+    "description": {
+      "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "atkexample000001": {
+        "_id": "atkexample000001",
+        "type": "attack",
+        "activation": { "type": "action", "value": 1 },
+        "range": { "value": 5, "units": "ft" },
+        "target": { "affects": { "type": "creature", "count": "1" } },
+        "attack": {
+          "ability": "str",
+          "bonus": "",
+          "critical": { "threshold": null },
+          "flat": false,
+          "type": { "value": "melee", "classification": "weapon" }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": ["slashing"],
+              "custom": { "enabled": true, "formula": "10" },
+              "scaling": { "mode": "", "number": null, "formula": "" }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "example-strike",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [],
+  "flags": {},
+  "folder": "folderexample001"
+}

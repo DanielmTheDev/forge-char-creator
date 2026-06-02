@@ -22,11 +22,12 @@ T3-combat gate works: Searing Bolt (flat 10 fire) → exact -10 on rigged defend
 - PREREQ: `sudo apt-get install -y xvfb` on the dev machine.
 - Next: combat .expect.json vocab can grow (conditionApplied already supported; add saveResult, effectExpiresTurn, advantage).
 
-## NEXT: Attack rolls (new mechanic) — separate folder
-- Build a test ability that makes a real attack roll (to-hit). Put it in a NEW folder (add to `_folders.json` + set the ability's `folder`).
-- Harness is READY: `runScenario` snapshot already captures `attack:{hit,crit,fumble,advantage,disadvantage,total}`; `assertResult` already has `attackHit`/`attackCrit`/`attackAdvantage` keys.
-- Determinism: force hit/miss via midi flags (like the save flags) — look for `flags.midi-qol.grants.attack.fail/success.all` on the DEFENDER, or rig attacker bonus + defender AC extremes. Avoid nat-1/20 flake; force the outcome. Add a `forceAttack`/scenario opt to runScenario mirroring `forceSave`.
-- Also testable now: advantage (e.g. attack vs a prone/marked foe → assert `attackAdvantage:true`), crit.
+## Attack rolls (new mechanic) — separate folder — DONE ✅
+- Example Strike (Examples folder): feat w/ `type:"attack"` activity (melee weapon, STR), flat 10 slashing on hit. Reference pattern for future to-hit abilities.
+- Determinism: `forceAttack` opt added to runScenario (mirrors `forceSave`) via midi `flags.midi-qol.grants.attack.success/fail.all` on DEFENDER (both flag names verified in installed midi). `attackScenarios:[{force:'hit'|'miss',assert}]` expect shape (twin of saveScenarios). NO nat-1/20 flake, no AC rigging.
+- Gate proves BOTH branches: hit → attackHit:true, −10; miss → attackHit:false, 0 (damage gated by to-hit). Green 2x.
+- `assertResult` already had attackHit/Crit/Advantage — no change needed.
+- Still testable next: advantage (vs prone/marked foe → `attackAdvantage:true`), crit.
 
 ## Saving throws (NEW mechanic) — DONE ✅
 - Radiant Rebuke (Derek, light magic): Recharge 5–6, DEX save, 12 radiant, half on save.

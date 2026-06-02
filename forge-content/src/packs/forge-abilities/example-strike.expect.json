@@ -1,0 +1,8 @@
+{
+  "tier": "T3-combat",
+  "defender": { "hp": 100, "ac": 15 },
+  "attackScenarios": [
+    { "force": "hit",  "assert": { "attackHit": true,  "defenderHpDelta": -10 } },
+    { "force": "miss", "assert": { "attackHit": false, "defenderHpDelta": 0 } }
+  ]
+}
