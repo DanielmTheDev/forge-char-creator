@@ -3,6 +3,10 @@
   "defender": { "hp": 100, "ac": 15 },
   "attackScenarios": [
     { "force": "hit",  "assert": { "attackHit": true,  "defenderHpDelta": -10 } },
-    { "force": "miss", "assert": { "attackHit": false, "defenderHpDelta": 0 } }
+    { "force": "miss", "assert": { "attackHit": false, "defenderHpDelta": 0 } },
+    { "force": "hit", "advantage": true,         "assert": { "attackHit": true, "attackAdvantage": true,    "attackDisadvantage": false, "defenderHpDelta": -10 } },
+    { "force": "hit", "disadvantage": true,      "assert": { "attackHit": true, "attackDisadvantage": true, "attackAdvantage": false,    "defenderHpDelta": -10 } },
+    { "force": "hit", "grantAdvantage": true,    "assert": { "attackHit": true, "attackAdvantage": true,    "attackDisadvantage": false, "defenderHpDelta": -10 } },
+    { "force": "hit", "grantDisadvantage": true, "assert": { "attackHit": true, "attackDisadvantage": true, "attackAdvantage": false,    "defenderHpDelta": -10 } }
   ]
 }

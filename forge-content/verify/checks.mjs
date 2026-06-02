@@ -46,9 +46,12 @@ async function applyCheck({ doc, expectation }) {
 // expectation (one of):
 //   { assert, defender?, advanceTurns?, negative?:{hpDeltaMin?} }  // main (+ optional combo setup + negative re-run)
 //   { saveScenarios:[{force:'fail'|'success', assert}], defender? }  // one run per forced save outcome
-//   { attackScenarios:[{force:'hit'|'miss', assert}], defender? }  // one run per forced to-hit outcome
+//   { attackScenarios:[{force:'hit'|'miss', advantage?, disadvantage?, grantAdvantage?, grantDisadvantage?, assert}], defender? }
+//     // one run per forced to-hit outcome. advantage/disadvantage = on the ATTACKER;
+//     // grantAdvantage/grantDisadvantage = on the DEFENDER (attacks AGAINST it get adv/disadv).
+//     // keep force:'hit' alongside an adv/disadv flag so the HP delta stays deterministic.
 // assert keys (all optional): defenderHpDelta, hpDeltaMin, hpDeltaMax,
-//   conditionApplied, effectApplied, flagPresent, ticks, attackHit, attackCrit, attackAdvantage.
+//   conditionApplied, effectApplied, flagPresent, ticks, attackHit, attackCrit, attackAdvantage, attackDisadvantage.
 // setupDocs: abilities used on the defender BEFORE the main one (combo setup).
 async function combatCheck({ doc, expectation, setupDocs = [] }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
@@ -73,6 +76,12 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
       // Deterministically force the attack to-hit outcome via midi grants flags.
       if (opts.forceAttack === 'hit') await defender.update({ 'flags.midi-qol.grants.attack.success.all': 1 });
       if (opts.forceAttack === 'miss') await defender.update({ 'flags.midi-qol.grants.attack.fail.all': 1 });
+      // Adv/disadv on the ATTACKER's own roll.
+      if (opts.advantage) await attacker.update({ 'flags.midi-qol.advantage.attack.all': 1 });
+      if (opts.disadvantage) await attacker.update({ 'flags.midi-qol.disadvantage.attack.all': 1 });
+      // Grants: attacks AGAINST the defender get adv/disadv (flags live on the defender).
+      if (opts.grantAdvantage) await defender.update({ 'flags.midi-qol.grants.advantage.attack.all': 1 });
+      if (opts.grantDisadvantage) await defender.update({ 'flags.midi-qol.grants.disadvantage.attack.all': 1 });
       // actorLink:true so the token uses the base actor (npc tokens unlink by
       // default => midi would hit a synthetic token-actor, not the doc we read).
       atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
@@ -160,6 +169,7 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
     if (spec.attackHit !== undefined && r.attack.hit !== spec.attackHit) f.push(`attackHit expected ${spec.attackHit}, got ${r.attack.hit}`);
     if (spec.attackCrit !== undefined && r.attack.crit !== spec.attackCrit) f.push(`attackCrit expected ${spec.attackCrit}, got ${r.attack.crit}`);
     if (spec.attackAdvantage !== undefined && r.attack.advantage !== spec.attackAdvantage) f.push(`attackAdvantage expected ${spec.attackAdvantage}, got ${r.attack.advantage}`);
+    if (spec.attackDisadvantage !== undefined && r.attack.disadvantage !== spec.attackDisadvantage) f.push(`attackDisadvantage expected ${spec.attackDisadvantage}, got ${r.attack.disadvantage}`);
     return f;
   };
 
@@ -168,7 +178,7 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
   if (expectation.saveScenarios) {
     for (const s of expectation.saveScenarios) scenarios.push({ label: `save[${s.force}]`, opts: { withSetup: false, forceSave: s.force }, assert: s.assert ?? {} });
   } else if (expectation.attackScenarios) {
-    for (const s of expectation.attackScenarios) scenarios.push({ label: `attack[${s.force}]`, opts: { withSetup: false, forceAttack: s.force }, assert: s.assert ?? {} });
+    for (const s of expectation.attackScenarios) scenarios.push({ label: `attack[${s.force}${s.advantage ? '+adv' : ''}${s.disadvantage ? '+dis' : ''}${s.grantAdvantage ? '+grantAdv' : ''}${s.grantDisadvantage ? '+grantDis' : ''}]`, opts: { withSetup: false, forceAttack: s.force, advantage: s.advantage, disadvantage: s.disadvantage, grantAdvantage: s.grantAdvantage, grantDisadvantage: s.grantDisadvantage }, assert: s.assert ?? {} });
   } else {
     scenarios.push({ label: 'main', opts: { withSetup: true }, assert: a });
     if (expectation.negative) scenarios.push({ label: 'negative', opts: { withSetup: false }, assert: { hpDeltaMin: expectation.negative.hpDeltaMin ?? 0 } });

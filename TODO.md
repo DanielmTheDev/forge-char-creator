@@ -29,17 +29,15 @@ T3-combat gate works: Searing Bolt (flat 10 fire) → exact -10 on rigged defend
 - `assertResult` already had attackHit/Crit/Advantage — no change needed.
 - Still testable next: advantage/disadvantage (see NEXT below), crit.
 
-## NEXT: Advantage / Disadvantage on attack (extends Example Strike pattern)
-- Goal: prove attack roll picks up adv/disadv and harness asserts it. Builds directly on `attackScenarios` + `forceAttack` (already shipped, see DONE block above).
-- Harness is READY: `runScenario` snapshot captures `attack.advantage`/`attack.disadvantage`; `assertResult` already has `attackAdvantage` key. ADD a `attackDisadvantage` assert key to `assertResult` (one line, mirrors `attackAdvantage`).
-- Determinism — grant adv/disadv to the ATTACKER via midi flags on the attacker actor (NOT the defender):
-  - advantage: `flags.midi-qol.advantage.attack.all = 1`
-  - disadvantage: `flags.midi-qol.disadvantage.attack.all = 1`
-  - VERIFY exact flag paths in installed midi first: `grep -rho 'advantage.attack.[a-z]*' FoundryData/Data/modules/midi-qol | sort -u` (same way `grants.attack.*` was verified for forceAttack).
-  - Add `opts.advantage`/`opts.disadvantage` to `runScenario` applying flags to `attacker` (mirror the `forceSave`/`forceAttack` blocks). Normalize via a new `attackScenarios` opt field OR reuse existing scenario `force` — keep it `attackScenarios:[{force:'hit', advantage:true, assert:{attackAdvantage:true}}]` (force still controls hit so damage stays deterministic).
-- Real-play angle (optional, richer): instead of raw flags, grant advantage via a condition on the DEFENDER (e.g. prone/marked) so the attack auto-rolls adv — proves the downstream-condition path, not just a flag. Squire's Mark (squiresmark00001) could be the setup doc. Lower priority than the flag version.
-- Assert both: adv → `attackAdvantage:true`; disadv → `attackDisadvantage:true`. Keep `force:'hit'` so HP delta stays exact alongside the adv/disadv assert.
-- Can fold into Example Strike's expect.json (add scenarios) or a new example ability. Prefer extending example-strike.expect.json to keep one canonical attack reference.
+## Advantage / Disadvantage on attack — DONE ✅
+- Example Strike expect now has 6 attackScenarios: hit, miss, +adv, +disadv, +grantAdv, +grantDis. Green 2.2m.
+- Two angles BOTH proven:
+  - ATTACKER-side (this actor rolls adv/disadv): `opts.advantage`/`disadvantage` → `flags.midi-qol.advantage.attack.all` / `disadvantage.attack.all` on attacker.
+  - GRANTS-side (attacks AGAINST defender get adv/disadv — restrained=grantAdv, dodging/obscured=grantDis): `opts.grantAdvantage`/`grantDisadvantage` → `flags.midi-qol.grants.advantage.attack.all` / `grants.disadvantage.attack.all` on DEFENDER (same place as forceAttack's grants flags).
+  - All 4 flag paths verified in installed midi before wiring.
+- `assertResult` gained `attackDisadvantage` (mirrors `attackAdvantage`; snapshot already had `attack.disadvantage`). Each new scenario asserts active mode `true` AND opposite `false` (catches mis-mapping).
+- Determinism: keep `force:'hit'` alongside adv/disadv → HP delta stays exact (-10) while roll-mode asserted. force(grants success/fail) and roll-mode are independent.
+- Still testable next: crit. Real-play condition angle (grant adv via prone/marked condition on defender, not raw flag) still open — lower priority, grants-flag path already covers the mechanic.
 
 ## Saving throws (NEW mechanic) — DONE ✅
 - Radiant Rebuke (Derek, light magic): Recharge 5–6, DEX save, 12 radiant, half on save.
