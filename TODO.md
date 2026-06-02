@@ -2,6 +2,33 @@
 
 Simple running list. Check off as done. See CLAUDE.md for full spec.
 
+## NEXT UP — boss-combat mechanics (3 things, build in order)
+Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
+
+What's already proven (reuse): save+dmg half/none (Radiant Rebuke), attack+on-hit (Example Strike), adv/disadv (Example Strike), condition apply, DoT+Times-Up duration, ally buff grant (Example Boon), macro conditional cross-recipient (Example Rally). Gate harness in `forge-content/verify/checks.mjs` (CHECKS map by tier), boot pieces in boot.mjs, expect.json per ability.
+
+### 1. Multi-target / AoE (save-each) — BIGGEST, HARNESS-SHAPED. Do first.
+Why: current gate is hardwired to ONE defender — `combatCheck.runScenario` uses `targetUuids:[defTok.uuid]` + a single defender actor, and every handler fires only `[...item.system.activities][0]`. Real boss attacks (breath weapon = cone, fireball = sphere) hit N targets, each rolls its own save, dmg per-target.
+What's NEW / to solve:
+- **Multi-target use.** Pass N `targetUuids` to `MidiQOL.completeActivityUse`; create N defender tokens in range. Reference ability = AoE save activity (e.g. "Example Blast" — DEX save, flat dmg, half on save, `target.template` cone/sphere OR `target.affects.count:""` all-in-area).
+- **Template targeting.** dnd5e AoE uses `activities.<id>.target.template` ({type:"cone"/"sphere",size}). midi auto-targets tokens under the template IF canvas/targeting works (we run headed/xvfb, proven). DECIDE: rely on midi auto-target-under-template vs explicit multi-`targetUuids`. Auto-target is the real-play path → prefer it, but confirm it populates `game.user.targets` deterministically in the gate; fall back to explicit targetUuids if flaky.
+- **Per-target asserts.** New gate tier (e.g. `T3-aoe`) or extend combatCheck: assert HP delta on EACH of N defenders (forced save per target — `flags.midi-qol.fail/success.ability.save.all` set per defender, can mix fail+success across targets to prove independence). expect shape: `{ targets:[{hp,ac,force,assert}] }`.
+- Determinism: flat dmg, rigged per-target save flags, fixed token positions inside template.
+Risks: template auto-target nondeterminism (mitigate w/ explicit targetUuids fallback); midi `targetsToUse` still broken (use targetUuids, see B3 notes below).
+
+### 5. Recharge actually firing — SMALL.
+Why: Radiant Rebuke HAS `uses.recovery:[{period:"recharge",formula:"5"}]` but the gate never asserts the recharge ROLL happens / re-enables the ability. Untested = unproven.
+What's NEW: advance a combat turn, force the recharge die (recharge succeeds on ≥ formula), assert `item.system.uses.spent` resets to 0 (or `uses.value` back to max) after a start-of-turn recharge roll. Force the d6 deterministically (midi/dnd5e recharge roll — find the roll hook or set the die). Likely small extension to an existing handler or a `T2`/`T3` assert key `rechargeRestored:true`. Investigate how dnd5e 5.2.0 rolls recharge (Item#rollRecharge or activity recovery) + how to force the die.
+
+### 6. Reaction abilities (trigger-based) — MEDIUM.
+Why: bosses have reactions (parry/riposte, Hellish Rebuke-style retaliate). No trigger-based ability proven. Reactions fire OFF another workflow, not the actor's own turn.
+What's NEW / to solve:
+- **Activation type `reaction`** + a trigger. midi reaction triggers: `flags.midi-qol.reactionXXX` / the item's `activation.type:"reaction"` + midi's reaction prompt on isHit/isDamaged/etc. DECIDE trigger mechanism: midi auto-reaction (`reactionCondition`/onUse macro at `isAttacked`/`isDamaged`) vs a macro that calls the reaction. Reference ability = "Example Riposte" (when attacker is hit by a foe within 5ft → riposte dmg back) OR "Example Retaliate" (when this actor takes dmg → dmg attacker).
+- **Gate challenge:** reactions normally prompt the reacting user (interactive — fights the gate). Need auto-fire path: midi `configSettings.autoItemEffects`/reaction auto-roll, or `MidiQOL.completeActivityUse` triggered from a macro at the right pass, fully fast-forwarded. Determinism via forced dmg/attack. New tier likely `T3-reaction`: actor A attacks/damages actor B (who has the reaction) → assert A took the riposte dmg (HP delta on the ORIGINAL attacker).
+Risks: reaction prompts are the most interactive/least-gate-friendly midi surface — budget for flakiness, generous waits, confirm an auto-fire setting exists in installed midi BEFORE committing to the approach.
+
+First step when resumed (fresh context): start with #1. brainstorm → confirm template-auto-target vs explicit-targetUuids decision + AoE ability specifics (shape/save/dmg/N targets), then spec, then plan. Reuse Searing Bolt/Radiant Rebuke as the dmg/save base.
+
 ## Macro-driven abilities — DONE ✅
 First "if X then do Y to Z" content logic. Example Rally (Examples folder): DEX DC14 save, range 30ft; on FAIL → 10 force to target (`damage.onSave:"none"`) AND every same-disposition ally within 30ft of caster gains 5 temp HP. Green 2x via new T3-macro gate (both branches). Spec+plan: `docs/superpowers/specs|plans/2026-06-02-macro-save-buff-ability.*`.
 - **Macro = content-as-code, NO Item Macro module.** (Overturns old prereq guess.) Store JS inline at `flags.dae.macro.command` + reference via `flags.midi-qol.onUseMacroName:"[postActiveEffects]ItemMacro"`. midi-qol 13.0.63 `resolveItemMacro` (midi-qol.js:14282) reads `flags.dae.macro` (DAE — already a dep) ?? `flags.itemacro.macro`, then EXECUTES it itself (`new CONFIG.Macro... .command`). DAE only needed to read the flag (already dep). Pack tooling passes flags untouched. See [[forge-content-macro-storage]].
