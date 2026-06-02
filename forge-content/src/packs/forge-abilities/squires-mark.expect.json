@@ -1,0 +1,8 @@
+{
+  "tier": "T3-combat",
+  "defender": { "hp": 100, "ac": 1 },
+  "assert": {
+    "effectApplied": "Squire's Mark",
+    "flagPresent": "flags.world.squiresMark"
+  }
+}

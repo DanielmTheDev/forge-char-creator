@@ -1,0 +1,12 @@
+{
+  "tier": "T3-combat",
+  "defender": { "hp": 100, "ac": 1 },
+  "setup": ["squires-mark"],
+  "advanceTurns": 6,
+  "assert": {
+    "hpDeltaMin": -36,
+    "hpDeltaMax": -6,
+    "ticks": 2
+  },
+  "negative": { "hpDeltaMin": 0 }
+}

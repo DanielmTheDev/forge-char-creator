@@ -37,6 +37,12 @@ Foundry can't run in CI (binary + license gitignored/secret), so the functional 
 - T3-combat: `{tier, defender:{hp,ac}, assert:{defenderHpDelta|conditionApplied}}` — real midi workflow in a fresh scene; deterministic via flat damage + rigged AC/HP.
 PREREQ: `content:verify` runs **headed under xvfb** (`sudo apt-get install -y xvfb` once). Headless can't init Foundry's canvas/targeting that real midi combat needs. Handlers live in `forge-content/verify/checks.mjs` (CHECKS map by tier).
 
+**Duration/DoT expiry needs Times-Up.** Effect `duration.rounds` only auto-expires if the **Times-Up** module is active — dnd5e core + midi do NOT delete expired effects themselves (midi delegates to `globalThis.TimesUp.isEffectExpired`). Without it, OverTime DoTs tick forever (unbounded/OP). So: any bounded DoT relies on Times-Up; the test instance + the user's game must have it active. forge-content recommends it. Test world has midi-qol/dae/lib-wrapper/socketlib/**times-up**/forge-content active (forge-content symlinked into FoundryData/Data/modules).
+
+## Ability authoring rules
+- **Every ability MUST have a concise `system.description.value`** the user understands at a glance — what it does, its dice/effect, recharge/cost. Plain, short, scannable. No untitled/empty descriptions.
+- Every ability ships a fitting Foundry core icon + a `<name>.expect.json` functional check.
+
 ## Packs are content-as-code (BOTH modules)
 JSON source committed; compiled LevelDB `packs/` gitignored (built on demand / in CI). Shared tooling `scripts/pack-tools/` (module registry in modules.mjs). `FoundryData/.../forge-char-creator` is a symlink to repo, so Foundry compacts `packs/` on every boot — gitignore keeps that invisible.
 

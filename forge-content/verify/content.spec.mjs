@@ -14,7 +14,7 @@ function gather() {
   const out = [];
   for (const pack of readdirSync(SRC, { withFileTypes: true }).filter(d => d.isDirectory())) {
     const dir = join(SRC, pack.name);
-    for (const f of readdirSync(dir).filter(f => f.endsWith('.json') && !f.endsWith('.expect.json'))) {
+    for (const f of readdirSync(dir).filter(f => f.endsWith('.json') && !f.endsWith('.expect.json') && !f.startsWith('_'))) {
       const base = f.replace(/\.json$/, '');
       const expectFile = join(dir, `${base}.expect.json`);
       out.push({
@@ -30,7 +30,7 @@ function gather() {
 const ITEMS = gather();
 
 test.describe('forge-content verify', () => {
-  test.setTimeout(120000);
+  test.setTimeout(360000);
 
   test('every ability passes its declared functional check', async ({ page }) => {
     expect(ITEMS.length, 'No abilities found under src/packs/').toBeGreaterThan(0);
@@ -41,12 +41,18 @@ test.describe('forge-content verify', () => {
     const unknownTier = ITEMS.filter(i => !CHECKS[i.expectation.tier]).map(i => `${i.doc.name} (tier=${i.expectation.tier})`);
     expect(unknownTier, `Unknown tier(s): ${unknownTier.join(', ')}`).toEqual([]);
 
+    // Lookup by identifier (or name) so expect.json `setup` can reference other abilities.
+    const byId = new Map(ITEMS.map(i => [i.doc.system?.identifier ?? i.doc.name, i.doc]));
+    const missingSetup = ITEMS.flatMap(i => (i.expectation.setup ?? []).filter(s => !byId.has(s)).map(s => `${i.doc.name} -> ${s}`));
+    expect(missingSetup, `expect.json setup references unknown abilities: ${missingSetup.join(', ')}`).toEqual([]);
+
     await bootFoundry(page);
 
     const results = [];
     for (const item of ITEMS) {
       const handler = CHECKS[item.expectation.tier];
-      const r = await page.evaluate(handler, { doc: item.doc, expectation: item.expectation });
+      const setupDocs = (item.expectation.setup ?? []).map(s => byId.get(s));
+      const r = await page.evaluate(handler, { doc: item.doc, expectation: item.expectation, setupDocs });
       results.push({ name: item.doc.name, tier: item.expectation.tier, ...r });
       console.log(`${r.ok ? '✓' : '✘'} [${item.expectation.tier}] ${item.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
     }

@@ -8,7 +8,7 @@
 async function applyCheck({ doc, expectation }) {
   const data = JSON.parse(JSON.stringify(doc));
   delete data._id; delete data._key;
-  for (const e of data.effects ?? []) { delete e._id; delete e._key; }
+  for (const e of data.effects ?? []) { delete e._key; } // keep _id (activity refs)
 
   const get = (obj, path) => foundry.utils.getProperty(obj, path);
   const a = expectation.assert ?? {};
@@ -37,91 +37,125 @@ async function applyCheck({ doc, expectation }) {
   }
 }
 
-// T3: run the ability in a real combat via MidiQOL and assert exact outcomes.
-// Determinism by construction (flat damage, rigged AC/HP) — no RNG control.
-// expectation: { defender:{hp,ac}, assert:{ defenderHpDelta?, conditionApplied? } }
-async function combatCheck({ doc, expectation }) {
-  const data = JSON.parse(JSON.stringify(doc));
-  delete data._id; delete data._key;
-  for (const e of data.effects ?? []) { delete e._id; delete e._key; }
-
+// T3: run the ability in a real combat via MidiQOL and assert outcomes.
+// Determinism by construction (flat damage / rigged AC/HP / fixed-round DoTs).
+// expectation: {
+//   defender:{hp,ac}, advanceTurns?,
+//   assert:{ defenderHpDelta?, hpDeltaMin?, hpDeltaMax?, conditionApplied?, effectApplied?, flagPresent? },
+//   negative?: { hpDeltaMin? }   // re-run WITHOUT setup; assert the combo gate holds (e.g. no bleed)
+// }
+// setupDocs: abilities used on the defender BEFORE the main one (combo setup).
+async function combatCheck({ doc, expectation, setupDocs = [] }) {
+  if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+  const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
   const a = expectation.assert ?? {};
   const dcfg = expectation.defender ?? {};
   const hp = dcfg.hp ?? 100;
-  let attacker, defender, atkTok, defTok, combat, scene;
-  try {
-    if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
-    // Fresh clean scene: the dev world's existing scene has a broken actor that
-    // aborts canvas.draw (canvas.ready stays false), which breaks targeting.
-    scene = await Scene.create({ name: 'T3 Verify Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
 
-    attacker = await Actor.create({ name: 'T3 Attacker', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
-    defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
-    const [item] = await attacker.createEmbeddedDocuments('Item', [data]);
+  // One full combat scenario (fresh scene/actors), cleans up after itself.
+  // Returns { delta, conditionApplied, effectApplied, flagPresent } or { error }.
+  const runScenario = async (withSetup) => {
+    let attacker, defender, atkTok, defTok, combat, scene;
+    try {
+      // Fresh clean scene: the dev world's scene has a broken actor that aborts
+      // canvas.draw (canvas.ready stays false), which breaks targeting.
+      scene = await Scene.create({ name: 'T3 Verify Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
+      attacker = await Actor.create({ name: 'T3 Attacker', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
+      defender = await Actor.create({ name: 'T3 Defender', type: 'npc', system: { attributes: { hp: { value: hp, max: hp }, ac: { calc: 'flat', flat: dcfg.ac ?? 1 } } } });
+      // actorLink:true so the token uses the base actor (npc tokens unlink by
+      // default => midi would hit a synthetic token-actor, not the doc we read).
+      atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
+      defTok = await TokenDocument.create({ actorId: defender.id, name: defender.name, actorLink: true, x: 200, y: 100, disposition: -1 }, { parent: scene });
+      combat = await Combat.create({ scene: scene.id, active: true });
+      await combat.activate();
+      await combat.createEmbeddedDocuments('Combatant', [
+        { tokenId: atkTok.id, actorId: attacker.id, initiative: 20 },
+        { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
+      ]);
+      await combat.startCombat();
+      // canvas.draw switches + renders the scene (view()/activate() didn't here);
+      // needed so the token placeable exists and targeting populates game.user.targets.
+      await canvas.draw(scene);
+      for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 800));
+      const defPlaceable = canvas.tokens?.get(defTok.id) ?? defTok.object;
+      if (defPlaceable) {
+        defPlaceable.setTarget(true, { user: game.user, releaseOthers: true });
+        if (!game.user.targets.size) { game.user.targets.add(defPlaceable); defPlaceable.isTargeted = true; }
+      }
 
-    // actorLink:true so the token uses the base actor (npc tokens are unlinked by
-    // default => midi would damage a synthetic token-actor, not the doc we read).
-    atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
-    defTok = await TokenDocument.create({ actorId: defender.id, name: defender.name, actorLink: true, x: 200, y: 100, disposition: -1 }, { parent: scene });
-    combat = await Combat.create({ scene: scene.id });
-    await combat.createEmbeddedDocuments('Combatant', [
-      { tokenId: atkTok.id, actorId: attacker.id, initiative: 20 },
-      { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
-    ]);
-    await combat.startCombat();
-    // Activate the scene AFTER tokens exist so the canvas switches to it + draws
-    // their placeables (view() alone didn't switch the canvas). Wait until the
-    // canvas is actually on our scene and ready, then a tick to render placeables.
-    await canvas.draw(scene);
-    for (let i = 0; i < 40 && (canvas.scene?.id !== scene.id || !canvas.ready); i++) await new Promise(r => setTimeout(r, 300));
-    await new Promise(r => setTimeout(r, 800));
-    const defPlaceable = canvas.tokens?.get(defTok.id) ?? defTok.object;
-    if (defPlaceable) {
-      defPlaceable.setTarget(true, { user: game.user, releaseOthers: true });
-      // setTarget can no-op in headless; force the target Set midi reads.
-      if (!game.user.targets.size) { game.user.targets.add(defPlaceable); defPlaceable.isTargeted = true; }
+      // Use an ability (its first activity) on the defender via a real midi workflow.
+      // targetUuids (NOT targetsToUse — midi's is broken) + ignoreUserTargets; activity
+      // by UUID (object would be deep-cloned + can fail midi's !activity guard).
+      const use = async (docData) => {
+        const [item] = await attacker.createEmbeddedDocuments('Item', [strip(docData)]);
+        const activity = [...item.system.activities][0];
+        const wf = await MidiQOL.completeActivityUse(activity.uuid, {
+          midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids: [defTok.uuid], ignoreUserTargets: true },
+        });
+        await new Promise(r => setTimeout(r, 2000));
+        return wf;
+      };
+
+      if (withSetup) for (const s of setupDocs) await use(s); // combo setup (e.g. Derek marks)
+      const hpBefore = defender.system.attributes.hp.value;
+      const wf = await use(doc);
+      if (!wf) return { error: 'midi workflow did not run (no target / activity not resolved)' };
+      // Advance turns; count turns that actually dealt damage (DoT ticks). NO
+      // expiry help — the ability must self-bound (via its tick-limiter macro),
+      // exactly as it will in real play.
+      let ticks = 0;
+      for (let t = 0; t < (expectation.advanceTurns ?? 0); t++) {
+        const b = defender.system.attributes.hp.value;
+        await combat.nextTurn();
+        await new Promise(r => setTimeout(r, 2000));
+        if (defender.system.attributes.hp.value < b) ticks++;
+      }
+
+      return {
+        ticks,
+        bleedExpired: !defender.effects.some(e => e.changes?.some(c => c.key === 'flags.midi-qol.OverTime')),
+        delta: defender.system.attributes.hp.value - hpBefore,
+        conditionApplied: defender.effects.some(e => a.conditionApplied && e.statuses?.has(a.conditionApplied)),
+        effectApplied: defender.effects.some(e => e.name === a.effectApplied),
+        flagPresent: !!foundry.utils.getProperty(defender, a.flagPresent ?? 'nonexistent'),
+      };
+    } catch (err) {
+      return { error: err.message };
+    } finally {
+      try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
+      if (combat) await combat.delete().catch(() => {});
+      if (atkTok) await atkTok.delete().catch(() => {});
+      if (defTok) await defTok.delete().catch(() => {});
+      if (attacker) await attacker.delete().catch(() => {});
+      if (defender) await defender.delete().catch(() => {});
+      if (scene) await scene.delete().catch(() => {});
     }
+  };
 
-    const hpBefore = defender.system.attributes.hp.value;
-    // dnd5e 5.2 / midi 13.x: activity-based use. Options go in config.midiOptions
-    // (the old 3rd-arg workflowOptions is dead). fastForward* skips all dialogs;
-    // targetUuids targets explicitly instead of relying on user targets.
-    const activity = [...item.system.activities][0];
-    // Pass activity by UUID (object gets deep-cloned + can fail the !activity guard).
-    // midi's own canonical call uses targetsToUse: new Set([token]) (midi-qol.js
-    // ~14876); targetUuids relies on getToken(uuid) which fails headless.
-    // Use targetUuids (NOT targetsToUse — midi's targetsToUse handling is broken:
-    // Array trips its not-a-Set guard, Set crashes on .map). targetUuids resolves
-    // via getToken(uuid), which needs the full canvas (headed/xvfb).
-    const wf = await MidiQOL.completeActivityUse(activity.uuid, {
-      midiOptions: {
-        fastForward: true, fastForwardAttack: true, fastForwardDamage: true,
-        autoRollDamage: 'always',
-        targetUuids: [defTok.uuid], ignoreUserTargets: true,
-      },
-    });
-    await new Promise(r => setTimeout(r, 2500)); // midi workflow + damage application
-    const hpAfter = defender.system.attributes.hp.value;
+  const m = await runScenario(true);
+  if (m.error) return { ok: false, fails: [m.error] };
 
-    if (!wf) return { ok: false, fails: ['midi workflow did not run (no target / activity not resolved)'] };
+  const fails = [];
+  if (a.defenderHpDelta !== undefined && m.delta !== a.defenderHpDelta) fails.push(`defenderHpDelta expected ${a.defenderHpDelta}, got ${m.delta}`);
+  if (a.hpDeltaMin !== undefined && m.delta < a.hpDeltaMin) fails.push(`hpDelta ${m.delta} below min ${a.hpDeltaMin}`);
+  if (a.hpDeltaMax !== undefined && m.delta > a.hpDeltaMax) fails.push(`hpDelta ${m.delta} above max ${a.hpDeltaMax}`);
+  if (a.conditionApplied && !m.conditionApplied) fails.push(`condition "${a.conditionApplied}" not applied to defender`);
+  if (a.effectApplied && !m.effectApplied) fails.push(`effect "${a.effectApplied}" not applied to defender`);
+  if (a.flagPresent && !m.flagPresent) fails.push(`flag "${a.flagPresent}" not present on defender`);
+  if (a.ticks !== undefined && m.ticks !== a.ticks) fails.push(`expected ${a.ticks} DoT ticks, got ${m.ticks}`);
+  if (a.bleedExpired && !m.bleedExpired) fails.push(`DoT effect did not expire after its duration`);
 
-    const fails = [];
-    if (a.defenderHpDelta !== undefined && (hpAfter - hpBefore) !== a.defenderHpDelta)
-      fails.push(`defenderHpDelta expected ${a.defenderHpDelta}, got ${hpAfter - hpBefore} (before ${hpBefore}, after ${hpAfter})`);
-    if (a.conditionApplied && !defender.effects.some(e => e.statuses?.has(a.conditionApplied)))
-      fails.push(`condition "${a.conditionApplied}" not applied to defender`);
-    return { ok: fails.length === 0, fails };
-  } catch (err) {
-    return { ok: false, fails: [err.message] };
-  } finally {
-    try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
-    if (combat) await combat.delete().catch(() => {});
-    if (atkTok) await atkTok.delete().catch(() => {});
-    if (defTok) await defTok.delete().catch(() => {});
-    if (attacker) await attacker.delete().catch(() => {});
-    if (defender) await defender.delete().catch(() => {});
-    if (scene) await scene.delete().catch(() => {});
+  // Hard-combo gate: re-run WITHOUT setup; the gated effect must NOT fire.
+  if (expectation.negative) {
+    const n = await runScenario(false);
+    if (n.error) fails.push(`negative run: ${n.error}`);
+    else {
+      const floor = expectation.negative.hpDeltaMin ?? 0;
+      if (n.delta < floor) fails.push(`hard-gate leaked: unmarked target lost ${n.delta} HP (expected >= ${floor})`);
+    }
   }
+  return { ok: fails.length === 0, fails };
 }
 
 // tier -> in-browser handler. content.spec dispatches on expectation.tier.

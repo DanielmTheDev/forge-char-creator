@@ -17,7 +17,8 @@
     ],
     "recommends": [
       { "id": "midi-qol", "type": "module" },
-      { "id": "dae", "type": "module" }
+      { "id": "dae", "type": "module" },
+      { "id": "times-up", "type": "module" }
     ]
   },
   "url": "https://github.com/DanielmTheDev/forge-char-creator",
