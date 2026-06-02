@@ -38,12 +38,16 @@ async function applyCheck({ doc, expectation }) {
 }
 
 // T3: run the ability in a real combat via MidiQOL and assert outcomes.
-// Determinism by construction (flat damage / rigged AC/HP / fixed-round DoTs).
-// expectation: {
-//   defender:{hp,ac}, advanceTurns?,
-//   assert:{ defenderHpDelta?, hpDeltaMin?, hpDeltaMax?, conditionApplied?, effectApplied?, flagPresent? },
-//   negative?: { hpDeltaMin? }   // re-run WITHOUT setup; assert the combo gate holds (e.g. no bleed)
-// }
+// Determinism by construction (flat damage / rigged AC/HP / fixed-round DoTs /
+// forced save outcomes). Architecture: runScenario() produces a raw snapshot;
+// assertResult() is the single place that judges any assert key; combatCheck
+// normalizes every expectation shape into a uniform scenario list.
+//
+// expectation (one of):
+//   { assert, defender?, advanceTurns?, negative?:{hpDeltaMin?} }  // main (+ optional combo setup + negative re-run)
+//   { saveScenarios:[{force:'fail'|'success', assert}], defender? }  // one run per forced save outcome
+// assert keys (all optional): defenderHpDelta, hpDeltaMin, hpDeltaMax,
+//   conditionApplied, effectApplied, flagPresent, ticks, attackHit, attackCrit, attackAdvantage.
 // setupDocs: abilities used on the defender BEFORE the main one (combo setup).
 async function combatCheck({ doc, expectation, setupDocs = [] }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
@@ -105,8 +109,8 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
       const wf = await use(doc);
       if (!wf) return { error: 'midi workflow did not run (no target / activity not resolved)' };
       // Advance turns; count turns that actually dealt damage (DoT ticks). NO
-      // expiry help — the ability must self-bound (via its tick-limiter macro),
-      // exactly as it will in real play.
+      // expiry help — the ability must self-bound (via Times-Up native duration),
+      // exactly as in real play.
       let ticks = 0;
       for (let t = 0; t < (expectation.advanceTurns ?? 0); t++) {
         const b = defender.system.attributes.hp.value;
@@ -115,13 +119,15 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
         if (defender.system.attributes.hp.value < b) ticks++;
       }
 
+      // Raw, un-judged snapshot — assertResult() interprets it. Captured before
+      // cleanup since the actor is deleted in finally.
       return {
-        ticks,
-        bleedExpired: !defender.effects.some(e => e.changes?.some(c => c.key === 'flags.midi-qol.OverTime')),
         delta: defender.system.attributes.hp.value - hpBefore,
-        conditionApplied: defender.effects.some(e => a.conditionApplied && e.statuses?.has(a.conditionApplied)),
-        effectApplied: defender.effects.some(e => e.name === a.effectApplied),
-        flagPresent: !!foundry.utils.getProperty(defender, a.flagPresent ?? 'nonexistent'),
+        ticks,
+        statuses: [...defender.effects].flatMap(e => [...(e.statuses ?? [])]),
+        effectNames: [...defender.effects].map(e => e.name),
+        flags: foundry.utils.deepClone(defender.flags ?? {}),
+        attack: { total: wf.attackRoll?.total ?? null, crit: !!wf.isCritical, fumble: !!wf.isFumble, advantage: !!wf.advantage, disadvantage: !!wf.disadvantage, hit: (wf.hitTargets?.size ?? 0) > 0 },
       };
     } catch (err) {
       return { error: err.message };
@@ -136,41 +142,37 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
     }
   };
 
-  const fails = [];
+  // Single uniform assert layer: maps an assert spec against a scenario snapshot.
+  // Every scenario (main / save / negative / future attack) routes through this.
+  const assertResult = (spec, r) => {
+    const f = [];
+    if (spec.defenderHpDelta !== undefined && r.delta !== spec.defenderHpDelta) f.push(`hpDelta expected ${spec.defenderHpDelta}, got ${r.delta}`);
+    if (spec.hpDeltaMin !== undefined && r.delta < spec.hpDeltaMin) f.push(`hpDelta ${r.delta} below min ${spec.hpDeltaMin}`);
+    if (spec.hpDeltaMax !== undefined && r.delta > spec.hpDeltaMax) f.push(`hpDelta ${r.delta} above max ${spec.hpDeltaMax}`);
+    if (spec.conditionApplied && !r.statuses.includes(spec.conditionApplied)) f.push(`condition "${spec.conditionApplied}" not applied`);
+    if (spec.effectApplied && !r.effectNames.includes(spec.effectApplied)) f.push(`effect "${spec.effectApplied}" not applied`);
+    if (spec.flagPresent && !foundry.utils.getProperty({ flags: r.flags }, spec.flagPresent)) f.push(`flag "${spec.flagPresent}" not present`);
+    if (spec.ticks !== undefined && r.ticks !== spec.ticks) f.push(`expected ${spec.ticks} DoT ticks, got ${r.ticks}`);
+    if (spec.attackHit !== undefined && r.attack.hit !== spec.attackHit) f.push(`attackHit expected ${spec.attackHit}, got ${r.attack.hit}`);
+    if (spec.attackCrit !== undefined && r.attack.crit !== spec.attackCrit) f.push(`attackCrit expected ${spec.attackCrit}, got ${r.attack.crit}`);
+    if (spec.attackAdvantage !== undefined && r.attack.advantage !== spec.attackAdvantage) f.push(`attackAdvantage expected ${spec.attackAdvantage}, got ${r.attack.advantage}`);
+    return f;
+  };
 
-  // Save-based abilities: run once per forced save outcome (fail/success) and
-  // assert the resulting damage (e.g. full vs half-on-save). Deterministic via
-  // midi's fail/success.ability.save.all flags.
+  // Normalize all expectation shapes into one list of {label, opts, assert}.
+  const scenarios = [];
   if (expectation.saveScenarios) {
-    for (const s of expectation.saveScenarios) {
-      const r = await runScenario(false, { forceSave: s.force });
-      if (r.error) { fails.push(`save[${s.force}]: ${r.error}`); continue; }
-      if (s.assert?.defenderHpDelta !== undefined && r.delta !== s.assert.defenderHpDelta)
-        fails.push(`save[${s.force}] hpDelta expected ${s.assert.defenderHpDelta}, got ${r.delta}`);
-    }
-    return { ok: fails.length === 0, fails };
+    for (const s of expectation.saveScenarios) scenarios.push({ label: `save[${s.force}]`, opts: { withSetup: false, forceSave: s.force }, assert: s.assert ?? {} });
+  } else {
+    scenarios.push({ label: 'main', opts: { withSetup: true }, assert: a });
+    if (expectation.negative) scenarios.push({ label: 'negative', opts: { withSetup: false }, assert: { hpDeltaMin: expectation.negative.hpDeltaMin ?? 0 } });
   }
 
-  const m = await runScenario(true);
-  if (m.error) return { ok: false, fails: [m.error] };
-
-  if (a.defenderHpDelta !== undefined && m.delta !== a.defenderHpDelta) fails.push(`defenderHpDelta expected ${a.defenderHpDelta}, got ${m.delta}`);
-  if (a.hpDeltaMin !== undefined && m.delta < a.hpDeltaMin) fails.push(`hpDelta ${m.delta} below min ${a.hpDeltaMin}`);
-  if (a.hpDeltaMax !== undefined && m.delta > a.hpDeltaMax) fails.push(`hpDelta ${m.delta} above max ${a.hpDeltaMax}`);
-  if (a.conditionApplied && !m.conditionApplied) fails.push(`condition "${a.conditionApplied}" not applied to defender`);
-  if (a.effectApplied && !m.effectApplied) fails.push(`effect "${a.effectApplied}" not applied to defender`);
-  if (a.flagPresent && !m.flagPresent) fails.push(`flag "${a.flagPresent}" not present on defender`);
-  if (a.ticks !== undefined && m.ticks !== a.ticks) fails.push(`expected ${a.ticks} DoT ticks, got ${m.ticks}`);
-  if (a.bleedExpired && !m.bleedExpired) fails.push(`DoT effect did not expire after its duration`);
-
-  // Hard-combo gate: re-run WITHOUT setup; the gated effect must NOT fire.
-  if (expectation.negative) {
-    const n = await runScenario(false);
-    if (n.error) fails.push(`negative run: ${n.error}`);
-    else {
-      const floor = expectation.negative.hpDeltaMin ?? 0;
-      if (n.delta < floor) fails.push(`hard-gate leaked: unmarked target lost ${n.delta} HP (expected >= ${floor})`);
-    }
+  const fails = [];
+  for (const sc of scenarios) {
+    const r = await runScenario(sc.opts.withSetup, sc.opts);
+    if (r.error) { fails.push(`${sc.label}: ${r.error}`); continue; }
+    for (const msg of assertResult(sc.assert, r)) fails.push(`${sc.label}: ${msg}`);
   }
   return { ok: fails.length === 0, fails };
 }
