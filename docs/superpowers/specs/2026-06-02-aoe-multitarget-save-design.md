@@ -41,8 +41,12 @@ Location: `forge-content/src/packs/forge-abilities/example-blast.json` (Examples
 - `type:"feat"`, single `save` activity (16-char doc id + 16-char activity id).
 - `save`: `ability:["dex"]`, `dc:{calculation:"custom",formula:"14"}`.
 - `damage`: `onSave:"half"`, one part, flat custom formula `"12"`, type radiant (or fire).
-- `target`: `{ template:{ type:"sphere", size:20 }, affects:{ type:"creature" } }`
-  (no `count` → all creatures in the area).
+- `target`: `{ template:{ type:"sphere", size:"20", units:"ft" }, affects:{ type:"creature" } }`
+  (no `affects.count` → all creatures in the area). VERIFIED against dnd5e 5.2.5
+  `TargetField` schema (dnd5e.mjs:9423): `template.units` is **required** (`blank:false`);
+  `template.size`/`count` are `FormulaField` → strings (`"20"`), NOT numbers. `type:"sphere"`
+  is a valid `DND5E.areaTargetTypes` key → renders a `circle` template, `sizes:["radius"]`
+  (size = 20ft radius).
 - `range`: `{ value:30, units:"ft" }` (caster places template within range).
 - Concise `system.description.value` (what it does, DC, dice, half-on-save) per
   authoring rules. Fitting Foundry core sphere/explosion icon.
@@ -51,7 +55,7 @@ Location: `forge-content/src/packs/forge-abilities/example-blast.json` (Examples
 ```json
 {
   "tier": "T3-aoe",
-  "template": { "type": "sphere", "size": 20 },
+  "template": { "type": "sphere", "size": "20", "units": "ft" },
   "targets": [
     { "hp": 100, "ac": 1, "force": "fail",    "assert": { "defenderHpDelta": -12 } },
     { "hp": 100, "ac": 1, "force": "fail",    "assert": { "defenderHpDelta": -12 } },
@@ -117,7 +121,13 @@ Mirrors `combatCheck` scene/combat boilerplate (fresh `Scene.create`, attacker a
 ## Risks
 - Template auto-target may not populate `game.user.targets` deterministically under
   xvfb → mitigated by the explicit-targetUuids fallback (gate stays green regardless).
-- midi/dnd5e version drift on template targeting API → re-test on bump (pin dnd5e
-  5.2.0 / midi 13.0.63).
+- midi/dnd5e version drift on template targeting API → re-test on bump. NOTE: installed
+  dnd5e is **5.2.5**, but CLAUDE.md pins **5.2.0** — confirm the pin / bump it and re-run
+  the full gate. midi-qol confirmed 13.0.63 (matches pin). Schema above verified against
+  the installed 5.2.5.
+- midi auto-target-under-a-pre-placed-template in fast-forward is **NOT yet verified at
+  runtime** (only the explicit-`targetUuids` fallback is proven). The implementation plan
+  must include a live probe of the auto-target path; the gate stays green via fallback
+  either way. This is the #1 risk, by design fallback-covered.
 - Duplicated scene boilerplate between `combatCheck`/`aoeCheck` → accepted now;
   extract shared helper (approach C) later if it bites.
