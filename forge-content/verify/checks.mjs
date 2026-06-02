@@ -86,7 +86,7 @@ async function combatCheck({ doc, expectation, setupDocs = [] }) {
       // default => midi would hit a synthetic token-actor, not the doc we read).
       atkTok = await TokenDocument.create({ actorId: attacker.id, name: attacker.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
       defTok = await TokenDocument.create({ actorId: defender.id, name: defender.name, actorLink: true, x: 200, y: 100, disposition: -1 }, { parent: scene });
-      combat = await Combat.create({ scene: scene.id, active: true });
+      combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
       await combat.activate();
       await combat.createEmbeddedDocuments('Combatant', [
         { tokenId: atkTok.id, actorId: attacker.id, initiative: 20 },
@@ -226,7 +226,7 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
     allyTok   = await TokenDocument.create({ actorId: ally.id,   name: ally.name,   actorLink: true, x: 200, y: 100, disposition: 1 }, { parent: scene });
     dummyTok  = await TokenDocument.create({ actorId: dummy.id,  name: dummy.name,  actorLink: true, x: 300, y: 100, disposition: -1 }, { parent: scene });
 
-    combat = await Combat.create({ scene: scene.id, active: true });
+    combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
     await combat.activate();
     // Initiative order: caster (30) -> ally (20) -> dummy (10).
     await combat.createEmbeddedDocuments('Combatant', [
@@ -338,7 +338,7 @@ async function macroCheck({ doc, expectation }) {
         const at = await TokenDocument.create({ actorId: al.id, name: al.name, actorLink: true, x: 100, y: 200 + i * 100, disposition: 1 }, { parent: scene });
         allies.push(al); allyToks.push(at);
       }
-      combat = await Combat.create({ scene: scene.id, active: true });
+      combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
       await combat.activate();
       await combat.createEmbeddedDocuments('Combatant', [
         { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
@@ -441,7 +441,7 @@ async function aoeCheck({ doc, expectation }) {
       defenders.push(def); defToks.push(tok);
     }
 
-    combat = await Combat.create({ scene: scene.id, active: true });
+    combat = await Combat.create({ scene: scene.id, active: true, flags: { 'forge-content': { test: true } } });
     await combat.activate();
     await combat.createEmbeddedDocuments('Combatant', [
       { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },

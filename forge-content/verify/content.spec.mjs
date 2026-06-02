@@ -52,12 +52,14 @@ test.describe('forge-content verify', () => {
     // ACTIVE combat behind (its scene already deleted). The next handler's granted
     // effects then get stamped with that stale combat's round (DAE reads
     // game.combat.current.round), so a turnEndSource buff expires a turn early — which
-    // made T3-grant pass or fail purely on suite ORDER. Purge lingering TEST combats
-    // (orphaned, or on a "T3 " verify scene) before every handler; never touches real
-    // campaign combats. Also bounds combat accumulation across the run.
+    // made T3-grant pass or fail purely on suite ORDER. Purge ONLY combats the gate
+    // itself created (flagged forge-content.test at Combat.create) — NEVER campaign
+    // combats. The gate boots the real world, which holds real combats (some with
+    // orphaned scenes), so a scene-based guard is unsafe; the flag is the only safe
+    // marker. Also bounds combat accumulation across the run.
     const isolate = async () => {
       for (const c of [...game.combats]) {
-        if (!c.scene || c.scene.name?.startsWith('T3 ')) await c.delete().catch(() => {});
+        if (c.getFlag('forge-content', 'test')) await c.delete().catch(() => {});
       }
     };
 
