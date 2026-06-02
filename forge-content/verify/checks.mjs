@@ -417,14 +417,15 @@ async function aoeCheck({ doc, expectation }) {
   let caster, casterTok, combat, scene;
   const defenders = [], defToks = [];
   let template;
+  const fails = [];
   try {
     scene = await Scene.create({ name: 'T3 AoE Scene', width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
     caster = await Actor.create({ name: 'T3 Caster', type: 'npc', system: { attributes: { hp: { value: 100, max: 100 } } } });
     casterTok = await TokenDocument.create({ actorId: caster.id, name: caster.name, actorLink: true, x: 100, y: 100, disposition: 1 }, { parent: scene });
 
-    // N defenders clustered tightly around (600,600) so a 20ft (= 1 grid square radius
-    // at 5ft/square... grid.size 100 = 5ft? scene grid distance defaults to 5ft) sphere
-    // covers all of them. Positions are fixed => deterministic template coverage.
+    // N defenders clustered tightly within ~40px of (600,600). Scene grid is 100px/
+    // 5ft, so a 20ft-radius sphere = 4 squares = 400px radius — comfortably covers the
+    // whole cluster. Positions are fixed => deterministic template coverage.
     const CX = 600, CY = 600;
     for (let i = 0; i < N; i++) {
       const cfg = targetCfgs[i];
@@ -462,9 +463,13 @@ async function aoeCheck({ doc, expectation }) {
       let under = [];
       if (typeof MidiQOL.templateTokens === 'function') under = MidiQOL.templateTokens(tmpl) ?? [];
       const underToks = under.map(u => u.object ?? u).filter(Boolean);
-      if (underToks.length === N) {
+      const defTokIds = new Set(defToks.map(t => t.id));
+      // Trust auto-target only if the tokens under the template are EXACTLY the N
+      // defenders (count AND identity) — a stray/leaked token in the shared world
+      // must not let a wrong target set pass as 'template-auto'.
+      if (underToks.length === N && underToks.every(pt => defTokIds.has(pt.id))) {
         for (const pt of underToks) pt.setTarget(true, { user: game.user, releaseOthers: false });
-        if (game.user.targets.size === N) targetingPath = 'template-auto';
+        if (game.user.targets.size === N && [...game.user.targets].every(t => defTokIds.has(t.id))) targetingPath = 'template-auto';
       }
     } catch (e) { console.log('aoe auto-target attempt failed:', e.message); }
 
@@ -488,7 +493,6 @@ async function aoeCheck({ doc, expectation }) {
     await new Promise(r => setTimeout(r, 2500)); // damage + per-target saves settle
 
     // --- Per-target asserts (reuse the combatCheck assert key vocabulary) ---
-    const fails = [];
     for (let i = 0; i < N; i++) {
       const cfg = targetCfgs[i];
       const a = cfg.assert ?? {};
@@ -502,7 +506,7 @@ async function aoeCheck({ doc, expectation }) {
     }
     return { ok: fails.length === 0, fails };
   } catch (err) {
-    return { ok: false, fails: [err.message] };
+    return { ok: false, fails: [err.message, ...fails] };
   } finally {
     try { game.user.targets.forEach(t => t.setTarget(false, { user: game.user, releaseOthers: false })); } catch {}
     if (template) await template.delete().catch(() => {});
