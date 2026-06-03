@@ -69,7 +69,162 @@ export function installGateHelpers() {
   };
   // Delete a list of docs (any order the caller passes; nulls skipped). Use in finally.
   const cleanup = async (docs) => { for (const d of docs) if (d) await d.delete().catch(() => {}); };
-  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup };
+  // Declarative scene runner. spec = { combat, actors, steps, __docs, __scenario }.
+  // Builds the roster, applies per-actor forces, runs steps in order, returns
+  // { snapshots, error }. Self-contained (browser globals + the other builders only).
+  const runScene = async (spec) => {
+    const created = []; // every doc we make, for creation-tracked cleanup (finally)
+    const track = (d) => { if (d) created.push(d); return d; };
+    const A = {};       // name -> actor doc
+    const T = {};       // name -> token doc
+    const baseHp = {};  // name -> hp at scene build (hpDelta baseline)
+    const baseAc = {};  // name -> ac at scene build (acDelta baseline)
+    const baseAbil = {};// name -> { abil: score } at scene build
+    const lastWf = {};  // name -> last workflow this actor cast
+    const tickCount = {}; // name -> DoT tick count (from advanceTurns)
+    let runTargeted = 0;  // last cast's wf.targets.size (targetedCount)
+    const snapshots = {};
+    const combatOn = spec.combat !== false;
+    const names = Object.keys(spec.actors);
+    const FORCE = {
+      save:    { fail: 'flags.midi-qol.fail.ability.save.all', success: 'flags.midi-qol.success.ability.save.all' },
+      attack:  { hit: 'flags.midi-qol.grants.attack.success.all', miss: 'flags.midi-qol.grants.attack.fail.all' },
+    };
+    try {
+      const scene = combatOn ? track(await makeScene('T3 Verify Scene')) : null;
+      const defaultPos = (i) => [100 + i * 100, 100];
+      for (let i = 0; i < names.length; i++) {
+        const n = names[i];
+        const cfg = spec.actors[n];
+        const actor = track(await makeActor(`T3 ${n}`, { hp: cfg.hp ?? 100, ac: cfg.ac, temp: cfg.temp }));
+        A[n] = actor;
+        const fr = cfg.forces ?? {};
+        if (fr.save) await actor.update({ [FORCE.save[fr.save]]: 1 });
+        if (fr.attack) await actor.update({ [FORCE.attack[fr.attack]]: 1 });
+        if (fr.advantage) await actor.update({ 'flags.midi-qol.advantage.attack.all': 1 });
+        if (fr.disadvantage) await actor.update({ 'flags.midi-qol.disadvantage.attack.all': 1 });
+        if (fr.grantAdvantage) await actor.update({ 'flags.midi-qol.grants.advantage.attack.all': 1 });
+        if (fr.grantDisadvantage) await actor.update({ 'flags.midi-qol.grants.disadvantage.attack.all': 1 });
+        baseHp[n] = actor.system.attributes.hp.value;
+        baseAc[n] = actor.system.attributes.ac.value;
+        baseAbil[n] = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([k, v]) => [k, v.value]));
+        if (combatOn) {
+          const [x, y] = cfg.pos ?? defaultPos(i);
+          T[n] = track(await makeToken(actor, scene, { x, y, disposition: cfg.disposition ?? (i === 0 ? 1 : -1) }));
+        }
+      }
+      let combat = null;
+      if (combatOn) {
+        combat = track(await makeCombat(scene, names.map((n, i) => ({ tokenId: T[n].id, actorId: A[n].id, initiative: 30 - i }))));
+        await drawAndWait(scene);
+      }
+      const resolveDoc = (ability) => ability === 'main' ? spec.__docs.main : spec.__docs.setup[ability];
+
+      const snapActor = (n) => {
+        const a = A[n];
+        const abilNow = Object.fromEntries(Object.entries(a.system.abilities ?? {}).map(([k, v]) => [k, v.value]));
+        const abilityDelta = {};
+        for (const k of Object.keys(baseAbil[n])) abilityDelta[k] = (abilNow[k] ?? 0) - baseAbil[n][k];
+        return {
+          hp: a.system.attributes.hp.value,
+          hpDelta: a.system.attributes.hp.value - baseHp[n],
+          tempHp: a.system.attributes.hp.temp ?? 0,
+          acDelta: a.system.attributes.ac.value - baseAc[n],
+          abilityDelta,
+          statuses: [...a.effects].flatMap(ef => [...(ef.statuses ?? [])]),
+          effects: [...a.effects].map(ef => ef.name),
+          flags: foundry.utils.deepClone(a.flags ?? {}),
+          ticks: tickCount[n] ?? 0,
+          lastWorkflow: lastWf[n] ?? { advantage: false, disadvantage: false, hit: false, crit: false, total: null },
+        };
+      };
+
+      for (const step of spec.steps) {
+        if ('cast' in step) {
+          const caster = A[step.cast];
+          const docData = resolveDoc(step.ability);
+          if (!combatOn) {
+            await caster.createEmbeddedDocuments('Item', [strip(docData)]);
+            await new Promise(r => setTimeout(r, 400));
+          } else {
+            const targetUuids = (step.targets ?? []).map(t => T[t].uuid);
+            for (const t of step.targets ?? []) targetToken(T[t]);
+            const wf = await useActivity(caster, docData, targetUuids, { settle: 2500 });
+            if (!wf) return { error: `midi workflow did not run (cast ${step.cast} ${step.ability})` };
+            runTargeted = wf.targets?.size ?? 0;
+            lastWf[step.cast] = {
+              advantage: !!wf.advantage, disadvantage: !!wf.disadvantage,
+              hit: (wf.hitTargets?.size ?? 0) > 0, crit: !!wf.isCritical, total: wf.attackRoll?.total ?? null,
+            };
+            if (step.expectTargets !== undefined && runTargeted !== step.expectTargets)
+              return { error: `targeted ${runTargeted} tokens, expected ${step.expectTargets}` };
+            clearTargets();
+          }
+        } else if ('advanceTurns' in step) {
+          for (let t = 0; t < step.advanceTurns; t++) {
+            const who = step.countDamageTo;
+            const before = who ? A[who].system.attributes.hp.value : 0;
+            await combat.nextTurn();
+            await new Promise(r => setTimeout(r, 2000));
+            if (who && A[who].system.attributes.hp.value < before) tickCount[who] = (tickCount[who] ?? 0) + 1;
+          }
+        } else if ('advanceUntil' in step) {
+          const { round, actor } = step.advanceUntil;
+          for (let i = 0; i < 12; i++) {
+            if (combat.round === round && combat.combatant?.tokenId === T[actor].id) break;
+            await combat.nextTurn();
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        } else if ('snapshot' in step) {
+          const snap = { __run: { targetedCount: runTargeted } };
+          for (const n of names) snap[n] = snapActor(n);
+          snapshots[step.snapshot] = snap;
+        }
+      }
+      return { snapshots };
+    } catch (err) {
+      return { error: err.message };
+    } finally {
+      clearTargets();
+      const order = (d) => d?.documentName === 'Combat' ? 0 : d?.documentName === 'Scene' ? 1 : 2;
+      for (const d of [...created].sort((a, b) => order(a) - order(b))) await d.delete().catch(() => {});
+    }
+  };
+  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup, runScene };
+}
+
+// Declarative handler. Replaces all bespoke handlers. arg:
+//   { doc, expectation, setupDocs, knownKeys }
+// Builds a per-scenario spec, runs __fcGate.runScene, asserts via __fcGate.assertSnapshot.
+// Self-contained (browser globals + __fcGate only) — shipped via page.evaluate.
+export async function genericCheck({ doc, expectation, setupDocs = [], knownKeys }) {
+  if (expectation.combat !== false && typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+  const { runScene, assertSnapshot } = globalThis.__fcGate;
+  const setupMap = {};
+  (expectation.setup ?? []).forEach((id, i) => { if (setupDocs[i]) setupMap[id] = setupDocs[i]; });
+  const docs = { main: doc, setup: setupMap };
+
+  const mergeForces = (forces) => {
+    const actors = JSON.parse(JSON.stringify(expectation.actors));
+    for (const [name, f] of Object.entries(forces ?? {})) {
+      actors[name] = actors[name] ?? {};
+      actors[name].forces = { ...(actors[name].forces ?? {}), ...f };
+    }
+    return actors;
+  };
+
+  const runs = expectation.scenarios
+    ? expectation.scenarios.map(sc => ({ label: sc.name, actors: mergeForces(sc.forces), assert: sc.assert ?? [] }))
+    : [{ label: 'main', actors: expectation.actors, assert: expectation.assert ?? [] }];
+
+  const fails = [];
+  for (const run of runs) {
+    const spec = { combat: expectation.combat, actors: run.actors, steps: expectation.steps, __docs: docs, __scenario: run.label };
+    const r = await runScene(spec);
+    if (r.error) { fails.push(`${run.label}: ${r.error}`); continue; }
+    for (const msg of assertSnapshot(run.assert, r.snapshots, knownKeys)) fails.push(`${run.label}: ${msg}`);
+  }
+  return { ok: fails.length === 0, fails };
 }
 
 // T2: instantiate the item on a throwaway actor and assert static/applied effects.

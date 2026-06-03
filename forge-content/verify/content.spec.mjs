@@ -6,7 +6,9 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bootFoundry } from './boot.mjs';
-import { CHECKS, installGateHelpers } from './checks.mjs';
+import { CHECKS, installGateHelpers, genericCheck } from './checks.mjs';
+import { assertSnapshot } from './assert.mjs';
+import { validate, KNOWN_KEYS } from './schema.mjs';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'packs');
 
@@ -38,11 +40,16 @@ test.describe('forge-content verify', () => {
     const untested = ITEMS.filter(i => !i.expectation).map(i => i.doc.name);
     expect(untested, `Abilities missing <name>.expect.json: ${untested.join(', ')}`).toEqual([]);
 
-    const unknownTier = ITEMS.filter(i => !CHECKS[i.expectation.tier]).map(i => `${i.doc.name} (tier=${i.expectation.tier})`);
+    const unknownTier = ITEMS.filter(i => !i.expectation.actors && !CHECKS[i.expectation.tier]).map(i => `${i.doc.name} (tier=${i.expectation.tier})`);
     expect(unknownTier, `Unknown tier(s): ${unknownTier.join(', ')}`).toEqual([]);
 
     // Lookup by identifier (or name) so expect.json `setup` can reference other abilities.
     const byId = new Map(ITEMS.map(i => [i.doc.system?.identifier ?? i.doc.name, i.doc]));
+    // Pre-boot static validation of v2 expectations (fast; no Foundry needed).
+    const idList = [...byId.keys()];
+    const v2errors = ITEMS.filter(i => i.expectation.actors)
+      .flatMap(i => validate(i.expectation, idList).map(e => `${i.doc.name}: ${e}`));
+    expect(v2errors, `expect.json v2 validation errors:\n${v2errors.join('\n')}`).toEqual([]);
     const missingSetup = ITEMS.flatMap(i => (i.expectation.setup ?? []).filter(s => !byId.has(s)).map(s => `${i.doc.name} -> ${s}`));
     expect(missingSetup, `expect.json setup references unknown abilities: ${missingSetup.join(', ')}`).toEqual([]);
 
@@ -51,6 +58,10 @@ test.describe('forge-content verify', () => {
     // Install shared T3 scaffolding on globalThis.__fcGate once (persists across
     // the per-handler page.evaluate calls). See checks.mjs installGateHelpers.
     await page.evaluate(installGateHelpers);
+
+    // Ship the PURE assertSnapshot (unit-tested in node) into the browser by source,
+    // so genericCheck can call __fcGate.assertSnapshot. Self-contained fn — safe to eval.
+    await page.evaluate((src) => { globalThis.__fcGate.assertSnapshot = (0, eval)(`(${src})`); }, assertSnapshot.toString());
 
     // Test isolation. Sweeps ALL docs the gate itself created — Combats, Scenes,
     // Actors — identified ONLY by the forge-content.test flag (makeScene/makeActor/
@@ -80,12 +91,18 @@ test.describe('forge-content verify', () => {
 
     const results = [];
     for (const item of ITEMS) {
-      const handler = CHECKS[item.expectation.tier];
+      const useV2 = !!item.expectation.actors;
       const setupDocs = (item.expectation.setup ?? []).map(s => byId.get(s));
       await page.evaluate(isolate);
-      const r = await page.evaluate(handler, { doc: item.doc, expectation: item.expectation, setupDocs });
+      let r;
+      if (useV2) {
+        r = await page.evaluate(genericCheck, { doc: item.doc, expectation: item.expectation, setupDocs, knownKeys: KNOWN_KEYS });
+      } else {
+        const handler = CHECKS[item.expectation.tier];
+        r = await page.evaluate(handler, { doc: item.doc, expectation: item.expectation, setupDocs });
+      }
       results.push({ name: item.doc.name, tier: item.expectation.tier, ...r });
-      console.log(`${r.ok ? '✓' : '✘'} [${item.expectation.tier}] ${item.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
+      console.log(`${r.ok ? '✓' : '✘'} [${useV2 ? 'v2' : item.expectation.tier}] ${item.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
     }
 
     const failed = results.filter(r => !r.ok);

@@ -1,7 +1,14 @@
 {
-  "tier": "T3-combat",
-  "defender": { "hp": 100, "ac": 1 },
-  "assert": {
-    "defenderHpDelta": -10
-  }
+  "tier": "T3",
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "main" }
+  ],
+  "assert": [
+    { "at": "main", "actor": "defender", "hpDelta": -10 }
+  ]
 }
