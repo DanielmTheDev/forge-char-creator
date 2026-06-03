@@ -1,0 +1,61 @@
+// PURE node-side validation for expect.json v2. Runs BEFORE the ~3.8m Foundry boot
+// (content.spec.mjs) so authoring typos fail in <1s with a precise message. KNOWN_KEYS
+// is the single source of the assert vocabulary, also passed into the browser-side
+// assertSnapshot via the page.evaluate arg. No Foundry globals here.
+
+export const KNOWN_KEYS = [
+  'hpDelta', 'hpDeltaMin', 'hpDeltaMax', 'tempHp', 'acDelta', 'abilityDelta',
+  'conditionApplied', 'effectApplied', 'effectAbsent', 'flagPresent', 'ticks',
+  'lastWorkflow.advantage', 'lastWorkflow.disadvantage', 'lastWorkflow.hit', 'lastWorkflow.crit',
+  'targetedCount',
+];
+
+const TOP_KEYS = ['tier', 'combat', 'actors', 'steps', 'scenarios', 'assert', 'setup'];
+const RUN_KEYS = ['targetedCount'];
+
+// expectation: a parsed expect.json. identifiers: string[] of ability identifiers in
+// the suite (the dispatcher's byId keys). Returns string[] of errors (empty = valid).
+export function validate(expectation, identifiers) {
+  const e = expectation;
+  const errs = [];
+  for (const k of Object.keys(e)) if (!TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (legacy? migrate to v2)`);
+
+  const roster = new Set(Object.keys(e.actors ?? {}));
+  if (!roster.size) errs.push('no actors defined');
+
+  const steps = e.steps ?? [];
+  const labels = new Set();
+  for (const s of steps) {
+    if ('snapshot' in s) { labels.add(s.snapshot); continue; }
+    if ('cast' in s) {
+      if (!roster.has(s.cast)) errs.push(`step cast actor "${s.cast}" not in roster`);
+      for (const t of s.targets ?? []) if (!roster.has(t)) errs.push(`step target "${t}" not in roster`);
+      if (s.ability !== 'main' && !identifiers.includes(s.ability)) errs.push(`ability "${s.ability}" not found in suite`);
+    }
+    if ('countDamageTo' in s && !roster.has(s.countDamageTo)) errs.push(`countDamageTo "${s.countDamageTo}" not in roster`);
+    if ('advanceUntil' in s && !roster.has(s.advanceUntil.actor)) errs.push(`advanceUntil actor "${s.advanceUntil.actor}" not in roster`);
+  }
+
+  const checkAsserts = (asserts, where) => {
+    for (const a of asserts ?? []) {
+      if (!labels.has(a.at)) errs.push(`${where}assert at "${a.at}" has no snapshot step`);
+      const keys = Object.keys(a).filter(k => k !== 'at' && k !== 'actor');
+      const needsActor = keys.some(k => !RUN_KEYS.includes(k));
+      if (needsActor && !roster.has(a.actor)) errs.push(`${where}assert actor "${a.actor}" not in roster`);
+      for (const k of keys) if (!KNOWN_KEYS.includes(k)) errs.push(`${where}unknown assert key "${k}"`);
+    }
+  };
+
+  if (e.scenarios) {
+    const names = new Set();
+    for (const sc of e.scenarios) {
+      if (names.has(sc.name)) errs.push(`duplicate scenario name "${sc.name}"`);
+      names.add(sc.name);
+      for (const an of Object.keys(sc.forces ?? {})) if (!roster.has(an)) errs.push(`scenario "${sc.name}" forces actor "${an}" not in roster`);
+      checkAsserts(sc.assert, `scenario "${sc.name}": `);
+    }
+  } else {
+    checkAsserts(e.assert, '');
+  }
+  return errs;
+}
