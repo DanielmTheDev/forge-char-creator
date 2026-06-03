@@ -140,9 +140,11 @@ export function installGateHelpers() {
       };
 
       for (const step of spec.steps) {
+        if (step.onlyScenarios && !step.onlyScenarios.includes(spec.__scenario)) continue;
         if ('cast' in step) {
           const caster = A[step.cast];
           const docData = resolveDoc(step.ability);
+          if (!docData) return { error: `ability "${step.ability}" not resolved to a doc` };
           if (!combatOn) {
             await caster.createEmbeddedDocuments('Item', [strip(docData)]);
             await new Promise(r => setTimeout(r, 400));

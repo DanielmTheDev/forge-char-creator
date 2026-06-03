@@ -35,6 +35,10 @@ export function validate(expectation, identifiers) {
       for (const t of s.targets ?? []) if (!roster.has(t)) errs.push(`step target "${t}" not in roster`);
       if (s.ability !== 'main' && !identifiers.includes(s.ability)) errs.push(`ability "${s.ability}" not found in suite`);
     }
+    if (s.onlyScenarios) {
+      const scNames = new Set((expectation.scenarios ?? []).map(x => x.name));
+      for (const n of s.onlyScenarios) if (!scNames.has(n)) errs.push(`step onlyScenarios references unknown scenario "${n}"`);
+    }
     if ('countDamageTo' in s && !roster.has(s.countDamageTo)) errs.push(`countDamageTo "${s.countDamageTo}" not in roster`);
     if ('advanceUntil' in s && !roster.has(s.advanceUntil.actor)) errs.push(`advanceUntil actor "${s.advanceUntil.actor}" not in roster`);
     if (!combatOn && ('advanceTurns' in s || 'advanceUntil' in s)) errs.push(`step "${'advanceTurns' in s ? 'advanceTurns' : 'advanceUntil'}" requires combat but combat:false is set`);

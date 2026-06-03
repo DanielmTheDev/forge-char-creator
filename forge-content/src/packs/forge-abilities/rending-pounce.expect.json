@@ -1,12 +1,22 @@
 {
-  "tier": "T3-combat",
-  "defender": { "hp": 100, "ac": 1 },
+  "tier": "T3",
   "setup": ["squires-mark"],
-  "advanceTurns": 6,
-  "assert": {
-    "hpDeltaMin": -36,
-    "hpDeltaMax": -6,
-    "ticks": 2
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] }
   },
-  "negative": { "hpDeltaMin": 0 }
+  "steps": [
+    { "cast": "attacker", "ability": "squires-mark", "targets": ["defender"], "onlyScenarios": ["main"] },
+    { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "advanceTurns": 6, "countDamageTo": "defender" },
+    { "snapshot": "after" }
+  ],
+  "scenarios": [
+    { "name": "main", "assert": [
+      { "at": "after", "actor": "defender", "hpDeltaMin": -36, "hpDeltaMax": -6, "ticks": 2 }
+    ] },
+    { "name": "negative", "assert": [
+      { "at": "after", "actor": "defender", "hpDeltaMin": 0 }
+    ] }
+  ]
 }

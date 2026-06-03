@@ -103,3 +103,10 @@ test('advanceTurns/advanceUntil rejected when combat:false', () => {
     assert: [{ at: 'm', actor: 'd', acDelta: 2 }] };
   assert.match(validate(e, ids).join(), /requires combat but combat:false is set/);
 });
+
+test('step onlyScenarios must name real scenarios', () => {
+  const e = base(); delete e.assert;
+  e.scenarios = [{ name: 'main', assert: [{ at: 'main', actor: 'def', hpDelta: -1 }] }];
+  e.steps = [{ cast: 'att', ability: 'main', targets: ['def'], onlyScenarios: ['ghost'] }, { snapshot: 'main' }];
+  assert.match(validate(e, ids).join(), /onlyScenarios references unknown scenario "ghost"/);
+});
