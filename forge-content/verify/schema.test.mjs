@@ -96,3 +96,10 @@ test('assert requiring actor but omitting it gives a clear message', () => {
   const e = base(); e.assert = [{ at: 'main', hpDelta: -10 }];
   assert.match(validate(e, ids).join(), /assert missing required "actor" field/);
 });
+
+test('advanceTurns/advanceUntil rejected when combat:false', () => {
+  const e = { tier: 'T2', combat: false, actors: { d: {} },
+    steps: [{ cast: 'd', ability: 'main' }, { advanceTurns: 1 }, { snapshot: 'm' }],
+    assert: [{ at: 'm', actor: 'd', acDelta: 2 }] };
+  assert.match(validate(e, ids).join(), /requires combat but combat:false is set/);
+});

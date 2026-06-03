@@ -21,6 +21,7 @@ export function validate(expectation, identifiers) {
   const errs = [];
   for (const k of Object.keys(e)) if (!TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (legacy? migrate to v2)`);
 
+  const combatOn = expectation.combat !== false;
   const roster = new Set(Object.keys(e.actors ?? {}));
   if (!roster.size) errs.push('no actors defined');
   for (const s of e.setup ?? []) if (!identifiers.includes(s)) errs.push(`setup ability "${s}" not found in suite`);
@@ -36,6 +37,7 @@ export function validate(expectation, identifiers) {
     }
     if ('countDamageTo' in s && !roster.has(s.countDamageTo)) errs.push(`countDamageTo "${s.countDamageTo}" not in roster`);
     if ('advanceUntil' in s && !roster.has(s.advanceUntil.actor)) errs.push(`advanceUntil actor "${s.advanceUntil.actor}" not in roster`);
+    if (!combatOn && ('advanceTurns' in s || 'advanceUntil' in s)) errs.push(`step "${'advanceTurns' in s ? 'advanceTurns' : 'advanceUntil'}" requires combat but combat:false is set`);
   }
 
   const checkAsserts = (asserts, where) => {
