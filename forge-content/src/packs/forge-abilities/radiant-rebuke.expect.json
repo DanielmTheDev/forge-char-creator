@@ -1,8 +1,15 @@
 {
-  "tier": "T3-combat",
-  "defender": { "hp": 100, "ac": 1 },
-  "saveScenarios": [
-    { "force": "fail", "assert": { "defenderHpDelta": -12 } },
-    { "force": "success", "assert": { "defenderHpDelta": -6 } }
+  "tier": "T3",
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "main" }
+  ],
+  "scenarios": [
+    { "name": "fail",    "forces": { "defender": { "save": "fail" } },    "assert": [{ "at": "main", "actor": "defender", "hpDelta": -12 }] },
+    { "name": "success", "forces": { "defender": { "save": "success" } }, "assert": [{ "at": "main", "actor": "defender", "hpDelta": -6 }] }
   ]
 }
