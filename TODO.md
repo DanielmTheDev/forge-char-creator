@@ -8,6 +8,7 @@ Master checklist for an agent army. Each links to its detail section below. Inde
 - [x] **G1. Gate handler dedup refactor** — DONE. Shared scaffolding installed on `globalThis.__fcGate` via `installGateHelpers()` (page.evaluate once after boot in `content.spec.mjs`); 4 T3 handlers read it like any browser global. Helpers: `strip/makeScene/makeActor/makeToken/makeCombat/drawAndWait/targetToken/clearTargets/useActivity/cleanup`. `applyCheck`(T2) untouched. Iterated combat→grant/macro/aoe, gate-green at each step (3× full `content:verify`, all 3.7-3.8m, 1 passed). See `## Gate hardening → G1`.
 - [x] **G2. macroCheck radius coverage gap** — DONE. Added `outOfRangeAllies:1` (placed ~35ft from caster, x=800) asserting tempHp stays 0 while in-range allies get 5; exercises macro RADIUS=30 filter. Gate green (1 passed 3.8m).
 - [x] **G3. Test-doc residue sweep** — DONE. `makeScene`/`makeActor` now stamp `flags.forge-content.test` (combats already did); `isolate()` (content.spec.mjs) generalized to sweep flagged Combats+Scenes+Actors, run at run-START + between handlers. Best-effort finally-cleanup orphans no longer pile up run-over-run (root of the stale-combat/broken-scene isolation bugs). NOTE: separate-test-world idea (was "Increment 1") DROPPED — `ishait` is a disposable test world, not the live campaign; flag-sweep is enough. Gate green (1 passed 3.1m).
+- [x] **G4. Declarative scene engine** — DONE. Collapsed 5 bespoke handlers into ONE `genericCheck`; all 9 abilities on v2 expect.json; CHECKS map + shape-dispatch fork deleted; pre-boot `validate()` now covers ALL items. Gate green (1 passed 3.3m).
 - [ ] **#5. Recharge actually firing** — SMALL. See `## NEXT UP → 5`. Start here (isolated).
 - [ ] **#6. Reaction abilities** — MEDIUM. See `## NEXT UP → 6`. Most interactive/flaky midi surface.
 - [ ] **BUG-1. Pack test residue** — 6 `Overtime_Poison_E2E_*` junk docs in forge-features pack. See `## Bugs found`.
@@ -30,6 +31,18 @@ The 4 T3 handlers in `forge-content/verify/checks.mjs` (`combatCheck`, `grantChe
 Was: `macroCheck` placed ALL allies within 30ft → macro `RADIUS=30` filter never exercised (an unfiltered "buff every ally" macro would still pass).
 - **Fix shipped:** `expectation.outOfRangeAllies` (count) → that many same-disposition allies placed at x=800 (~35ft from caster, >RADIUS); handler asserts their tempHp stays 0 always, while in-range allies get the macro's TEMP. `example-rally.expect.json` set `outOfRangeAllies:1`.
 - **Verified with teeth:** gate green as-is (1 passed 3.8m); mutation test (macro RADIUS 30→100) flipped it RED (`OutAlly tempHp expected 0, got 5`) then reverted — proves the new assert actually exercises the filter, not a trivial pass.
+
+### G4. Declarative scene engine — DONE ✅
+Collapsed the 5 bespoke verify handlers (applyCheck/combatCheck/grantCheck/macroCheck/aoeCheck)
+into ONE `genericCheck` driven by declarative expect.json v2 (`actors`/`steps`/`scenarios`/`assert`).
+Pure `assertSnapshot` (verify/assert.mjs, node-unit-tested) shipped into the browser by toString;
+pure `validate` (verify/schema.mjs) runs pre-boot. Problem #2 FIXED: unknown/misspelled assert
+keys are HARD failures node-side (validate) AND browser-side (assertSnapshot) — proven by a
+pre-boot fail on a deliberately bad key. `runScene` on `__fcGate` is the single doc-create path →
+creation-tracked cleanup. All 9 abilities on v2; gate green; searing-bolt(combat)/example-boon(grant
+timeline) mutation-tested red→green during the ports. New per-step `onlyScenarios` gate + `advanceUntil`
+timeout error added. Spec/plan: docs/superpowers/{specs,plans}/2026-06-03-declarative-gate-engine*.
+boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
 
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
