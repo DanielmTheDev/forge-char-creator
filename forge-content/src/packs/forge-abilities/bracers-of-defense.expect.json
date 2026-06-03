@@ -1,7 +1,14 @@
 {
-  "tier": "T2-apply",
-  "actor": { "type": "npc" },
-  "assert": {
-    "acDelta": 2
-  }
+  "tier": "T2",
+  "combat": false,
+  "actors": {
+    "dummy": { "hp": 100 }
+  },
+  "steps": [
+    { "cast": "dummy", "ability": "main" },
+    { "snapshot": "applied" }
+  ],
+  "assert": [
+    { "at": "applied", "actor": "dummy", "acDelta": 2 }
+  ]
 }
