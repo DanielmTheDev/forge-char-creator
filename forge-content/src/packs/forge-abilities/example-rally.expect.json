@@ -1,10 +1,28 @@
 {
-  "tier": "T3-macro",
-  "defender": { "hp": 100, "ac": 1 },
-  "allies": 2,
-  "outOfRangeAllies": 1,
+  "tier": "T3",
+  "actors": {
+    "caster":  { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] },
+    "ally0": { "temp": 0, "disposition": 1, "pos": [100, 200] },
+    "ally1": { "temp": 0, "disposition": 1, "pos": [100, 300] },
+    "out0":  { "temp": 0, "disposition": 1, "pos": [800, 100] }
+  },
+  "steps": [
+    { "cast": "caster", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "cast" }
+  ],
   "scenarios": [
-    { "force": "fail",    "assert": { "defenderHpDelta": -10, "allyTempHp": 5 } },
-    { "force": "success", "assert": { "defenderHpDelta": 0,  "allyTempHp": 0 } }
+    { "name": "fail", "forces": { "defender": { "save": "fail" } }, "assert": [
+      { "at": "cast", "actor": "defender", "hpDelta": -10 },
+      { "at": "cast", "actor": "ally0", "tempHp": 5 },
+      { "at": "cast", "actor": "ally1", "tempHp": 5 },
+      { "at": "cast", "actor": "out0", "tempHp": 0 }
+    ] },
+    { "name": "success", "forces": { "defender": { "save": "success" } }, "assert": [
+      { "at": "cast", "actor": "defender", "hpDelta": 0 },
+      { "at": "cast", "actor": "ally0", "tempHp": 0 },
+      { "at": "cast", "actor": "ally1", "tempHp": 0 },
+      { "at": "cast", "actor": "out0", "tempHp": 0 }
+    ] }
   ]
 }
