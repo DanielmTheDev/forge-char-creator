@@ -52,20 +52,31 @@ test.describe('forge-content verify', () => {
     // the per-handler page.evaluate calls). See checks.mjs installGateHelpers.
     await page.evaluate(installGateHelpers);
 
-    // Test isolation between handlers. A handler that runs combat can leave a stale
-    // ACTIVE combat behind (its scene already deleted). The next handler's granted
-    // effects then get stamped with that stale combat's round (DAE reads
-    // game.combat.current.round), so a turnEndSource buff expires a turn early — which
-    // made T3-grant pass or fail purely on suite ORDER. Purge ONLY combats the gate
-    // itself created (flagged forge-content.test at Combat.create) — NEVER campaign
-    // combats. The gate boots the real world, which holds real combats (some with
-    // orphaned scenes), so a scene-based guard is unsafe; the flag is the only safe
-    // marker. Also bounds combat accumulation across the run.
+    // Test isolation. Sweeps ALL docs the gate itself created — Combats, Scenes,
+    // Actors — identified ONLY by the forge-content.test flag (makeScene/makeActor/
+    // makeCombat stamp it). Tokens/items are embedded → die with their scene/actor,
+    // so the three top-level collections cover everything.
+    //   Why a flag, never a name/scene guard: the gate boots the shared test world,
+    // which may also hold non-gate docs; the flag is the only safe marker that can't
+    // touch them.
+    //   Why it must run: a handler's finally-cleanup is best-effort (delete().catch()),
+    // so a skipped delete leaves an orphan. Orphans accumulate run-over-run and are the
+    // root of the isolation bugs we patched piecemeal: a stale ACTIVE combat makes DAE
+    // stamp a granted effect's startRound from game.combat.current.round, expiring a
+    // turnEndSource buff a turn early (T3-grant passed/failed purely on suite ORDER);
+    // an orphaned broken scene/actor aborts canvas.draw. Sweeping by flag at run-START
+    // (clears last run's residue) AND between handlers (clears this run's) kills the
+    // pileup at the source instead of patching each symptom. Delete order: combats →
+    // scenes → actors (combats ref scenes; tokens die with their scene).
     const isolate = async () => {
-      for (const c of [...game.combats]) {
-        if (c.getFlag('forge-content', 'test')) await c.delete().catch(() => {});
-      }
+      const flagged = (coll) => [...coll].filter(d => d.getFlag('forge-content', 'test'));
+      for (const c of flagged(game.combats)) await c.delete().catch(() => {});
+      for (const s of flagged(game.scenes))  await s.delete().catch(() => {});
+      for (const a of flagged(game.actors))  await a.delete().catch(() => {});
     };
+
+    // Clear any residue left by a prior (crashed/interrupted) run before starting.
+    await page.evaluate(isolate);
 
     const results = [];
     for (const item of ITEMS) {

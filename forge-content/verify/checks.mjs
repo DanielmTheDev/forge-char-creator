@@ -17,13 +17,15 @@ export function installGateHelpers() {
   // effect _ids (activity refs depend on them).
   const strip = (d) => { const c = JSON.parse(JSON.stringify(d)); delete c._id; delete c._key; for (const e of c.effects ?? []) delete e._key; return c; };
   // Fresh 1000x1000 scene, 100px/5ft grid. (The dev world's own scene has a broken
-  // actor that aborts canvas.draw, so every handler builds its own.)
-  const makeScene = (name) => Scene.create({ name, width: 1000, height: 1000, grid: { size: 100 }, padding: 0 });
+  // actor that aborts canvas.draw, so every handler builds its own.) Flagged
+  // forge-content.test so isolate() sweeps it even if a finally-cleanup is skipped.
+  const makeScene = (name) => Scene.create({ name, width: 1000, height: 1000, grid: { size: 100 }, padding: 0, flags: { 'forge-content': { test: true } } });
   // Linked npc actor. ac omitted => no flat AC; temp omitted => no temp-HP key.
+  // Flagged forge-content.test so isolate() can sweep orphans the same way.
   const makeActor = (name, { hp = 100, ac, temp } = {}) => {
     const attributes = { hp: { value: hp, max: hp, ...(temp !== undefined ? { temp } : {}) } };
     if (ac !== undefined) attributes.ac = { calc: 'flat', flat: ac };
-    return Actor.create({ name, type: 'npc', system: { attributes } });
+    return Actor.create({ name, type: 'npc', system: { attributes }, flags: { 'forge-content': { test: true } } });
   };
   // actorLink:true so the token uses the base actor (unlinked npc tokens spawn a
   // synthetic token-actor midi would mutate instead of the doc we read).
@@ -331,7 +333,13 @@ async function grantCheck({ doc, expectation, setupDocs = [] }) {
 // macro is shipped on the item, not parameterized from here), so assert.allyTempHp
 // must mirror the macro's TEMP. Only `allies` (count) is read from expectation.
 //
-// expectation: { defender?:{hp,ac}, allies?:int,
+// `outOfRangeAllies` places that many same-disposition allies OUTSIDE the macro's
+// RADIUS (30 ft); they must ALWAYS keep tempHp 0 — this is what actually exercises
+// the macro's distance filter (without one, an unfiltered "buff every ally" macro
+// would still pass). Caster sits at (100,100); in-range allies at (100,200+i*100)
+// (5-10 ft away); out-of-range allies at (800,100+i*100) (35 ft away, >RADIUS).
+//
+// expectation: { defender?:{hp,ac}, allies?:int, outOfRangeAllies?:int,
 //   scenarios:[{ force:'fail'|'success', assert:{ defenderHpDelta?, allyTempHp? } }] }
 async function macroCheck({ doc, expectation }) {
   if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
@@ -339,11 +347,12 @@ async function macroCheck({ doc, expectation }) {
   const dcfg = expectation.defender ?? {};
   const hp = dcfg.hp ?? 100;
   const allyCount = expectation.allies ?? 2;
+  const outCount = expectation.outOfRangeAllies ?? 0;
   const scenarios = expectation.scenarios ?? [];
 
   const runScenario = async (force, assert) => {
     let caster, defender, casterTok, defTok, combat, scene;
-    const allies = [], allyToks = [];
+    const allies = [], allyToks = [], outAllies = [], outToks = [];
     try {
       scene = await makeScene('T3 Macro Scene');
       caster = await makeActor('T3 Caster');
@@ -359,10 +368,17 @@ async function macroCheck({ doc, expectation }) {
         const at = await makeToken(al, scene, { x: 100, y: 200 + i * 100, disposition: 1 });
         allies.push(al); allyToks.push(at);
       }
+      for (let i = 0; i < outCount; i++) {
+        // Same disposition but ~35 ft from caster (x=800) => outside RADIUS=30.
+        const al = await makeActor(`T3 OutAlly ${i}`, { temp: 0 });
+        const at = await makeToken(al, scene, { x: 800, y: 100 + i * 100, disposition: 1 });
+        outAllies.push(al); outToks.push(at);
+      }
       combat = await makeCombat(scene, [
         { tokenId: casterTok.id, actorId: caster.id, initiative: 30 },
         { tokenId: defTok.id, actorId: defender.id, initiative: 10 },
         ...allyToks.map((t, i) => ({ tokenId: t.id, actorId: allies[i].id, initiative: 20 - i })),
+        ...outToks.map((t, i) => ({ tokenId: t.id, actorId: outAllies[i].id, initiative: 5 - i })),
       ]);
       await drawAndWait(scene);
       targetToken(defTok);
@@ -381,12 +397,17 @@ async function macroCheck({ doc, expectation }) {
           if (t !== assert.allyTempHp) f.push(`${al.name} tempHp expected ${assert.allyTempHp}, got ${t}`);
         }
       }
+      // Out-of-range allies must NEVER get temp HP — proves the RADIUS filter works.
+      for (const al of outAllies) {
+        const t = al.system.attributes.hp.temp ?? 0;
+        if (t !== 0) f.push(`${al.name} (out of range) tempHp expected 0, got ${t}`);
+      }
       return f;
     } catch (err) {
       return [err.message];
     } finally {
       clearTargets();
-      await cleanup([combat, ...allyToks, casterTok, defTok, ...allies, caster, defender, scene]);
+      await cleanup([combat, ...allyToks, ...outToks, casterTok, defTok, ...allies, ...outAllies, caster, defender, scene]);
     }
   };
 

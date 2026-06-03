@@ -6,7 +6,8 @@ Simple running list. Check off as done. See CLAUDE.md for full spec.
 Master checklist for an agent army. Each links to its detail section below. Independent unless noted. **Every change touching the gate path needs a green `npm run content:verify` run (xvfb+Foundry, local) before commit — gate-green discipline.**
 
 - [x] **G1. Gate handler dedup refactor** — DONE. Shared scaffolding installed on `globalThis.__fcGate` via `installGateHelpers()` (page.evaluate once after boot in `content.spec.mjs`); 4 T3 handlers read it like any browser global. Helpers: `strip/makeScene/makeActor/makeToken/makeCombat/drawAndWait/targetToken/clearTargets/useActivity/cleanup`. `applyCheck`(T2) untouched. Iterated combat→grant/macro/aoe, gate-green at each step (3× full `content:verify`, all 3.7-3.8m, 1 passed). See `## Gate hardening → G1`.
-- [ ] **G2. macroCheck radius coverage gap** — distance filter untested. See `## Gate hardening → G2`. NEEDS GATE RUN.
+- [x] **G2. macroCheck radius coverage gap** — DONE. Added `outOfRangeAllies:1` (placed ~35ft from caster, x=800) asserting tempHp stays 0 while in-range allies get 5; exercises macro RADIUS=30 filter. Gate green (1 passed 3.8m).
+- [x] **G3. Test-doc residue sweep** — DONE. `makeScene`/`makeActor` now stamp `flags.forge-content.test` (combats already did); `isolate()` (content.spec.mjs) generalized to sweep flagged Combats+Scenes+Actors, run at run-START + between handlers. Best-effort finally-cleanup orphans no longer pile up run-over-run (root of the stale-combat/broken-scene isolation bugs). NOTE: separate-test-world idea (was "Increment 1") DROPPED — `ishait` is a disposable test world, not the live campaign; flag-sweep is enough. Gate green (1 passed 3.1m).
 - [ ] **#5. Recharge actually firing** — SMALL. See `## NEXT UP → 5`. Start here (isolated).
 - [ ] **#6. Reaction abilities** — MEDIUM. See `## NEXT UP → 6`. Most interactive/flaky midi surface.
 - [ ] **BUG-1. Pack test residue** — 6 `Overtime_Poison_E2E_*` junk docs in forge-features pack. See `## Bugs found`.
@@ -15,8 +16,6 @@ Master checklist for an agent army. Each links to its detail section below. Inde
 - [ ] **A2-redo. Real compendium-load proof** — LOW. See `## Now → A2-redo`.
 - [ ] **D. Image → statblock** — LAST, highest risk, gated by B. See `## Roadmap → D`.
 - [ ] **Icons-API. Generated-icon authoring** — FUTURE, discuss first. See `## Icons`.
-
-COMMITTED, gate-unverified — do NOT redo (review post-hoc): `example-rally.expect.json` dead keys `tempHp`/`radius` removed (handler never read them; RADIUS/TEMP hardcoded in the inline macro) + `macroCheck` doc-comment corrected. Pure clarity, behavior-neutral by inspection (committed without a `content:verify` run since user was away; re-run gate to confirm green at next opportunity).
 
 ## Gate hardening (found 2026-06-02 review)
 
@@ -27,11 +26,10 @@ The 4 T3 handlers in `forge-content/verify/checks.mjs` (`combatCheck`, `grantChe
 - **Notes for next time:** `useActivity(actor, doc, targetUuids, {settle, midiOptions})` — settle ms after the cast; aoe passes `settle:0` to read `wf.targets` for its hard invariant before settling manually. `cleanup([docs…])` deletes in caller order (combat→tokens→actors→scene). `makeCombat` stamps the `forge-content.test` flag so `isolate()` still purges test combats ([[gate-handler-isolation]]).
 - **Verified:** iterated combat → grant/macro/aoe, full `npm run content:verify` green at each checkpoint (3 runs, ~3.7-3.8m each, `1 passed`). `isolate()` flag-purge preserved.
 
-### G2. macroCheck radius filter untested — coverage gap — NEEDS GATE RUN
-`macroCheck` places ALL allies WITHIN 30ft, so the macro's `RADIUS = 30` distance filter is never exercised: if the macro applied temp-HP to EVERY same-disposition token regardless of distance, the test still passes.
-- **Fix:** add one ally placed OUTSIDE 30ft (e.g. >7 squares from caster) and assert it gets `allyTempHp:0` while in-range allies get the macro's TEMP. Wire an `outOfRangeAllies` count (or per-ally position list) into `example-rally.expect.json` + `macroCheck`.
-- Caster sits at (100,100), grid 100px/5ft. In-range allies currently at x=100, y=200+i*100. An out-of-range ally needs center >600px from caster center (place e.g. at (900,900)).
-- **Risk:** behavior change to gate. Re-run `npm run content:verify` to green before commit.
+### G2. macroCheck radius filter untested — coverage gap — DONE ✅
+Was: `macroCheck` placed ALL allies within 30ft → macro `RADIUS=30` filter never exercised (an unfiltered "buff every ally" macro would still pass).
+- **Fix shipped:** `expectation.outOfRangeAllies` (count) → that many same-disposition allies placed at x=800 (~35ft from caster, >RADIUS); handler asserts their tempHp stays 0 always, while in-range allies get the macro's TEMP. `example-rally.expect.json` set `outOfRangeAllies:1`.
+- **Verified with teeth:** gate green as-is (1 passed 3.8m); mutation test (macro RADIUS 30→100) flipped it RED (`OutAlly tempHp expected 0, got 5`) then reverted — proves the new assert actually exercises the filter, not a trivial pass.
 
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
