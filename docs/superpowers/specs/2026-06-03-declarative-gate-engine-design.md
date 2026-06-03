@@ -71,7 +71,8 @@ clearTargets / useActivity / cleanup`.
 
 Resolves the roster, builds scene + actors (applying per-actor `forces`) + tokens + combat,
 draws and waits, then executes `steps` in order, accumulating a `snapshots` map. Returns
-`{ snapshots, targetedCount, error }`. Cleans up in `finally`.
+`{ snapshots, error }` (each snapshot label carries a run-scoped `__run.targetedCount`).
+Cleans up in `finally`.
 
 - **Creation-tracking cleanup.** The engine records the id of every doc it creates and
   deletes exactly those in `finally` (in safe order: combats → scenes → actors; embedded
@@ -160,12 +161,16 @@ Any key outside this set → hard fail. (`acDelta`/`abilityDelta` are migrated f
 ```jsonc
 {
   "hp": <int>, "hpDelta": <int vs scene-build baseline>, "tempHp": <int>,
-  "ac": <int>, "abilities": { "<abil>": <score> },
+  "acDelta": <int vs baseline>, "abilityDelta": { "<abil>": <delta> },
   "statuses": ["..."], "effects": ["<name>", "..."], "flags": { /* deepClone */ },
+  "ticks": <int>,
   "lastWorkflow": { "advantage": false, "disadvantage": false, "hit": false,
                     "crit": false, "total": <int|null> }
 }
 ```
+Each snapshot label also carries a run-scoped `__run: { targetedCount }`. `runScene`
+returns `{ snapshots, error }` (the last cast's target count lives in `__run`, not a
+top-level field).
 
 - `hpDelta` baseline = each actor's HP captured at scene build (before any cast).
 - `lastWorkflow` = the most-recent cast made BY this actor. This is what lets grant read the

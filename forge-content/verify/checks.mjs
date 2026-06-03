@@ -64,8 +64,6 @@ export function installGateHelpers() {
     if (opts.settle) await new Promise(r => setTimeout(r, opts.settle));
     return wf;
   };
-  // Delete a list of docs (any order the caller passes; nulls skipped). Use in finally.
-  const cleanup = async (docs) => { for (const d of docs) if (d) await d.delete().catch(() => {}); };
   // Declarative scene runner. spec = { combat, actors, steps, __docs, __scenario }.
   // Builds the roster, applies per-actor forces, runs steps in order, returns
   // { snapshots, error }. Self-contained (browser globals + the other builders only).
@@ -191,7 +189,7 @@ export function installGateHelpers() {
       for (const d of [...created].sort((a, b) => order(a) - order(b))) await d.delete().catch(() => {});
     }
   };
-  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, cleanup, runScene };
+  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, runScene };
 }
 
 // Declarative handler. Replaces all bespoke handlers. arg:
