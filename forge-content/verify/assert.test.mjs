@@ -79,3 +79,15 @@ test('lastWorkflow.advantage', () => {
   const snaps = { buffed: { ally: actorSnap({ lastWorkflow: { advantage: true, disadvantage: false, hit: true, crit: false, total: 18 } }) } };
   assert.deepEqual(assertSnapshot([{ at: 'buffed', actor: 'ally', 'lastWorkflow.advantage': true }], snaps, KEYS), []);
 });
+
+test('flagPresent treats a false-valued flag as present (existence, not truthiness)', () => {
+  const snaps = { main: { def: actorSnap({ flags: { midi: { disabledMarker: false } } }) } };
+  assert.deepEqual(assertSnapshot([{ at: 'main', actor: 'def', flagPresent: 'flags.midi.disabledMarker' }], snaps, KEYS), []);
+});
+
+test('lastWorkflow assert does not throw when lastWorkflow is null', () => {
+  const snaps = { main: { def: actorSnap({ lastWorkflow: null }) } };
+  const f = assertSnapshot([{ at: 'main', actor: 'def', 'lastWorkflow.hit': true }], snaps, KEYS);
+  assert.equal(f.length, 1);
+  assert.match(f[0], /lastWorkflow.hit expected true, got undefined/);
+});

@@ -39,12 +39,12 @@ export function assertSnapshot(asserts, snapshots, knownKeys) {
         case 'conditionApplied': if (!a.statuses.includes(want)) fails.push(`${L}: condition "${want}" not applied`); break;
         case 'effectApplied': if (!a.effects.includes(want)) fails.push(`${L}: effect "${want}" not applied`); break;
         case 'effectAbsent': if (a.effects.includes(want)) fails.push(`${L}: effect "${want}" should be absent`); break;
-        case 'flagPresent': if (!getPath({ flags: a.flags }, want)) fails.push(`${L}: flag "${want}" not present`); break;
+        case 'flagPresent': if (getPath({ flags: a.flags }, want) === undefined) fails.push(`${L}: flag "${want}" not present`); break;
         case 'ticks': if (a.ticks !== want) fails.push(`${L}: ticks expected ${want}, got ${a.ticks}`); break;
-        case 'lastWorkflow.advantage': if (a.lastWorkflow.advantage !== want) fails.push(`${L}: lastWorkflow.advantage expected ${want}, got ${a.lastWorkflow.advantage}`); break;
-        case 'lastWorkflow.disadvantage': if (a.lastWorkflow.disadvantage !== want) fails.push(`${L}: lastWorkflow.disadvantage expected ${want}, got ${a.lastWorkflow.disadvantage}`); break;
-        case 'lastWorkflow.hit': if (a.lastWorkflow.hit !== want) fails.push(`${L}: lastWorkflow.hit expected ${want}, got ${a.lastWorkflow.hit}`); break;
-        case 'lastWorkflow.crit': if (a.lastWorkflow.crit !== want) fails.push(`${L}: lastWorkflow.crit expected ${want}, got ${a.lastWorkflow.crit}`); break;
+        case 'lastWorkflow.advantage': { const lw = a.lastWorkflow ?? {}; if (lw.advantage !== want) fails.push(`${L}: lastWorkflow.advantage expected ${want}, got ${lw.advantage}`); break; }
+        case 'lastWorkflow.disadvantage': { const lw = a.lastWorkflow ?? {}; if (lw.disadvantage !== want) fails.push(`${L}: lastWorkflow.disadvantage expected ${want}, got ${lw.disadvantage}`); break; }
+        case 'lastWorkflow.hit': { const lw = a.lastWorkflow ?? {}; if (lw.hit !== want) fails.push(`${L}: lastWorkflow.hit expected ${want}, got ${lw.hit}`); break; }
+        case 'lastWorkflow.crit': { const lw = a.lastWorkflow ?? {}; if (lw.crit !== want) fails.push(`${L}: lastWorkflow.crit expected ${want}, got ${lw.crit}`); break; }
         default: fails.push(`unhandled assert key "${k}"`);
       }
     }
