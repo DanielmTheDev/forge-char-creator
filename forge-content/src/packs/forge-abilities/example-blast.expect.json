@@ -1,8 +1,19 @@
 {
-  "tier": "T3-aoe",
-  "targets": [
-    { "hp": 100, "ac": 1, "force": "fail",    "assert": { "defenderHpDelta": -12 } },
-    { "hp": 100, "ac": 1, "force": "fail",    "assert": { "defenderHpDelta": -12 } },
-    { "hp": 100, "ac": 1, "force": "success", "assert": { "defenderHpDelta": -6  } }
+  "tier": "T3",
+  "actors": {
+    "caster": { "disposition": 1, "pos": [300, 300] },
+    "def0": { "hp": 100, "ac": 1, "disposition": -1, "pos": [150, 150], "forces": { "save": "fail" } },
+    "def1": { "hp": 100, "ac": 1, "disposition": -1, "pos": [300, 150], "forces": { "save": "fail" } },
+    "def2": { "hp": 100, "ac": 1, "disposition": -1, "pos": [450, 150], "forces": { "save": "success" } }
+  },
+  "steps": [
+    { "cast": "caster", "ability": "main", "targets": ["def0", "def1", "def2"], "expectTargets": 3 },
+    { "snapshot": "blast" }
+  ],
+  "assert": [
+    { "at": "blast", "targetedCount": 3 },
+    { "at": "blast", "actor": "def0", "hpDelta": -12 },
+    { "at": "blast", "actor": "def1", "hpDelta": -12 },
+    { "at": "blast", "actor": "def2", "hpDelta": -6 }
   ]
 }
