@@ -16,17 +16,19 @@ const RUN_KEYS = ['targetedCount'];
 // expectation: a parsed expect.json. identifiers: string[] of ability identifiers in
 // the suite (the dispatcher's byId keys). Returns string[] of errors (empty = valid).
 export function validate(expectation, identifiers) {
+  if (!expectation || typeof expectation !== 'object') return ['expectation must be a non-null object'];
   const e = expectation;
   const errs = [];
   for (const k of Object.keys(e)) if (!TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (legacy? migrate to v2)`);
 
   const roster = new Set(Object.keys(e.actors ?? {}));
   if (!roster.size) errs.push('no actors defined');
+  for (const s of e.setup ?? []) if (!identifiers.includes(s)) errs.push(`setup ability "${s}" not found in suite`);
 
   const steps = e.steps ?? [];
   const labels = new Set();
   for (const s of steps) {
-    if ('snapshot' in s) { labels.add(s.snapshot); continue; }
+    if ('snapshot' in s) { if (labels.has(s.snapshot)) errs.push(`duplicate snapshot label "${s.snapshot}"`); labels.add(s.snapshot); continue; }
     if ('cast' in s) {
       if (!roster.has(s.cast)) errs.push(`step cast actor "${s.cast}" not in roster`);
       for (const t of s.targets ?? []) if (!roster.has(t)) errs.push(`step target "${t}" not in roster`);
@@ -41,7 +43,8 @@ export function validate(expectation, identifiers) {
       if (!labels.has(a.at)) errs.push(`${where}assert at "${a.at}" has no snapshot step`);
       const keys = Object.keys(a).filter(k => k !== 'at' && k !== 'actor');
       const needsActor = keys.some(k => !RUN_KEYS.includes(k));
-      if (needsActor && !roster.has(a.actor)) errs.push(`${where}assert actor "${a.actor}" not in roster`);
+      if (needsActor && !('actor' in a)) errs.push(`${where}assert missing required "actor" field`);
+      else if (needsActor && !roster.has(a.actor)) errs.push(`${where}assert actor "${a.actor}" not in roster`);
       for (const k of keys) if (!KNOWN_KEYS.includes(k)) errs.push(`${where}unknown assert key "${k}"`);
     }
   };

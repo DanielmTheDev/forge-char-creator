@@ -72,3 +72,27 @@ test('KNOWN_KEYS includes the migrated apply keys', () => {
   assert.ok(KNOWN_KEYS.includes('acDelta'));
   assert.ok(KNOWN_KEYS.includes('abilityDelta'));
 });
+
+test('null expectation returns an error, does not throw', () => {
+  assert.deepEqual(validate(null, ids), ['expectation must be a non-null object']);
+});
+
+test('unknown setup ability rejected', () => {
+  const e = base(); e.setup = ['typo-ability'];
+  assert.match(validate(e, ids).join(), /setup ability "typo-ability" not found in suite/);
+});
+
+test('known setup ability accepted', () => {
+  const e = base(); e.setup = ['example-strike'];
+  assert.deepEqual(validate(e, ids), []);
+});
+
+test('duplicate snapshot label rejected', () => {
+  const e = base(); e.steps = [{ cast: 'att', ability: 'main', targets: ['def'] }, { snapshot: 'main' }, { snapshot: 'main' }];
+  assert.match(validate(e, ids).join(), /duplicate snapshot label "main"/);
+});
+
+test('assert requiring actor but omitting it gives a clear message', () => {
+  const e = base(); e.assert = [{ at: 'main', hpDelta: -10 }];
+  assert.match(validate(e, ids).join(), /assert missing required "actor" field/);
+});
