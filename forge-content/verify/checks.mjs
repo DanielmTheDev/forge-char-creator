@@ -177,6 +177,8 @@ export function installGateHelpers() {
             await combat.nextTurn();
             await new Promise(r => setTimeout(r, 1500));
           }
+          if (!(combat.round === round && combat.combatant?.tokenId === T[actor].id))
+            return { error: `advanceUntil timed out: never reached ${actor} at round ${round}` };
         } else if ('snapshot' in step) {
           const snap = { __run: { targetedCount: runTargeted } };
           for (const n of names) snap[n] = snapActor(n);

@@ -1,12 +1,29 @@
 {
-  "tier": "T3-grant",
+  "tier": "T3",
   "setup": ["example-strike"],
-  "defender": { "hp": 100, "ac": 5 },
-  "assert": {
-    "effectApplied": "Example Boon",
-    "flagPresent": "flags.midi-qol.advantage.attack.all",
-    "buffedAdvantage": true,
-    "midAdvantage": true,
-    "expiredAdvantage": false
-  }
+  "actors": {
+    "caster": { "disposition": 1, "pos": [100, 100] },
+    "ally":   { "disposition": 1, "pos": [200, 100] },
+    "dummy":  { "hp": 100, "ac": 5, "disposition": -1, "pos": [300, 100], "forces": { "attack": "hit" } }
+  },
+  "steps": [
+    { "cast": "caster", "ability": "main", "targets": ["ally"] },
+    { "snapshot": "granted" },
+    { "cast": "ally", "ability": "example-strike", "targets": ["dummy"] },
+    { "snapshot": "buffed" },
+    { "advanceUntil": { "round": 1, "actor": "ally" } },
+    { "cast": "ally", "ability": "example-strike", "targets": ["dummy"] },
+    { "snapshot": "mid" },
+    { "advanceUntil": { "round": 2, "actor": "ally" } },
+    { "cast": "ally", "ability": "example-strike", "targets": ["dummy"] },
+    { "snapshot": "expired" }
+  ],
+  "assert": [
+    { "at": "granted", "actor": "ally", "effectApplied": "Example Boon" },
+    { "at": "granted", "actor": "ally", "flagPresent": "flags.midi-qol.advantage.attack.all" },
+    { "at": "buffed",  "actor": "ally", "lastWorkflow.advantage": true },
+    { "at": "mid",     "actor": "ally", "lastWorkflow.advantage": true },
+    { "at": "expired", "actor": "ally", "effectAbsent": "Example Boon" },
+    { "at": "expired", "actor": "ally", "lastWorkflow.advantage": false }
+  ]
 }
