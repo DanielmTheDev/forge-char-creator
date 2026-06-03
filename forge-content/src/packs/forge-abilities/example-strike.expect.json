@@ -1,12 +1,37 @@
 {
-  "tier": "T3-combat",
-  "defender": { "hp": 100, "ac": 15 },
-  "attackScenarios": [
-    { "force": "hit",  "assert": { "attackHit": true,  "defenderHpDelta": -10 } },
-    { "force": "miss", "assert": { "attackHit": false, "defenderHpDelta": 0 } },
-    { "force": "hit", "advantage": true,         "assert": { "attackHit": true, "attackAdvantage": true,    "attackDisadvantage": false, "defenderHpDelta": -10 } },
-    { "force": "hit", "disadvantage": true,      "assert": { "attackHit": true, "attackDisadvantage": true, "attackAdvantage": false,    "defenderHpDelta": -10 } },
-    { "force": "hit", "grantAdvantage": true,    "assert": { "attackHit": true, "attackAdvantage": true,    "attackDisadvantage": false, "defenderHpDelta": -10 } },
-    { "force": "hit", "grantDisadvantage": true, "assert": { "attackHit": true, "attackDisadvantage": true, "attackAdvantage": false,    "defenderHpDelta": -10 } }
+  "tier": "T3",
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 15, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "main" }
+  ],
+  "scenarios": [
+    { "name": "hit", "forces": { "defender": { "attack": "hit" } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": -10 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": true }
+    ] },
+    { "name": "miss", "forces": { "defender": { "attack": "miss" } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": 0 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": false }
+    ] },
+    { "name": "adv", "forces": { "defender": { "attack": "hit" }, "attacker": { "advantage": true } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": -10 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": true, "lastWorkflow.advantage": true, "lastWorkflow.disadvantage": false }
+    ] },
+    { "name": "dis", "forces": { "defender": { "attack": "hit" }, "attacker": { "disadvantage": true } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": -10 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": true, "lastWorkflow.disadvantage": true, "lastWorkflow.advantage": false }
+    ] },
+    { "name": "grantAdv", "forces": { "defender": { "attack": "hit", "grantAdvantage": true } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": -10 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": true, "lastWorkflow.advantage": true, "lastWorkflow.disadvantage": false }
+    ] },
+    { "name": "grantDis", "forces": { "defender": { "attack": "hit", "grantDisadvantage": true } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": -10 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": true, "lastWorkflow.disadvantage": true, "lastWorkflow.advantage": false }
+    ] }
   ]
 }
