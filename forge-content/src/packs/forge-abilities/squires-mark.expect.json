@@ -1,8 +1,15 @@
 {
-  "tier": "T3-combat",
-  "defender": { "hp": 100, "ac": 1 },
-  "assert": {
-    "effectApplied": "Squire's Mark",
-    "flagPresent": "flags.world.squiresMark"
-  }
+  "tier": "T3",
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "main" }
+  ],
+  "assert": [
+    { "at": "main", "actor": "defender", "effectApplied": "Squire's Mark" },
+    { "at": "main", "actor": "defender", "flagPresent": "flags.world.squiresMark" }
+  ]
 }
