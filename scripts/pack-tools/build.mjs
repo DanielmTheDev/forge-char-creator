@@ -49,7 +49,13 @@ function buildModule(mod) {
     const files = readdirSync(srcDir).filter(f => f.endsWith(".json") && !f.endsWith(".expect.json") && !f.startsWith("_"));
     for (const f of files) {
       const doc = injectKeys(JSON.parse(readFileSync(join(srcDir, f), "utf8")), coll, f);
-      writeFileSync(join(stageDir, f), JSON.stringify(doc, null, 2));
+      const serialized = JSON.stringify(doc, null, 2);
+      // Guard: a literal "[object Object]" means an object was coerced to string
+      // somewhere in the authoring path (e.g. ActiveEffect.description must be a
+      // plain string, not {value}). Never ship that. (BUG-2 root cause.)
+      if (serialized.includes("[object Object]"))
+        throw new Error(`[${mod.name}] "${pack.name}/${f}" contains literal "[object Object]" — a value was object-coerced; fix the authoring path.`);
+      writeFileSync(join(stageDir, f), serialized);
     }
 
     rmSync(join(out, pack.name), { recursive: true, force: true });
