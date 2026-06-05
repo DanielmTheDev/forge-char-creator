@@ -1,0 +1,38 @@
+{
+  "name": "Example Retaliate",
+  "img": "icons/skills/melee/strike-blade-knife-white-red.webp",
+  "type": "feat",
+  "_id": "exampleretal0001",
+  "system": {
+    "description": {
+      "value": "<p><strong>Reaction</strong>, when you take damage from a creature you can see: lash back, dealing <strong>6 force damage</strong> to that attacker.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "retaliate0000001": {
+        "_id": "retaliate0000001",
+        "type": "damage",
+        "activation": { "type": "reaction", "value": 1 },
+        "range": { "value": 5, "units": "ft" },
+        "target": { "affects": { "type": "creature", "count": "1" } },
+        "damage": {
+          "parts": [
+            {
+              "types": ["force"],
+              "custom": { "enabled": true, "formula": "6" },
+              "scaling": { "mode": "", "number": null, "formula": "" }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "example-retaliate",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [],
+  "flags": {},
+  "folder": "folderexample001"
+}

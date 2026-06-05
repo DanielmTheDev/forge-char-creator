@@ -29,8 +29,10 @@ function gather() {
   return out;
 }
 
-// FC_ONLY=<substring> limits the suite to matching ability filenames/names (dev iteration).
-const ITEMS = gather().filter(i => !process.env.FC_ONLY || i.doc.name.toLowerCase().includes(process.env.FC_ONLY.toLowerCase()));
+// FC_ONLY=<substring> limits the RUN to matching ability names (dev iteration).
+// ALL is kept unfiltered so `setup` cross-references still resolve under FC_ONLY.
+const ALL = gather();
+const ITEMS = ALL.filter(i => !process.env.FC_ONLY || i.doc.name.toLowerCase().includes(process.env.FC_ONLY.toLowerCase()));
 
 test.describe('forge-content verify', () => {
   test.setTimeout(600000);
@@ -42,7 +44,7 @@ test.describe('forge-content verify', () => {
     expect(untested, `Abilities missing <name>.expect.json: ${untested.join(', ')}`).toEqual([]);
 
     // Lookup by identifier (or name) so expect.json `setup` can reference other abilities.
-    const byId = new Map(ITEMS.map(i => [i.doc.system?.identifier ?? i.doc.name, i.doc]));
+    const byId = new Map(ALL.map(i => [i.doc.system?.identifier ?? i.doc.name, i.doc]));
     // Pre-boot static validation of ALL expectations (fast; no Foundry needed).
     const idList = [...byId.keys()];
     const v2errors = ITEMS.flatMap(i => validate(i.expectation, idList).map(e => `${i.doc.name}: ${e}`));
