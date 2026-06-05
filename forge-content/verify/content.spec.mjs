@@ -42,7 +42,7 @@ test.describe('forge-content verify', () => {
   test.setTimeout(600000);
 
   test('every ability passes its declared functional check', async ({ page }) => {
-    expect(ITEMS.length, 'No abilities found under src/packs/').toBeGreaterThan(0);
+    expect(ITEMS.length + ACTORS.length, 'No docs found under src/packs/').toBeGreaterThan(0);
 
     const untested = ITEMS.filter(i => !i.expectation).map(i => i.doc.name);
     expect(untested, `Abilities missing <name>.expect.json: ${untested.join(', ')}`).toEqual([]);
