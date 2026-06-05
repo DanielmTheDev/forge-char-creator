@@ -5,6 +5,7 @@
     "test": "playwright test",
     "packs:build": "node scripts/pack-tools/build.mjs",
     "packs:unpack": "node scripts/pack-tools/unpack.mjs",
+    "content:catalog": "node scripts/pack-tools/catalog.mjs",
     "content:verify": "bash content-verify.sh",
     "content:unit": "node --test 'forge-content/verify/*.test.mjs' 'scripts/pack-tools/*.test.mjs'"
   },

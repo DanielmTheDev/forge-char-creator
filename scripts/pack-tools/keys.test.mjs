@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { injectKeys, stripKeys } from './keys.mjs';
+import { injectKeys, stripKeys, genId } from './keys.mjs';
 
 const actorDoc = () => ({
   _id: 'goblinactor00001',
@@ -57,6 +57,27 @@ test('injectKeys(items) still sets item-pack effect _key (unchanged)', () => {
   const d = injectKeys({ _id: 'abilitydoc000001', name: 'Bolt', effects: [{ _id: 'abilityeff000001', name: 'E' }] }, 'items', 'bolt.json');
   assert.equal(d._key, '!items!abilitydoc000001');
   assert.equal(d.effects[0]._key, '!items.effects!abilitydoc000001.abilityeff000001');
+});
+
+const ID16 = /^[A-Za-z0-9]{16}$/;
+
+test('genId returns a 16-alphanumeric id', () => {
+  assert.match(genId('actor:searing-bolt:0'), ID16);
+});
+
+test('genId is deterministic — same seed, same id', () => {
+  assert.equal(genId('actor:searing-bolt:0'), genId('actor:searing-bolt:0'));
+});
+
+test('genId differs for different seeds', () => {
+  assert.notEqual(genId('actor:searing-bolt:0'), genId('actor:searing-bolt:1'));
+  assert.notEqual(genId('a:x:0'), genId('b:x:0'));
+});
+
+test('genId output passes injectKeys id validation', () => {
+  const id = genId('actor:searing-bolt:0:act:dmgfire000000001');
+  const d = injectKeys({ _id: id, name: 'X', effects: [] }, 'items', 'x.json');
+  assert.equal(d._key, `!items!${id}`);
 });
 
 test('stripKeys removes _key at every actor level', () => {

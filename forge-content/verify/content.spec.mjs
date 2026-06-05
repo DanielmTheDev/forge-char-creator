@@ -8,8 +8,9 @@ import { fileURLToPath } from 'node:url';
 import { bootFoundry } from './boot.mjs';
 import { installGateHelpers, genericCheck, actorLoadCheck } from './checks.mjs';
 import { assertSnapshot } from './assert.mjs';
-import { validate, validateActor, KNOWN_KEYS } from './schema.mjs';
+import { validate, validateActor, validateActorRefs, KNOWN_KEYS } from './schema.mjs';
 import { COLLECTIONS } from '../../scripts/pack-tools/modules.mjs';
+import { resolveActorAbilities } from '../../scripts/pack-tools/resolve-abilities.mjs';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'packs');
 
@@ -61,6 +62,13 @@ test.describe('forge-content verify', () => {
     expect(actorUntested, `Actors missing <name>.expect.json: ${actorUntested.join(', ')}`).toEqual([]);
     const actorErrors = ACTORS.flatMap(a => validateActor(a.expectation).map(e => `${a.doc.name}: ${e}`));
     expect(actorErrors, `actor expect.json validation errors:\n${actorErrors.join('\n')}`).toEqual([]);
+    // Iter 2: actor source carries `abilities: [<identifier>]` refs. Validate them
+    // pre-boot, then resolve+inline (re-keyed embedded items) so actorLoadCheck —
+    // which reads SOURCE json, not the built pack — sees the items. byId is the
+    // ability map (identifier -> doc). Resolve mutates a copy; ALL stays raw.
+    const actorRefErrors = ACTORS.flatMap(a => validateActorRefs(a.doc, idList));
+    expect(actorRefErrors, `actor ability-ref errors:\n${actorRefErrors.join('\n')}`).toEqual([]);
+    for (const a of ACTORS) a.doc = resolveActorAbilities(a.doc, byId);
 
     await bootFoundry(page);
 

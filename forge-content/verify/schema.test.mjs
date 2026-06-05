@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validate, KNOWN_KEYS, validateActor } from './schema.mjs';
+import { validate, KNOWN_KEYS, validateActor, validateActorRefs } from './schema.mjs';
 
 const ids = ['example-strike']; // known abilities in the suite (besides "main")
 
@@ -142,4 +142,29 @@ test('validateActor requires an assert object', () => {
 test('validateActor rejects non-array hasItems', () => {
   const errs = validateActor({ tier: 'T2', assert: { hasItems: 'Searing Bolt' } });
   assert.ok(errs.some(e => e.includes('hasItems')));
+});
+
+const actorIds = ['searing-bolt', 'radiant-rebuke'];
+
+test('validateActorRefs accepts an actor with no abilities field', () => {
+  assert.deepEqual(validateActorRefs({ name: 'Plain', type: 'npc' }, actorIds), []);
+});
+
+test('validateActorRefs accepts known ability refs', () => {
+  assert.deepEqual(validateActorRefs({ name: 'Goblin', abilities: ['searing-bolt'] }, actorIds), []);
+});
+
+test('validateActorRefs rejects a non-array abilities field', () => {
+  const errs = validateActorRefs({ name: 'Goblin', abilities: 'searing-bolt' }, actorIds);
+  assert.ok(errs.some(e => e.includes('abilities')));
+});
+
+test('validateActorRefs rejects a non-string ref entry', () => {
+  const errs = validateActorRefs({ name: 'Goblin', abilities: [{ id: 'searing-bolt' }] }, actorIds);
+  assert.ok(errs.some(e => /must be.*string|string/i.test(e)));
+});
+
+test('validateActorRefs rejects an unknown identifier naming actor + ref', () => {
+  const errs = validateActorRefs({ name: 'Goblin', abilities: ['no-such'] }, actorIds);
+  assert.match(errs.join(), /Goblin.*no-such|no-such.*Goblin/);
 });

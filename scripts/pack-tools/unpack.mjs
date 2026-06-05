@@ -8,7 +8,7 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, existsSync
 import { join, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { MODULES } from "./modules.mjs";
+import { MODULES, COLLECTIONS } from "./modules.mjs";
 import { stripKeys } from "./keys.mjs";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -23,6 +23,14 @@ function unpackModule(mod) {
   rmSync(tmp, { recursive: true, force: true });
 
   for (const pack of readdirSync(packsDir, { withFileTypes: true }).filter(d => d.isDirectory())) {
+    // Actor packs are ref-based source (stats + ability ids), expanded one-way at
+    // build (resolve-abilities.mjs). Unpacking would clobber that with a fully-
+    // inlined, re-keyed, renamed copy — destroying the authored form. Skip unless
+    // UNPACK_ACTORS=1 (genuine import of an external actor pack).
+    if ((COLLECTIONS[pack.name] ?? "items") === "actors" && process.env.UNPACK_ACTORS !== "1") {
+      console.log(`[${mod.name}] skipping actor pack "${pack.name}" (ref-based source; set UNPACK_ACTORS=1 to force)`);
+      continue;
+    }
     const tmpDir = join(tmp, pack.name);
     mkdirSync(tmpDir, { recursive: true });
     console.log(`[${mod.name}] unpacking "${pack.name}"...`);

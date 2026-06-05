@@ -86,3 +86,19 @@ export function validateActor(expectation) {
   if ('hasItems' in a && !Array.isArray(a.hasItems)) errs.push('"hasItems" must be an array');
   return errs;
 }
+
+// Validate an actor SOURCE doc's `abilities: [<identifier>]` ref field (Iter 2)
+// against the suite identifiers. Pre-boot fast fail before resolve/inline, so a
+// typo'd ref is a clear message, not a mid-resolve throw. No field = no-op.
+export function validateActorRefs(actorDoc, idList) {
+  if (!('abilities' in (actorDoc ?? {}))) return [];
+  const errs = [];
+  const refs = actorDoc.abilities;
+  if (!Array.isArray(refs)) { errs.push(`actor "${actorDoc.name}": "abilities" must be an array of identifier strings`); return errs; }
+  const known = new Set(idList);
+  for (const r of refs) {
+    if (typeof r !== 'string') { errs.push(`actor "${actorDoc.name}": ability ref must be a string, got ${typeof r}`); continue; }
+    if (!known.has(r)) errs.push(`actor "${actorDoc.name}" references unknown ability "${r}"`);
+  }
+  return errs;
+}

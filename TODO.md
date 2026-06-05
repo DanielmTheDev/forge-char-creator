@@ -44,9 +44,9 @@ timeline) mutation-tested red→green during the ports. New per-step `onlyScenar
 timeout error added. Spec/plan: docs/superpowers/{specs,plans}/2026-06-03-declarative-gate-engine*.
 boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
 
-## Actor creation (NEW pipeline) — Iter 1 DONE ✅
+## Actor creation (NEW pipeline) — Iter 1 + Iter 2 DONE ✅
 4-iter split (spec+plan docs/superpowers/{specs,plans}/2026-06-05-actor-creation-iter1*):
-1 actor spine (THIS) · 2 compose+catalog · 3 knobs · 4 actor-T3-combat+reactions.
+1 actor spine · 2 compose+catalog (THIS) · 3 knobs · 4 actor-T3-combat+reactions.
 - Iter 1: `forge-npcs` actors pack + `COLLECTIONS["forge-npcs"]="actors"`.
   `keys.mjs` extended to inject nested `_key`s (actor→items→item-effects→activities
   + actor-own effects), 16-char ids enforced at every level, unit-tested
@@ -59,9 +59,23 @@ boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
   ac.calc:"flat"/flat:13, hp.max:20, str8/dex14 all derived first try.
 - Nested `_key` format confirmed empirically off dnd5e `monsters` pack:
   `!actors!`, `!actors.items!A.I`, `!actors.items.effects!A.I.E`, `!actors.effects!A.E`.
-- NEXT: Iter 2 — actor source = stats + [ability ids], build inlines from
-  forge-abilities (auto re-key); ability metadata → generated CATALOG.md so a
-  matching base ability is visible before authoring new.
+- Iter 2 DONE ✅: actor source = stats + top-level `abilities:[<identifier>]`; build
+  resolves refs from forge-abilities, inlines each as a re-keyed embedded item.
+  - `keys.mjs#genId(seed)` deterministic 16-alphanum id (FNV-1a, no Date/random).
+  - NEW `resolve-abilities.mjs#resolveActorAbilities(doc, abilityMap)`: pure/fs-free,
+    clones ability, builds old→new id map (item/activity/effect, seed=actorId:id:idx),
+    rebuilds activity map keys + full-string-equality deep-replace (preserves cross-refs
+    e.g. activity.effects[].​_id), strips `folder` + top-level `abilities`. Hard-errors
+    on missing ref. Unit-tested (11).
+  - DUAL call-site: `build.mjs` (→LevelDB, before injectKeys) AND `content.spec.mjs`
+    gather (→gate; reads SOURCE json, so must inline or actorLoadCheck sees 0 items).
+    `validateActorRefs` pre-boot (array-of-known-identifiers).
+  - NEW `catalog.mjs#buildCatalog` → `forge-abilities/CATALOG.md` (committed, HTML-stripped
+    table id/name/tier/icon/desc); auto-regen at packs:build start + `npm run content:catalog`.
+  - `unpack.mjs` SKIPS actor packs (resolver one-way; would clobber ref source). UNPACK_ACTORS=1 forces.
+  - test-goblin migrated to `abilities:["searing-bolt"]`. content:unit 73 green; GATE GREEN 11/11 (3.9m).
+- NEXT: Iter 3 — per-ref knobs/overrides (e.g. scale damage, rename, recharge tweak on
+  an inlined ability without forking the base).
 
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.

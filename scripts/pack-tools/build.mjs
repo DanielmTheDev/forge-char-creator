@@ -8,11 +8,30 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { MODULES, COLLECTIONS } from "./modules.mjs";
 import { injectKeys } from "./keys.mjs";
+import { resolveActorAbilities } from "./resolve-abilities.mjs";
+import { writeCatalogs } from "./catalog.mjs";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 // Compendium document type per collection (folders need a matching `type`).
 const DOC_TYPE = { items: "Item", actors: "Actor", journal: "JournalEntry" };
+
+// Map<identifier, abilityDoc> over every item-collection pack in a module, so
+// actor docs can resolve their `abilities: [<identifier>]` refs into embedded
+// items (see resolve-abilities.mjs). Keyed by system.identifier (the stable
+// logical key), falling back to name.
+function loadAbilityMap(src, packDirs) {
+  const map = new Map();
+  for (const pack of packDirs) {
+    if ((COLLECTIONS[pack.name] ?? "items") !== "items") continue;
+    const dir = join(src, pack.name);
+    for (const f of readdirSync(dir).filter(f => f.endsWith(".json") && !f.endsWith(".expect.json") && !f.startsWith("_"))) {
+      const doc = JSON.parse(readFileSync(join(dir, f), "utf8"));
+      map.set(doc.system?.identifier ?? doc.name, doc);
+    }
+  }
+  return map;
+}
 
 function buildModule(mod) {
   const moduleDir = join(REPO_ROOT, mod.dir);
@@ -24,6 +43,7 @@ function buildModule(mod) {
   rmSync(stage, { recursive: true, force: true });
 
   const packs = readdirSync(src, { withFileTypes: true }).filter(d => d.isDirectory());
+  const abilityMap = loadAbilityMap(src, packs);
   for (const pack of packs) {
     const coll = COLLECTIONS[pack.name] ?? "items";
     const srcDir = join(src, pack.name);
@@ -48,7 +68,10 @@ function buildModule(mod) {
     // Item docs: skip *.expect.json (test specs) and _*.json (folders / non-docs).
     const files = readdirSync(srcDir).filter(f => f.endsWith(".json") && !f.endsWith(".expect.json") && !f.startsWith("_"));
     for (const f of files) {
-      const doc = injectKeys(JSON.parse(readFileSync(join(srcDir, f), "utf8")), coll, f);
+      let doc = JSON.parse(readFileSync(join(srcDir, f), "utf8"));
+      // Actors: expand `abilities` refs into re-keyed embedded items before keying.
+      if (coll === "actors") doc = resolveActorAbilities(doc, abilityMap);
+      doc = injectKeys(doc, coll, f);
       const serialized = JSON.stringify(doc, null, 2);
       // Guard: a literal "[object Object]" means an object was coerced to string
       // somewhere in the authoring path (e.g. ActiveEffect.description must be a
@@ -70,5 +93,6 @@ function buildModule(mod) {
 const only = process.argv[2];
 const targets = only ? MODULES.filter(m => m.name === only) : MODULES;
 if (only && !targets.length) { console.error(`Unknown module: ${only}`); process.exit(1); }
+writeCatalogs(); // keep ability CATALOG.md current before packing
 for (const m of targets) buildModule(m);
 console.log("✅ Packs built.");
