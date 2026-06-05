@@ -18,6 +18,7 @@
         "_id": "rebukesave000001",
         "type": "save",
         "activation": { "type": "action", "value": 1 },
+        "consumption": { "targets": [{ "type": "itemUses", "target": "", "value": "1" }] },
         "range": { "value": 30, "units": "ft" },
         "target": { "affects": { "type": "creature", "count": "1" } },
         "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "14" } },
