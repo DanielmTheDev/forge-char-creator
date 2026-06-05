@@ -7,7 +7,7 @@ export const KNOWN_KEYS = [
   'hpDelta', 'hpDeltaMin', 'hpDeltaMax', 'tempHp', 'acDelta', 'abilityDelta',
   'conditionApplied', 'effectApplied', 'effectAbsent', 'flagPresent', 'ticks',
   'lastWorkflow.advantage', 'lastWorkflow.disadvantage', 'lastWorkflow.hit', 'lastWorkflow.crit',
-  'targetedCount',
+  'targetedCount', 'usesSpent',
 ];
 
 const TOP_KEYS = ['tier', 'combat', 'actors', 'steps', 'scenarios', 'assert', 'setup'];

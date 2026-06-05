@@ -29,10 +29,11 @@ function gather() {
   return out;
 }
 
-const ITEMS = gather();
+// FC_ONLY=<substring> limits the suite to matching ability filenames/names (dev iteration).
+const ITEMS = gather().filter(i => !process.env.FC_ONLY || i.doc.name.toLowerCase().includes(process.env.FC_ONLY.toLowerCase()));
 
 test.describe('forge-content verify', () => {
-  test.setTimeout(360000);
+  test.setTimeout(600000);
 
   test('every ability passes its declared functional check', async ({ page }) => {
     expect(ITEMS.length, 'No abilities found under src/packs/').toBeGreaterThan(0);

@@ -41,6 +41,7 @@ export function assertSnapshot(asserts, snapshots, knownKeys) {
         case 'effectAbsent': if (a.effects.includes(want)) fails.push(`${L}: effect "${want}" should be absent`); break;
         case 'flagPresent': if (getPath({ flags: a.flags }, want) === undefined) fails.push(`${L}: flag "${want}" not present`); break;
         case 'ticks': if (a.ticks !== want) fails.push(`${L}: ticks expected ${want}, got ${a.ticks}`); break;
+        case 'usesSpent': if (a.usesSpent !== want) fails.push(`${L}: usesSpent expected ${want}, got ${a.usesSpent}`); break;
         case 'lastWorkflow.advantage': { const lw = a.lastWorkflow ?? {}; if (lw.advantage !== want) fails.push(`${L}: lastWorkflow.advantage expected ${want}, got ${lw.advantage}`); break; }
         case 'lastWorkflow.disadvantage': { const lw = a.lastWorkflow ?? {}; if (lw.disadvantage !== want) fails.push(`${L}: lastWorkflow.disadvantage expected ${want}, got ${lw.disadvantage}`); break; }
         case 'lastWorkflow.hit': { const lw = a.lastWorkflow ?? {}; if (lw.hit !== want) fails.push(`${L}: lastWorkflow.hit expected ${want}, got ${lw.hit}`); break; }

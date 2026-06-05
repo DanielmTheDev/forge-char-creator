@@ -62,7 +62,7 @@ export function installGateHelpers() {
       midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids, ignoreUserTargets: true, ...(opts.midiOptions ?? {}) },
     });
     if (opts.settle) await new Promise(r => setTimeout(r, opts.settle));
-    return wf;
+    return { wf, item };
   };
   // Declarative scene runner. spec = { combat, actors, steps, __docs, __scenario }.
   // Builds the roster, applies per-actor forces, runs steps in order, returns
@@ -76,6 +76,7 @@ export function installGateHelpers() {
     const baseAc = {};  // name -> ac at scene build (acDelta baseline)
     const baseAbil = {};// name -> { abil: score } at scene build
     const lastWf = {};  // name -> last workflow this actor cast
+    const lastItem = {}; // name -> last ability item this actor cast (for uses.spent)
     const tickCount = {}; // name -> DoT tick count (from advanceTurns)
     let runTargeted = 0;  // last cast's wf.targets.size (targetedCount)
     const snapshots = {};
@@ -86,6 +87,13 @@ export function installGateHelpers() {
       attack:  { hit: 'flags.midi-qol.grants.attack.success.all', miss: 'flags.midi-qol.grants.attack.fail.all' },
     };
     try {
+      // Recharge force: dnd5e auto-recharge defaults to "no", so enable it (silent =
+      // no chat spam) and publish the forced outcome for the rollRecharge hook
+      // (installGateHelpers) to apply deterministically. Real formula kept intact —
+      // rigging recovery.formula on the item copy breaks the cast workflow.
+      const rechargeForce = Object.values(spec.actors).find(a => a.forces?.recharge)?.forces.recharge ?? null;
+      globalThis.__fcGate._rechargeForce = rechargeForce;
+      if (rechargeForce) try { await game.settings.set('dnd5e', 'autoRecharge', 'silent'); } catch {}
       const scene = combatOn ? track(await makeScene('T3 Verify Scene')) : null;
       const defaultPos = (i) => [100 + i * 100, 100];
       for (let i = 0; i < names.length; i++) {
@@ -130,6 +138,7 @@ export function installGateHelpers() {
           effects: [...a.effects].map(ef => ef.name),
           flags: foundry.utils.deepClone(a.flags ?? {}),
           ticks: tickCount[n] ?? 0,
+          usesSpent: lastItem[n]?.system?.uses?.spent ?? null,
           lastWorkflow: lastWf[n] ?? { advantage: false, disadvantage: false, hit: false, crit: false, total: null },
         };
       };
@@ -146,8 +155,9 @@ export function installGateHelpers() {
           } else {
             const targetUuids = (step.targets ?? []).map(t => T[t].uuid);
             for (const t of step.targets ?? []) targetToken(T[t]);
-            const wf = await useActivity(caster, docData, targetUuids, { settle: 2500 });
+            const { wf, item } = await useActivity(caster, docData, targetUuids, { settle: 2500 });
             if (!wf) return { error: `midi workflow did not run (cast ${step.cast} ${step.ability})` };
+            lastItem[step.cast] = item;
             runTargeted = wf.targets?.size ?? 0;
             lastWf[step.cast] = {
               advantage: !!wf.advantage, disadvantage: !!wf.disadvantage,
@@ -184,12 +194,28 @@ export function installGateHelpers() {
     } catch (err) {
       return { error: err.message };
     } finally {
+      globalThis.__fcGate._rechargeForce = null;
       clearTargets();
       const order = (d) => d?.documentName === 'Combat' ? 0 : d?.documentName === 'Scene' ? 1 : 2;
       for (const d of [...created].sort((a, b) => order(a) - order(b))) await d.delete().catch(() => {});
     }
   };
-  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, runScene };
+  // Deterministic recharge: dnd5e rolls a real d6 on NPC turn-start (via
+  // recoverUses, with autoRecharge enabled). This hook overrides the result
+  // BEFORE the uses.spent update is applied — success forces a reset to 0,
+  // fail forces no recovery — keyed off the per-run __fcGate._rechargeForce.
+  // Item recharge updates "system.uses.spent"; activity recharge "uses.spent".
+  if (!globalThis.__fcRechargeHook) {
+    Hooks.on('dnd5e.rollRecharge', (rolls, { subject, updates }) => {
+      const f = globalThis.__fcGate?._rechargeForce;
+      if (!f) return;
+      const key = subject instanceof Item ? 'system.uses.spent' : 'uses.spent';
+      if (f === 'success') updates[key] = 0;
+      else if (f === 'fail') delete updates[key];
+    });
+    globalThis.__fcRechargeHook = true;
+  }
+  globalThis.__fcGate = { strip, makeScene, makeActor, makeToken, makeCombat, drawAndWait, targetToken, clearTargets, useActivity, runScene, _rechargeForce: null };
 }
 
 // Declarative handler. Replaces all bespoke handlers. arg:

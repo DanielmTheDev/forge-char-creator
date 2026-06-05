@@ -73,6 +73,14 @@ test('KNOWN_KEYS includes the migrated apply keys', () => {
   assert.ok(KNOWN_KEYS.includes('abilityDelta'));
 });
 
+test('usesSpent is a known assert key (recharge gate)', () => {
+  assert.ok(KNOWN_KEYS.includes('usesSpent'));
+  const e = base(); delete e.assert;
+  e.scenarios = [{ name: 'success', forces: { att: { recharge: 'success' } },
+    assert: [{ at: 'main', actor: 'att', usesSpent: 0 }] }];
+  assert.deepEqual(validate(e, ids), []);
+});
+
 test('null expectation returns an error, does not throw', () => {
   assert.deepEqual(validate(null, ids), ['expectation must be a non-null object']);
 });
