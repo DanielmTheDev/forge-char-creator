@@ -1,0 +1,55 @@
+{
+  "_id": "testgoblin000001",
+  "name": "Test Goblin",
+  "type": "npc",
+  "img": "icons/creatures/mammals/humanoid-goblin-green.webp",
+  "system": {
+    "abilities": {
+      "str": { "value": 8 },
+      "dex": { "value": 14 },
+      "con": { "value": 10 },
+      "int": { "value": 10 },
+      "wis": { "value": 8 },
+      "cha": { "value": 8 }
+    },
+    "attributes": {
+      "hp": { "value": 20, "max": 20, "formula": "" },
+      "ac": { "calc": "flat", "flat": 13 }
+    },
+    "details": {
+      "cr": 1,
+      "type": { "value": "humanoid" }
+    }
+  },
+  "items": [
+    {
+      "_id": "tgsearingbolt001",
+      "name": "Searing Bolt",
+      "type": "feat",
+      "img": "icons/magic/fire/projectile-fireball-orange.webp",
+      "system": {
+        "description": { "value": "<p>You hurl a mote of fire at a creature within range, dealing 10 fire damage.</p>", "chat": "" },
+        "activities": {
+          "tgdmgfire0000001": {
+            "_id": "tgdmgfire0000001",
+            "type": "damage",
+            "activation": { "type": "action", "value": 1 },
+            "range": { "value": 60, "units": "ft" },
+            "target": { "affects": { "type": "creature", "count": "1" } },
+            "damage": { "parts": [ { "types": ["fire"], "custom": { "enabled": true, "formula": "10" }, "scaling": { "mode": "", "number": null, "formula": "" } } ] }
+          }
+        },
+        "identifier": "searing-bolt",
+        "source": { "revision": 1, "rules": "2024" },
+        "properties": [],
+        "requirements": "",
+        "type": { "value": "", "subtype": "" }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

@@ -44,6 +44,25 @@ timeline) mutation-tested red→green during the ports. New per-step `onlyScenar
 timeout error added. Spec/plan: docs/superpowers/{specs,plans}/2026-06-03-declarative-gate-engine*.
 boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
 
+## Actor creation (NEW pipeline) — Iter 1 DONE ✅
+4-iter split (spec+plan docs/superpowers/{specs,plans}/2026-06-05-actor-creation-iter1*):
+1 actor spine (THIS) · 2 compose+catalog · 3 knobs · 4 actor-T3-combat+reactions.
+- Iter 1: `forge-npcs` actors pack + `COLLECTIONS["forge-npcs"]="actors"`.
+  `keys.mjs` extended to inject nested `_key`s (actor→items→item-effects→activities
+  + actor-own effects), 16-char ids enforced at every level, unit-tested
+  (`keys.test.mjs`, 9 tests). Hand-authored `test-goblin` npc inlines a re-keyed
+  `searing-bolt`. New `actorLoadCheck` (T1 loads + T2 derived hp/ac/abilities/item
+  present) + `validateActor` pre-boot schema; dispatcher (`content.spec.mjs`) splits
+  ability vs actor packs by collection (empty-guard now counts items+actors).
+  Reused ability NOT re-proven (test-explosion guard). FULL GATE GREEN: 11/11
+  (10 abilities + Test Goblin T2), 1 passed 3.8m. No statblock fix needed —
+  ac.calc:"flat"/flat:13, hp.max:20, str8/dex14 all derived first try.
+- Nested `_key` format confirmed empirically off dnd5e `monsters` pack:
+  `!actors!`, `!actors.items!A.I`, `!actors.items.effects!A.I.E`, `!actors.effects!A.E`.
+- NEXT: Iter 2 — actor source = stats + [ability ids], build inlines from
+  forge-abilities (auto re-key); ability metadata → generated CATALOG.md so a
+  matching base ability is visible before authoring new.
+
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
 

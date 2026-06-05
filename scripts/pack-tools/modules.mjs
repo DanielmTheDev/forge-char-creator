@@ -8,5 +8,5 @@ export const MODULES = [
 
 // pack name -> primary document collection (default "items" if absent).
 export const COLLECTIONS = {
-  // "some-actor-pack": "actors",
+  "forge-npcs": "actors",
 };

@@ -68,3 +68,21 @@ export function validate(expectation, identifiers) {
   }
   return errs;
 }
+
+// --- Actor pack expectations (Iter 1: load + derived-stat asserts only) ---
+// Distinct shape from ability expects: no scaffold actors/steps, just stat asserts
+// against the single authored actor under test.
+const ACTOR_TOP_KEYS = ['tier', 'assert'];
+export const ACTOR_ASSERT_KEYS = ['hpMax', 'ac', 'abilities', 'hasItems'];
+
+export function validateActor(expectation) {
+  if (!expectation || typeof expectation !== 'object') return ['actor expectation must be a non-null object'];
+  const errs = [];
+  for (const k of Object.keys(expectation)) if (!ACTOR_TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (actor expect)`);
+  const a = expectation.assert;
+  if (!a || typeof a !== 'object' || Array.isArray(a)) { errs.push('actor expect missing "assert" object'); return errs; }
+  for (const k of Object.keys(a)) if (!ACTOR_ASSERT_KEYS.includes(k)) errs.push(`unknown actor assert key "${k}"`);
+  if ('abilities' in a && (typeof a.abilities !== 'object' || Array.isArray(a.abilities))) errs.push('"abilities" must be an object map');
+  if ('hasItems' in a && !Array.isArray(a.hasItems)) errs.push('"hasItems" must be an array');
+  return errs;
+}

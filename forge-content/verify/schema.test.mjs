@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validate, KNOWN_KEYS } from './schema.mjs';
+import { validate, KNOWN_KEYS, validateActor } from './schema.mjs';
 
 const ids = ['example-strike']; // known abilities in the suite (besides "main")
 
@@ -117,4 +117,29 @@ test('step onlyScenarios must name real scenarios', () => {
   e.scenarios = [{ name: 'main', assert: [{ at: 'main', actor: 'def', hpDelta: -1 }] }];
   e.steps = [{ cast: 'att', ability: 'main', targets: ['def'], onlyScenarios: ['ghost'] }, { snapshot: 'main' }];
   assert.match(validate(e, ids).join(), /onlyScenarios references unknown scenario "ghost"/);
+});
+
+test('validateActor accepts a well-formed actor expectation', () => {
+  const errs = validateActor({ tier: 'T2', assert: { hpMax: 20, ac: 13, abilities: { dex: 14 }, hasItems: ['Searing Bolt'] } });
+  assert.deepEqual(errs, []);
+});
+
+test('validateActor rejects an unknown assert key', () => {
+  const errs = validateActor({ tier: 'T2', assert: { hitPoints: 20 } });
+  assert.ok(errs.some(e => e.includes('hitPoints')));
+});
+
+test('validateActor rejects an unknown top-level key', () => {
+  const errs = validateActor({ tier: 'T2', steps: [], assert: { hpMax: 20 } });
+  assert.ok(errs.some(e => e.includes('steps')));
+});
+
+test('validateActor requires an assert object', () => {
+  const errs = validateActor({ tier: 'T2' });
+  assert.ok(errs.some(e => e.includes('assert')));
+});
+
+test('validateActor rejects non-array hasItems', () => {
+  const errs = validateActor({ tier: 'T2', assert: { hasItems: 'Searing Bolt' } });
+  assert.ok(errs.some(e => e.includes('hasItems')));
 });

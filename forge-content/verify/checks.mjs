@@ -252,3 +252,42 @@ export async function genericCheck({ doc, expectation, setupDocs = [], knownKeys
   return { ok: fails.length === 0, fails };
 }
 
+// Iter 1 actor gate. Imports an authored NPC into the world (forge-content.test
+// flagged -> isolate() cleans it), then asserts T1 (loads, items present) + T2
+// (derived stats). Self-contained: shipped to the browser via page.evaluate.
+// arg = { doc, expectation }. Returns { ok, fails:[] }.
+export async function actorLoadCheck({ doc, expectation }) {
+  const fails = [];
+  let actor;
+  try {
+    const data = foundry.utils.deepClone(doc);
+    delete data._key;
+    foundry.utils.setProperty(data, 'flags.forge-content.test', true);
+    actor = await Actor.create(data);
+    if (!actor) return { ok: false, fails: ['Actor.create returned null — doc failed to load (T1)'] };
+
+    const a = expectation.assert ?? {};
+    if ('hpMax' in a) {
+      const got = actor.system.attributes?.hp?.max;
+      if (got !== a.hpMax) fails.push(`hpMax expected ${a.hpMax}, got ${got}`);
+    }
+    if ('ac' in a) {
+      const got = actor.system.attributes?.ac?.value;
+      if (got !== a.ac) fails.push(`ac expected ${a.ac}, got ${got}`);
+    }
+    if (a.abilities) {
+      for (const [k, v] of Object.entries(a.abilities)) {
+        const got = actor.system.abilities?.[k]?.value;
+        if (got !== v) fails.push(`ability ${k} expected ${v}, got ${got}`);
+      }
+    }
+    for (const name of a.hasItems ?? []) {
+      if (!actor.items.find(i => i.name === name)) fails.push(`missing item "${name}"`);
+    }
+  } catch (e) {
+    fails.push(`exception: ${e.message}`);
+  } finally {
+    if (actor) await actor.delete().catch(() => {});
+  }
+  return { ok: fails.length === 0, fails };
+}
