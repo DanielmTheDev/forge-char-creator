@@ -1,0 +1,9 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 59,
+    "ac": 11,
+    "abilities": { "str": 19, "dex": 8 },
+    "hasItems": ["Greater Searing Bolt"]
+  }
+}

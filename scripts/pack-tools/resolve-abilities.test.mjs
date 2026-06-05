@@ -17,6 +17,7 @@ const searingBolt = () => ({
       dmgfire000000001: {
         _id: 'dmgfire000000001',
         type: 'damage',
+        range: { value: 60, units: 'ft' },
         damage: { parts: [{ types: ['fire'], custom: { enabled: true, formula: '10' } }] },
       },
     },
@@ -47,6 +48,29 @@ const squiresMark = () => ({
   effects: [{ _id: 'squiremarkeff001', name: "Squire's Mark", changes: [] }],
   flags: {},
   folder: 'folderderek00001',
+});
+
+// Save ability: has save.dc, damage parts, and a range — exercises all 3 knobs.
+const radiantRebuke = () => ({
+  name: 'Radiant Rebuke',
+  type: 'feat',
+  _id: 'radiantrebuke001',
+  system: {
+    description: { value: '<p>Save or burn.</p>', chat: '' },
+    activities: {
+      rebukesave000001: {
+        _id: 'rebukesave000001',
+        type: 'save',
+        range: { value: 30, units: 'ft' },
+        save: { ability: ['dex'], dc: { calculation: 'custom', formula: '14' } },
+        damage: { onSave: 'half', parts: [{ types: ['radiant'], custom: { enabled: true, formula: '12' } }] },
+      },
+    },
+    identifier: 'radiant-rebuke',
+  },
+  effects: [],
+  flags: {},
+  folder: null,
 });
 
 const actorDoc = (abilities, extra = {}) => ({
@@ -140,4 +164,60 @@ test('does not mutate the input ability source (clone)', () => {
   resolveActorAbilities(actorDoc(['searing-bolt']), map);
   assert.equal(src._id, 'searingbolt00001');
   assert.equal(Object.keys(src.system.activities)[0], 'dmgfire000000001');
+});
+
+// --- Iter 3: knob object refs ---
+const firstAct = (item) => Object.values(item.system.activities)[0];
+
+test('knob ref applies dmg + range, ids still fresh', () => {
+  const ref = { ability: 'searing-bolt', set: { dmg: '20', range: 90 } };
+  const out = resolveActorAbilities(actorDoc([ref]), mapOf(searingBolt()));
+  const act = firstAct(out.items[0]);
+  assert.equal(act.damage.parts[0].custom.formula, '20');
+  assert.equal(act.range.value, 90);
+  assert.match(out.items[0]._id, ID16);
+});
+
+test('dmg knob coerces to a custom formula string', () => {
+  const ref = { ability: 'searing-bolt', set: { dmg: 7 } };
+  const out = resolveActorAbilities(actorDoc([ref]), mapOf(searingBolt()));
+  const part = firstAct(out.items[0]).damage.parts[0];
+  assert.equal(part.custom.enabled, true);
+  assert.equal(part.custom.formula, '7');
+});
+
+test('dc + dmg knobs broadcast on a save ability', () => {
+  const ref = { ability: 'radiant-rebuke', set: { dc: 17, dmg: '5d6' } };
+  const out = resolveActorAbilities(actorDoc([ref]), mapOf(radiantRebuke()));
+  const act = firstAct(out.items[0]);
+  assert.equal(act.save.dc.calculation, 'custom');
+  assert.equal(act.save.dc.formula, '17');
+  assert.equal(act.damage.parts[0].custom.formula, '5d6');
+});
+
+test('name knob renames the inlined item without mutating the base', () => {
+  const src = searingBolt();
+  const out = resolveActorAbilities(actorDoc([{ ability: 'searing-bolt', name: 'Greater Searing Bolt' }]), new Map([['searing-bolt', src]]));
+  assert.equal(out.items[0].name, 'Greater Searing Bolt');
+  assert.equal(src.name, 'Searing Bolt');
+});
+
+test('mixed string + knob refs to the same ability produce two distinct items', () => {
+  const out = resolveActorAbilities(actorDoc(['searing-bolt', { ability: 'searing-bolt', set: { dmg: '5' } }]), mapOf(searingBolt()));
+  assert.equal(out.items.length, 2);
+  assert.notEqual(out.items[0]._id, out.items[1]._id);
+  assert.equal(firstAct(out.items[0]).damage.parts[0].custom.formula, '10');
+  assert.equal(firstAct(out.items[1]).damage.parts[0].custom.formula, '5');
+});
+
+test('an unknown knob throws', () => {
+  assert.throws(
+    () => resolveActorAbilities(actorDoc([{ ability: 'searing-bolt', set: { shape: 1 } }]), mapOf(searingBolt())),
+    /unknown knob "shape"/,
+  );
+});
+
+test('knobbed output passes injectKeys validation', () => {
+  const out = resolveActorAbilities(actorDoc([{ ability: 'radiant-rebuke', name: 'Big Rebuke', set: { dmg: '9', dc: 18, range: 60 } }]), mapOf(radiantRebuke()));
+  assert.doesNotThrow(() => injectKeys(out, 'actors', 'test-ogre.json'));
 });

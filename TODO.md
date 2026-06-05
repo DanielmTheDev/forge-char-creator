@@ -44,7 +44,7 @@ timeline) mutation-tested red→green during the ports. New per-step `onlyScenar
 timeout error added. Spec/plan: docs/superpowers/{specs,plans}/2026-06-03-declarative-gate-engine*.
 boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
 
-## Actor creation (NEW pipeline) — Iter 1 + Iter 2 DONE ✅
+## Actor creation (NEW pipeline) — Iter 1 + Iter 2 + Iter 3 DONE ✅
 4-iter split (spec+plan docs/superpowers/{specs,plans}/2026-06-05-actor-creation-iter1*):
 1 actor spine · 2 compose+catalog (THIS) · 3 knobs · 4 actor-T3-combat+reactions.
 - Iter 1: `forge-npcs` actors pack + `COLLECTIONS["forge-npcs"]="actors"`.
@@ -74,8 +74,26 @@ boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
     table id/name/tier/icon/desc); auto-regen at packs:build start + `npm run content:catalog`.
   - `unpack.mjs` SKIPS actor packs (resolver one-way; would clobber ref source). UNPACK_ACTORS=1 forces.
   - test-goblin migrated to `abilities:["searing-bolt"]`. content:unit 73 green; GATE GREEN 11/11 (3.9m).
-- NEXT: Iter 3 — per-ref knobs/overrides (e.g. scale damage, rename, recharge tweak on
-  an inlined ability without forking the base).
+- Iter 3 DONE ✅: per-ref VALUE knobs on inlined abilities, no base fork. Ref entry is
+  now string OR `{ability, name?, set:{dmg,dc,range}}` (string = `{ability}`, backward
+  compat). **Knobs change values only, never shape** (preserves tested-once/reused proof).
+  - `applyKnobs(item, ref)` in resolve-abilities.mjs (before re-key): `name`→item.name;
+    `set.dmg`→every `damage.parts[].custom.{enabled:true,formula:String}` (dmg always a
+    custom formula); `set.dc`→every save activity `save.dc.{calculation:"custom",formula}`;
+    `set.range`→every activity `range.value:Number`. **Broadcast to ALL** activities;
+    absent field = silent no-op (NOT an error). Throws on unknown knob.
+  - `validateActorRefs` (schema.mjs) accepts object refs; rejects unknown ref keys
+    (only ability/name/set — the never-shape guard), unknown knobs (only dmg/dc/range),
+    bad value types. Pre-boot fast-fail. Dual call-site (build + gate) unchanged.
+  - Fixture `test-ogre.json` (knobbed searing-bolt: rename+dmg20+range90) + expect
+    `hasItems:["Greater Searing Bolt"]`. test-goblin stays plain-ref baseline.
+  - Smoke = unit tests (resolve-abilities.test +8, schema.test +7) for dmg/dc/range;
+    rename proven E2E in gate via hasItems. No new gate assert keys, NO T3 (mechanic
+    reused). content:unit 87 green; GATE GREEN (1 passed 3.9m, Goblin+Ogre); gate
+    mutation (break rename) → RED `missing item "Greater Searing Bolt"` → reverted.
+  - Spec/plan: docs/superpowers/{specs,plans}/2026-06-06-actor-creation-iter3-knobs*.
+- NEXT: Iter 4 — actor T3 combat + reaction unlock (authored NPC fights with its own
+  abilities in real midi; `_source`-macro reactions auto-fire, closes #6).
 
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
@@ -191,4 +209,7 @@ T3-combat gate works: Searing Bolt (flat 10 fire) → exact -10 on rigged defend
 
 ## Decisions log
 - 2026-06-01: New `forge-content` module, same repo. JSON source → foundryvtt-cli compile → LevelDB packs. Stop committing binary .ldb diffs.
+- 2026-06-06: Actor Iter 3 knobs = VALUE overrides only (dmg/dc/range + name), broadcast
+  to all activities, never shape — guard in validateActorRefs + applyKnobs. Ref format
+  string|object, backward compat. Smoke = node unit + gate rename via hasItems, no T3.
 - 2026-06-05: Recharge determinism via `dnd5e.rollRecharge` hook (not formula rig). Reactions: payload-proven via gate-fired cast; auto-trigger deferred to the actor/boss phase (item-based auto-reactions infeasible on bare NPCs — actor `_source` macro needed). BUG-1/BUG-2 fixed at root + build guard.

@@ -87,18 +87,36 @@ export function validateActor(expectation) {
   return errs;
 }
 
-// Validate an actor SOURCE doc's `abilities: [<identifier>]` ref field (Iter 2)
-// against the suite identifiers. Pre-boot fast fail before resolve/inline, so a
-// typo'd ref is a clear message, not a mid-resolve throw. No field = no-op.
+// Validate an actor SOURCE doc's `abilities` ref field. Each entry is either a
+// plain identifier string (Iter 2) or a knob object `{ ability, name?, set }`
+// (Iter 3). Pre-boot fast fail before resolve/inline, so a typo'd ref or a
+// shape-changing knob is a clear message, not a mid-resolve throw. No field = no-op.
+const REF_KEYS = ['ability', 'name', 'set'];   // never-shape guard: nothing else allowed
+const KNOB_KEYS = ['dmg', 'dc', 'range'];
 export function validateActorRefs(actorDoc, idList) {
   if (!('abilities' in (actorDoc ?? {}))) return [];
   const errs = [];
   const refs = actorDoc.abilities;
-  if (!Array.isArray(refs)) { errs.push(`actor "${actorDoc.name}": "abilities" must be an array of identifier strings`); return errs; }
+  const who = `actor "${actorDoc.name}"`;
+  if (!Array.isArray(refs)) { errs.push(`${who}: "abilities" must be an array of identifiers or knob objects`); return errs; }
   const known = new Set(idList);
   for (const r of refs) {
-    if (typeof r !== 'string') { errs.push(`actor "${actorDoc.name}": ability ref must be a string, got ${typeof r}`); continue; }
-    if (!known.has(r)) errs.push(`actor "${actorDoc.name}" references unknown ability "${r}"`);
+    if (typeof r === 'string') { if (!known.has(r)) errs.push(`${who} references unknown ability "${r}"`); continue; }
+    if (typeof r !== 'object' || r === null || Array.isArray(r)) { errs.push(`${who}: ability ref must be a string or object, got ${Array.isArray(r) ? 'array' : typeof r}`); continue; }
+    for (const k of Object.keys(r)) if (!REF_KEYS.includes(k)) errs.push(`${who}: unknown ref key "${k}" (only ${REF_KEYS.join('/')} — knobs change values, never shape)`);
+    if (typeof r.ability !== 'string') { errs.push(`${who}: ref "ability" must be a string identifier`); continue; }
+    if (!known.has(r.ability)) errs.push(`${who} references unknown ability "${r.ability}"`);
+    if ('name' in r && typeof r.name !== 'string') errs.push(`${who} (${r.ability}): "name" must be a string`);
+    if ('set' in r) {
+      const s = r.set;
+      if (typeof s !== 'object' || s === null || Array.isArray(s)) { errs.push(`${who} (${r.ability}): "set" must be an object`); continue; }
+      for (const k of Object.keys(s)) {
+        if (!KNOB_KEYS.includes(k)) { errs.push(`${who} (${r.ability}): unknown knob "${k}" (allowed: ${KNOB_KEYS.join(', ')})`); continue; }
+        const v = s[k];
+        if (k === 'range' && typeof v !== 'number') errs.push(`${who} (${r.ability}): knob "range" must be a number`);
+        if ((k === 'dmg' || k === 'dc') && typeof v !== 'string' && typeof v !== 'number') errs.push(`${who} (${r.ability}): knob "${k}" must be a string or number`);
+      }
+    }
   }
   return errs;
 }

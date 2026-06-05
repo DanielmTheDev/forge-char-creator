@@ -168,3 +168,39 @@ test('validateActorRefs rejects an unknown identifier naming actor + ref', () =>
   const errs = validateActorRefs({ name: 'Goblin', abilities: ['no-such'] }, actorIds);
   assert.match(errs.join(), /Goblin.*no-such|no-such.*Goblin/);
 });
+
+// --- Iter 3: knob object refs ---
+test('validateActorRefs accepts a knob object ref', () => {
+  const ref = { ability: 'searing-bolt', name: 'Greater Bolt', set: { dmg: '20', range: 90 } };
+  assert.deepEqual(validateActorRefs({ name: 'Ogre', abilities: [ref] }, actorIds), []);
+});
+
+test('validateActorRefs accepts mixed string + object refs', () => {
+  const abilities = ['searing-bolt', { ability: 'radiant-rebuke', set: { dc: 16 } }];
+  assert.deepEqual(validateActorRefs({ name: 'Ogre', abilities }, actorIds), []);
+});
+
+test('validateActorRefs rejects an unknown ref key (never-shape guard)', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'searing-bolt', activities: {} }] }, actorIds);
+  assert.ok(errs.some(e => /unknown ref key "activities"/.test(e)));
+});
+
+test('validateActorRefs rejects an unknown knob', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'searing-bolt', set: { shape: 1 } }] }, actorIds);
+  assert.ok(errs.some(e => /unknown knob "shape"/.test(e)));
+});
+
+test('validateActorRefs rejects a non-string ability in an object ref', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 5 }] }, actorIds);
+  assert.ok(errs.some(e => /"ability" must be a string/.test(e)));
+});
+
+test('validateActorRefs rejects a non-number range knob', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'searing-bolt', set: { range: '90' } }] }, actorIds);
+  assert.ok(errs.some(e => /"range" must be a number/.test(e)));
+});
+
+test('validateActorRefs rejects an unknown identifier in an object ref', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'no-such' }] }, actorIds);
+  assert.match(errs.join(), /Ogre.*no-such|no-such.*Ogre/);
+});

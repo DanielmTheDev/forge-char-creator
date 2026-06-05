@@ -28,10 +28,36 @@ function remapIds(node, idMap) {
   }
 }
 
+// Iter 3 — value knobs. Apply per-ref overrides to a cloned ability BEFORE re-key.
+// Knobs change VALUES only, never SHAPE (no new activities / type / target changes)
+// so the base ability's gate-proven mechanic still holds — only its numbers move.
+// Broadcast to ALL applicable spots; a knob whose field is absent is a silent no-op.
+const KNOBS = new Set(["dmg", "dc", "range"]);
+function applyKnobs(item, ref) {
+  if (ref.name != null) item.name = ref.name;
+  const set = ref.set;
+  if (!set) return;
+  for (const k of Object.keys(set)) {
+    if (!KNOBS.has(k)) throw new Error(`ability "${ref.ability}": unknown knob "${k}" (allowed: ${[...KNOBS].join(", ")})`);
+  }
+  const activities = Object.values(item.system?.activities ?? {});
+  if ("dmg" in set) {
+    for (const act of activities)
+      for (const part of act.damage?.parts ?? []) part.custom = { enabled: true, formula: String(set.dmg) };
+  }
+  if ("dc" in set) {
+    for (const act of activities) if (act.save) act.save.dc = { calculation: "custom", formula: String(set.dc) };
+  }
+  if ("range" in set) {
+    for (const act of activities) if (act.range) act.range.value = Number(set.range);
+  }
+}
+
 // Inline one ability source as a re-keyed embedded item for `actorId`.
-function inlineAbility(ability, actorId, identifier, index) {
+function inlineAbility(ability, actorId, ref, index) {
   const item = structuredClone(ability);
-  const seed = `${actorId}:${identifier}:${index}`;
+  applyKnobs(item, ref);
+  const seed = `${actorId}:${ref.ability}:${index}`;
 
   const idMap = new Map();
   idMap.set(item._id, genId(seed));
@@ -58,11 +84,13 @@ export function resolveActorAbilities(actorDoc, abilityMap) {
   if (!Array.isArray(out.abilities)) return out;
 
   out.items = out.items ?? [];
-  out.abilities.forEach((identifier, index) => {
-    const ability = abilityMap.get(identifier);
+  out.abilities.forEach((rawRef, index) => {
+    // Ref is either a plain identifier string or an object { ability, name?, set? }.
+    const ref = typeof rawRef === "string" ? { ability: rawRef } : rawRef;
+    const ability = abilityMap.get(ref.ability);
     if (!ability)
-      throw new Error(`Actor "${out.name}" references unknown ability "${identifier}" — no forge-abilities source with that identifier`);
-    out.items.push(inlineAbility(ability, out._id, identifier, index));
+      throw new Error(`Actor "${out.name}" references unknown ability "${ref.ability}" — no forge-abilities source with that identifier`);
+    out.items.push(inlineAbility(ability, out._id, ref, index));
   });
 
   delete out.abilities;
