@@ -6,7 +6,7 @@
     "packs:build": "node scripts/pack-tools/build.mjs",
     "packs:unpack": "node scripts/pack-tools/unpack.mjs",
     "content:verify": "bash content-verify.sh",
-    "content:unit": "node --test 'forge-content/verify/*.test.mjs'"
+    "content:unit": "node --test 'forge-content/verify/*.test.mjs' 'scripts/pack-tools/*.test.mjs'"
   },
   "dependencies": {
     "playwright": "^1.60.0"
