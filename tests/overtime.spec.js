@@ -337,9 +337,13 @@ test.describe('Overtime Effect Wrapped in Feature Test', () => {
       if (defender) await defender.delete();
       if (combat) await combat.delete();
 
-      // Clean up feature from compendium
-      const feature = game.items.find(i => i.name === "Overtime Poison E2E");
-      if (feature) await feature.delete();
+      // Clean up feature from the compendium (it's imported into the pack, NOT
+      // the world — game.items would never find it, so residue piled up per run).
+      const pack = game.packs.get("forge-char-creator.forge-features");
+      if (pack) {
+        const index = await pack.getIndex();
+        for (const e of index) if (/E2E|Test/i.test(e.name)) await pack.deleteDocument(e._id);
+      }
 
       // Clear targets (API varies by Foundry version)
       try {

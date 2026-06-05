@@ -429,7 +429,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const aeData = {
       name: s.name || "New Effect",
       img: s.img || "icons/svg/aura.svg",
-      description: { value: descriptionText },
+      description: descriptionText,
       transfer: s.appMode === "passive",
       statuses: [...(s.statuses || [])],
       duration: s.durationType === "fixed" ? { rounds: parseInt(s.rounds) || 0 } : {},
@@ -460,7 +460,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
           name: s.wrapInFeature ? s.name.trim() : `[AE] ${s.name.trim()}`,
           img: s.img || (s.wrapInFeature ? "icons/svg/feature.svg" : "icons/svg/aura.svg"),
           type: "feat",
-          system: { description: { value: aeData.description.value } },
+          system: { description: { value: aeData.description } },
           effects: [aeData]
         };
 
