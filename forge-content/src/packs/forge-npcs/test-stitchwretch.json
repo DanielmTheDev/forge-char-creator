@@ -5,7 +5,8 @@
   "img": "modules/forge-content/assets/tokens/test-stitchwretch.png",
   "prototypeToken": {
     "name": "Test Stitchwretch",
-    "texture": { "src": "modules/forge-content/assets/tokens/test-stitchwretch.png" }
+    "texture": { "src": "modules/forge-content/assets/tokens/test-stitchwretch.png" },
+    "ring": { "enabled": true, "subject": { "scale": 1 } }
   },
   "system": {
     "abilities": {

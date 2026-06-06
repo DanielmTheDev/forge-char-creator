@@ -43,9 +43,12 @@ exact shape you must emit.
 3. **Portrait + token = the creature.** Save the SOURCE image as a module asset:
    `cp <image> forge-content/assets/tokens/<slug>.png`. Set both the actor `img` AND
    `prototypeToken.texture.src` to `modules/forge-content/assets/tokens/<slug>.png`
-   (the image IS the creature — don't substitute a generic core icon). If no usable
-   source image, fall back to a fitting core icon under
-   `FoundryVTT-Linux-13.351/resources/app/public/icons/` (verify the path exists).
+   (the image IS the creature — don't substitute a generic core icon), and ENABLE the
+   Dynamic Token Ring so the rectangular art reads as a framed token:
+   `"prototypeToken": { "texture": { "src": "<path>" }, "ring": { "enabled": true, "subject": { "scale": 1 } } }`.
+   If no usable source image, fall back to a fitting core icon under
+   `FoundryVTT-Linux-13.351/resources/app/public/icons/` (verify the path exists) and
+   leave the ring off.
 
 4. **Compute `_id`.** `slug` = kebab-case of the name (this is the file stem).
    `_id = genId(slug)`. Get the value:
