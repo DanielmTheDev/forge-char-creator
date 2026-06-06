@@ -40,7 +40,8 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
 | `_id` | EXACTLY `genId(slug)` (from `scripts/pack-tools/keys.mjs`). `slug` = the file stem. Deterministic, 16 alphanumeric chars. |
 | `name` | Display name from the statblock. Non-empty. |
 | `type` | Always `"npc"`. |
-| `img` | A Foundry **core** icon path under `FoundryVTT-Linux-13.351/resources/app/public/icons/`. The path must EXIST. Prefer `icons/creatures/...`. |
+| `img` | Portrait. Either a Foundry **core** icon (`icons/...`, must exist in the install) OR a committed module asset (`modules/forge-content/assets/tokens/<slug>.png`, must exist in repo). When the source image is the creature itself, save it as a module asset and use it here. |
+| `prototypeToken.texture.src` | Optional. Token art. Same path rules as `img`; set to the same module-asset path so the placed token shows the creature. |
 | `system.abilities.{str,dex,con,int,wis,cha}.value` | Integer **3–20**. Read off the statblock's ability scores (the score, NOT the modifier). |
 | `system.attributes.hp.{value,max}` | Equal integers (authored NPC = full HP). `formula: ""`. |
 | `system.attributes.ac` | `{ "calc": "flat", "flat": <int> }`. Use the statblock's printed AC. |
@@ -52,8 +53,9 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
 ## Ability refs
 
 - **String** — `"searing-bolt"`: inline the catalog ability as-is.
-- **Object** — `{ "ability": "<id>", "name": "<display>", "set": { "dmg": "12", "dc": "15", "range": 60 } }`:
+- **Object** — `{ "ability": "<id>", "name": "<display>", "img": "<icon>", "set": { "dmg": "12", "dc": "15", "range": 60 } }`:
   - `name` — rename the inlined item.
+  - `img` — override the inlined ability's icon (item-level, like name). Give a shared base ability a creature-specific icon. Core-icon path; must exist. NOT under `set`.
   - `set` knobs — **VALUE overrides only**, broadcast to all activities: `dmg` (damage formula, string), `dc` (save DC, string), `range` (ft, number). No other keys.
 - Match statblock attacks/actions to the closest catalog identifier by name + description; set knobs from the statblock's numbers where they differ from the base.
 

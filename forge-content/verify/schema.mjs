@@ -137,7 +137,7 @@ export function validateActor(expectation, actorDoc, idList) {
 // plain identifier string (Iter 2) or a knob object `{ ability, name?, set }`
 // (Iter 3). Pre-boot fast fail before resolve/inline, so a typo'd ref or a
 // shape-changing knob is a clear message, not a mid-resolve throw. No field = no-op.
-const REF_KEYS = ['ability', 'name', 'set'];   // never-shape guard: nothing else allowed
+const REF_KEYS = ['ability', 'name', 'img', 'set'];   // never-shape guard: nothing else allowed
 const KNOB_KEYS = ['dmg', 'dc', 'range'];
 export function validateActorRefs(actorDoc, idList) {
   if (!('abilities' in (actorDoc ?? {}))) return [];
@@ -153,6 +153,7 @@ export function validateActorRefs(actorDoc, idList) {
     if (typeof r.ability !== 'string') { errs.push(`${who}: ref "ability" must be a string identifier`); continue; }
     if (!known.has(r.ability)) errs.push(`${who} references unknown ability "${r.ability}"`);
     if ('name' in r && typeof r.name !== 'string') errs.push(`${who} (${r.ability}): "name" must be a string`);
+    if ('img' in r && typeof r.img !== 'string') errs.push(`${who} (${r.ability}): "img" must be a string path`);
     if ('set' in r) {
       const s = r.set;
       if (typeof s !== 'object' || s === null || Array.isArray(s)) { errs.push(`${who} (${r.ability}): "set" must be an object`); continue; }

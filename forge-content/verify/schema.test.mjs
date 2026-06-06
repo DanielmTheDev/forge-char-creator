@@ -180,6 +180,16 @@ test('validateActorRefs accepts mixed string + object refs', () => {
   assert.deepEqual(validateActorRefs({ name: 'Ogre', abilities }, actorIds), []);
 });
 
+test('validateActorRefs accepts an img ref override', () => {
+  const ref = { ability: 'searing-bolt', name: 'Tentacle Lash', img: 'icons/creatures/tentacles/tentacle-earth-green.webp' };
+  assert.deepEqual(validateActorRefs({ name: 'Wretch', abilities: [ref] }, actorIds), []);
+});
+
+test('validateActorRefs rejects a non-string img ref', () => {
+  const errs = validateActorRefs({ name: 'Wretch', abilities: [{ ability: 'searing-bolt', img: 5 }] }, actorIds);
+  assert.ok(errs.some(e => /"img" must be a string/.test(e)));
+});
+
 test('validateActorRefs rejects an unknown ref key (never-shape guard)', () => {
   const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'searing-bolt', activities: {} }] }, actorIds);
   assert.ok(errs.some(e => /unknown ref key "activities"/.test(e)));

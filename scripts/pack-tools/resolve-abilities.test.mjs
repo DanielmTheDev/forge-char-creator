@@ -202,6 +202,13 @@ test('name knob renames the inlined item without mutating the base', () => {
   assert.equal(src.name, 'Searing Bolt');
 });
 
+test('img knob overrides the inlined item icon without mutating the base', () => {
+  const src = searingBolt();
+  const out = resolveActorAbilities(actorDoc([{ ability: 'searing-bolt', img: 'icons/creatures/tentacles/tentacle-earth-green.webp' }]), new Map([['searing-bolt', src]]));
+  assert.equal(out.items[0].img, 'icons/creatures/tentacles/tentacle-earth-green.webp');
+  assert.equal(src.img, 'icons/magic/fire/projectile-fireball-orange.webp');
+});
+
 test('mixed string + knob refs to the same ability produce two distinct items', () => {
   const out = resolveActorAbilities(actorDoc(['searing-bolt', { ability: 'searing-bolt', set: { dmg: '5' } }]), mapOf(searingBolt()));
   assert.equal(out.items.length, 2);

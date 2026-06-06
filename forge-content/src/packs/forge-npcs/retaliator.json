@@ -2,27 +2,50 @@
   "_id": "retaliatornpc001",
   "name": "Test Retaliator",
   "type": "npc",
-  "img": "icons/creatures/mammals/humanoid-goblin-green.webp",
+  "img": "icons/creatures/mammals/humanoid-wolf-dog-blue.webp",
   "system": {
     "abilities": {
-      "str": { "value": 12 },
-      "dex": { "value": 14 },
-      "con": { "value": 12 },
-      "int": { "value": 10 },
-      "wis": { "value": 10 },
-      "cha": { "value": 10 }
+      "str": {
+        "value": 12
+      },
+      "dex": {
+        "value": 14
+      },
+      "con": {
+        "value": 12
+      },
+      "int": {
+        "value": 10
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 10
+      }
     },
     "attributes": {
-      "hp": { "value": 50, "max": 50, "formula": "" },
-      "ac": { "calc": "flat", "flat": 1 }
+      "hp": {
+        "value": 50,
+        "max": 50,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 1
+      }
     },
     "details": {
       "cr": 2,
-      "type": { "value": "humanoid" }
+      "type": {
+        "value": "humanoid"
+      }
     }
   },
   "items": [],
-  "abilities": ["example-retaliate"],
+  "abilities": [
+    "example-retaliate"
+  ],
   "effects": [],
   "flags": {
     "midi-qol": {

@@ -37,9 +37,15 @@ exact shape you must emit.
    `{ "ability": "<id>", "name": "<statblock name>", "set": { "dmg": "<formula>", "dc": "<n>", "range": <ft> } }`.
    A plain `"identifier"` string is fine when no override is needed.
 
-3. **Pick a token icon.** Choose a fitting core icon under
-   `FoundryVTT-Linux-13.351/resources/app/public/icons/` (prefer `icons/creatures/...`).
-   Verify the path exists (Glob/ls) before using it.
+   For each action, also pick a fitting ability ICON via the `img` ref field (the base
+   ability's icon is often generic/dead). Core-icon path, must exist.
+
+3. **Portrait + token = the creature.** Save the SOURCE image as a module asset:
+   `cp <image> forge-content/assets/tokens/<slug>.png`. Set both the actor `img` AND
+   `prototypeToken.texture.src` to `modules/forge-content/assets/tokens/<slug>.png`
+   (the image IS the creature — don't substitute a generic core icon). If no usable
+   source image, fall back to a fitting core icon under
+   `FoundryVTT-Linux-13.351/resources/app/public/icons/` (verify the path exists).
 
 4. **Compute `_id`.** `slug` = kebab-case of the name (this is the file stem).
    `_id = genId(slug)`. Get the value:

@@ -3,7 +3,7 @@
     "identifier": "bracers-of-defense",
     "name": "Bracers of Defense",
     "tier": "T2",
-    "img": "icons/equipment/wrist/bracer-banded-leather-brown.webp",
+    "img": "icons/equipment/wrist/bracer-armored-steel-blue.webp",
     "description": "While worn, your Armor Class increases by 2."
   },
   {
@@ -38,7 +38,7 @@
     "identifier": "example-strike",
     "name": "Example Strike",
     "tier": "T3",
-    "img": "icons/weapons/swords/sword-broad-steel.webp",
+    "img": "icons/weapons/swords/greatsword-crossguard-blue.webp",
     "description": "Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities."
   },
   {

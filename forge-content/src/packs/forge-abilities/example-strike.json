@@ -1,6 +1,6 @@
 {
   "name": "Example Strike",
-  "img": "icons/weapons/swords/sword-broad-steel.webp",
+  "img": "icons/weapons/swords/greatsword-crossguard-blue.webp",
   "type": "feat",
   "_id": "examplestrike001",
   "system": {
@@ -12,32 +12,63 @@
       "atkexample000001": {
         "_id": "atkexample000001",
         "type": "attack",
-        "activation": { "type": "action", "value": 1 },
-        "range": { "value": 5, "units": "ft" },
-        "target": { "affects": { "type": "creature", "count": "1" } },
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "range": {
+          "value": 5,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
         "attack": {
           "ability": "str",
           "bonus": "",
-          "critical": { "threshold": null },
+          "critical": {
+            "threshold": null
+          },
           "flat": false,
-          "type": { "value": "melee", "classification": "weapon" }
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
         },
         "damage": {
           "parts": [
             {
-              "types": ["slashing"],
-              "custom": { "enabled": true, "formula": "10" },
-              "scaling": { "mode": "", "number": null, "formula": "" }
+              "types": [
+                "slashing"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "10"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
             }
           ]
         }
       }
     },
     "identifier": "example-strike",
-    "source": { "revision": 1, "rules": "2024" },
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
     "properties": [],
     "requirements": "",
-    "type": { "value": "", "subtype": "" }
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
   },
   "effects": [],
   "flags": {},

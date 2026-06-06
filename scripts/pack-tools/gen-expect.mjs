@@ -16,7 +16,7 @@ const ABILITY_SCORES = ["str", "dex", "con", "int", "wis", "cha"];
 
 // Map<identifier, abilityDoc> over item-collection packs (mirrors build.mjs#loadAbilityMap;
 // not imported because build.mjs runs its CLI on import).
-function loadAbilityMap(srcPacks) {
+export function loadAbilityMap(srcPacks) {
   const map = new Map();
   for (const pack of readdirSync(srcPacks, { withFileTypes: true }).filter(d => d.isDirectory())) {
     if ((COLLECTIONS[pack.name] ?? "items") !== "items") continue;

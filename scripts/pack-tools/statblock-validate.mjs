@@ -11,12 +11,16 @@ import { readFileSync, existsSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { genId } from "./keys.mjs";
+import { resolveActorAbilities } from "./resolve-abilities.mjs";
+import { loadAbilityMap } from "./gen-expect.mjs";
 import { validateActorRefs } from "../../forge-content/verify/schema.mjs";
 
 const ABILITY_SCORES = ["str", "dex", "con", "int", "wis", "cha"];
 
-// `iconExists(path) -> boolean` is injected so the core fn stays fs-free + testable.
-export function validateStatblock(doc, catalogIds, iconExists, slug) {
+// `imgExists(path) -> boolean` is injected so the core fn stays fs-free + testable.
+// It resolves BOTH Foundry core icons (`icons/...`) and module assets
+// (`modules/forge-content/...`) — see main() for the concrete resolver.
+export function validateStatblock(doc, catalogIds, imgExists, slug) {
   const errs = [];
   const who = `actor "${doc?.name ?? "?"}"`;
   if (!doc || typeof doc !== "object") return ["statblock is not an object"];
@@ -31,9 +35,16 @@ export function validateStatblock(doc, catalogIds, iconExists, slug) {
     errs.push(`${who}: "_id" must be 16 alphanumeric chars (got "${doc._id}")`);
   }
 
-  // Icon
-  if (typeof doc.img !== "string" || !doc.img) errs.push(`${who}: "img" must be a core-icon path`);
-  else if (!iconExists(doc.img)) errs.push(`${who}: "img" "${doc.img}" does not exist under the Foundry core icons dir`);
+  // Portrait icon — core icon OR committed module asset; the path must resolve.
+  if (typeof doc.img !== "string" || !doc.img) errs.push(`${who}: "img" must be a path (core icon or modules/forge-content/...)`);
+  else if (!imgExists(doc.img)) errs.push(`${who}: "img" "${doc.img}" does not exist (not a core icon, not a committed module asset)`);
+
+  // Prototype token texture (if set) must also resolve.
+  const tok = doc.prototypeToken?.texture?.src;
+  if (tok != null) {
+    if (typeof tok !== "string" || !tok) errs.push(`${who}: prototypeToken.texture.src must be a path`);
+    else if (!imgExists(tok)) errs.push(`${who}: prototypeToken.texture.src "${tok}" does not exist`);
+  }
 
   const sys = doc.system ?? {};
 
@@ -72,6 +83,18 @@ export function validateStatblock(doc, catalogIds, iconExists, slug) {
   return errs;
 }
 
+// After resolve, every inlined ability's icon must resolve too (catches the
+// dead-base-icon class: an ability whose img 404s in this Foundry install shows
+// a broken placeholder). Pure; `imgExists` injected.
+export function validateInlinedIcons(resolvedItems, imgExists) {
+  const errs = [];
+  for (const item of resolvedItems ?? []) {
+    if (typeof item.img !== "string" || !item.img) errs.push(`inlined ability "${item.name}": missing img`);
+    else if (!imgExists(item.img)) errs.push(`inlined ability "${item.name}": img "${item.img}" does not exist (dead icon — set an "img" ref override or fix the base ability)`);
+  }
+  return errs;
+}
+
 function main() {
   const file = process.argv[2];
   if (!file) { console.error("usage: node statblock-validate.mjs <actor.json>"); process.exit(2); }
@@ -80,12 +103,26 @@ function main() {
   if (!existsSync(catalogPath)) { console.error(`_CATALOG.json missing — run \`npm run content:catalog\` first`); process.exit(2); }
   const catalogIds = JSON.parse(readFileSync(catalogPath, "utf8")).map(r => r.identifier);
 
+  // Resolve a content img path to a file on disk: module assets live in the repo
+  // under forge-content/...; core icons under the Foundry public dir.
   const iconsBase = join(repoRoot, "FoundryVTT-Linux-13.351", "resources", "app", "public");
-  const iconExists = (p) => existsSync(join(iconsBase, p));
+  const imgExists = (p) => {
+    if (typeof p !== "string" || !p) return false;
+    if (p.startsWith("modules/forge-content/")) return existsSync(join(repoRoot, "forge-content", p.slice("modules/forge-content/".length)));
+    return existsSync(join(iconsBase, p));
+  };
 
   const doc = JSON.parse(readFileSync(file, "utf8"));
   const slug = basename(file).replace(/\.json$/, "");
-  const errs = validateStatblock(doc, catalogIds, iconExists, slug);
+  const errs = validateStatblock(doc, catalogIds, imgExists, slug);
+  // Also check inlined-ability icons (resolve refs the same way build does).
+  try {
+    const abilityMap = loadAbilityMap(join(repoRoot, "forge-content", "src", "packs"));
+    const resolved = resolveActorAbilities(doc, abilityMap);
+    errs.push(...validateInlinedIcons(resolved.items, imgExists));
+  } catch (e) {
+    errs.push(`could not resolve abilities for icon check: ${e.message}`);
+  }
   if (errs.length) {
     console.error(`✗ ${file} — ${errs.length} error(s):`);
     for (const e of errs) console.error(`  - ${e}`);

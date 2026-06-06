@@ -2,7 +2,11 @@
   "_id": "SuWaO8cocawq2EcO",
   "name": "Test Stitchwretch",
   "type": "npc",
-  "img": "icons/creatures/tentacles/tentacles-thing-green.webp",
+  "img": "modules/forge-content/assets/tokens/test-stitchwretch.png",
+  "prototypeToken": {
+    "name": "Test Stitchwretch",
+    "texture": { "src": "modules/forge-content/assets/tokens/test-stitchwretch.png" }
+  },
   "system": {
     "abilities": {
       "str": { "value": 16 },
@@ -20,7 +24,7 @@
   },
   "items": [],
   "abilities": [
-    { "ability": "example-strike", "name": "Grafted Tentacle Lash", "set": { "dmg": "13", "range": 10 } }
+    { "ability": "example-strike", "name": "Grafted Tentacle Lash", "img": "icons/creatures/tentacles/tentacle-earth-green.webp", "set": { "dmg": "13", "range": 10 } }
   ],
   "effects": [],
   "flags": {},

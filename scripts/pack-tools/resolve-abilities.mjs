@@ -35,6 +35,9 @@ function remapIds(node, idMap) {
 const KNOBS = new Set(["dmg", "dc", "range"]);
 function applyKnobs(item, ref) {
   if (ref.name != null) item.name = ref.name;
+  // Per-ability icon override (item-level, like name — NOT an activity-value knob).
+  // Lets an authored actor give a shared base ability a creature-specific icon.
+  if (ref.img != null) item.img = ref.img;
   const set = ref.set;
   if (!set) return;
   for (const k of Object.keys(set)) {

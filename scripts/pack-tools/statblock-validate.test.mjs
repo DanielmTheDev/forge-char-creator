@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateStatblock } from './statblock-validate.mjs';
+import { validateStatblock, validateInlinedIcons } from './statblock-validate.mjs';
 import { genId } from './keys.mjs';
 
 const SLUG = 'goblin-boss';
@@ -67,7 +67,7 @@ test('missing creature type fails', () => {
 });
 
 test('non-existent icon path fails (iconExists=false)', () => {
-  assert.ok(validateStatblock(good(), CATALOG, () => false, SLUG).some(e => /does not exist under the Foundry core icons/.test(e)));
+  assert.ok(validateStatblock(good(), CATALOG, () => false, SLUG).some(e => /does not exist/.test(e)));
 });
 
 test('items must be empty (build inlines abilities)', () => {
@@ -83,4 +83,27 @@ test('empty abilities array fails', () => {
 test('folder must be null', () => {
   const d = good(); d.folder = 'somefolder000001';
   assert.ok(v(d).some(e => /"folder" must be null/.test(e)));
+});
+
+test('img ref override is accepted', () => {
+  const d = good(); d.abilities = [{ ability: 'searing-bolt', img: 'icons/creatures/tentacles/tentacle-earth-green.webp' }];
+  assert.deepEqual(v(d), []);
+});
+
+test('module-asset portrait + prototypeToken path validated via imgExists', () => {
+  const d = good();
+  d.img = 'modules/forge-content/assets/tokens/x.png';
+  d.prototypeToken = { texture: { src: 'modules/forge-content/assets/tokens/x.png' } };
+  assert.deepEqual(validateStatblock(d, CATALOG, ALWAYS, SLUG), []);          // resolver says exists
+  assert.ok(validateStatblock(d, CATALOG, () => false, SLUG).some(e => /does not exist/.test(e))); // resolver says missing
+});
+
+test('validateInlinedIcons flags a dead inlined ability icon', () => {
+  const items = [{ name: 'Lash', img: 'icons/weapons/swords/dead.webp' }];
+  assert.ok(validateInlinedIcons(items, () => false).some(e => /dead icon/.test(e)));
+  assert.deepEqual(validateInlinedIcons(items, () => true), []);
+});
+
+test('validateInlinedIcons flags a missing img', () => {
+  assert.ok(validateInlinedIcons([{ name: 'Lash' }], () => true).some(e => /missing img/.test(e)));
 });

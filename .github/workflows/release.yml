@@ -72,7 +72,9 @@ jobs:
       - name: Build forge-content zip
         run: |
           cd forge-content
-          zip -r ../dist/forge-content.zip module.json packs
+          # `assets` holds committed token/portrait images (image→statblock). Include
+          # it only when present so the zip step never fails on a name-not-matched.
+          zip -r ../dist/forge-content.zip module.json packs $([ -d assets ] && echo assets)
 
       - name: Update Latest Release
         uses: softprops/action-gh-release@v1

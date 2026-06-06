@@ -2,27 +2,50 @@
   "_id": "testbruiser00001",
   "name": "Test Bruiser",
   "type": "npc",
-  "img": "icons/creatures/mammals/humanoid-goblin-green.webp",
+  "img": "icons/creatures/mammals/humanoid-wolf-dog-blue.webp",
   "system": {
     "abilities": {
-      "str": { "value": 16 },
-      "dex": { "value": 12 },
-      "con": { "value": 14 },
-      "int": { "value": 8 },
-      "wis": { "value": 10 },
-      "cha": { "value": 8 }
+      "str": {
+        "value": 16
+      },
+      "dex": {
+        "value": 12
+      },
+      "con": {
+        "value": 14
+      },
+      "int": {
+        "value": 8
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 8
+      }
     },
     "attributes": {
-      "hp": { "value": 30, "max": 30, "formula": "" },
-      "ac": { "calc": "flat", "flat": 14 }
+      "hp": {
+        "value": 30,
+        "max": 30,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 14
+      }
     },
     "details": {
       "cr": 2,
-      "type": { "value": "humanoid" }
+      "type": {
+        "value": "humanoid"
+      }
     }
   },
   "items": [],
-  "abilities": ["searing-bolt"],
+  "abilities": [
+    "searing-bolt"
+  ],
   "effects": [],
   "flags": {},
   "folder": null
