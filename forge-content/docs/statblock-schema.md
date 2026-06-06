@@ -41,8 +41,8 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
 | `name` | Display name from the statblock. Non-empty. |
 | `type` | Always `"npc"`. |
 | `img` | Portrait. Either a Foundry **core** icon (`icons/...`, must exist in the install) OR a committed module asset (`modules/forge-content/assets/tokens/<slug>.png`, must exist in repo). When the source image is the creature itself, save it as a module asset and use it here. |
-| `prototypeToken.texture.src` | Optional. Token art. Same path rules as `img`; set to the same module-asset path so the placed token shows the creature. |
-| `prototypeToken.ring` | When the token is a rectangular creature image, enable the Dynamic Token Ring so it frames cleanly: `{ "enabled": true, "subject": { "scale": 1 } }`. Foundry uses `texture.src` as the ring subject. Leave off for square core icons. |
+| `prototypeToken.texture.src` | Optional. Token art. Same path rules as `img`. MUST be a **square** image — Foundry's Dynamic Token Ring stretches a rectangular subject. Crop a square (`convert in.png -crop WxW+0+yoff +repage out-token.png`) and point here; the full portrait stays on `img`. |
+| `prototypeToken.ring` | Enable the Dynamic Token Ring for a creature-image token: `{ "enabled": true, "subject": { "scale": 1 } }`. Foundry uses (square) `texture.src` as the ring subject. Leave off for square core icons. |
 | `system.abilities.{str,dex,con,int,wis,cha}.value` | Integer **3–20**. Read off the statblock's ability scores (the score, NOT the modifier). |
 | `system.attributes.hp.{value,max}` | Equal integers (authored NPC = full HP). `formula: ""`. |
 | `system.attributes.ac` | `{ "calc": "flat", "flat": <int> }`. Use the statblock's printed AC. |

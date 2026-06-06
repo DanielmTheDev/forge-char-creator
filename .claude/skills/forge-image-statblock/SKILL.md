@@ -41,11 +41,14 @@ exact shape you must emit.
    ability's icon is often generic/dead). Core-icon path, must exist.
 
 3. **Portrait + token = the creature.** Save the SOURCE image as a module asset:
-   `cp <image> forge-content/assets/tokens/<slug>.png`. Set both the actor `img` AND
-   `prototypeToken.texture.src` to `modules/forge-content/assets/tokens/<slug>.png`
-   (the image IS the creature — don't substitute a generic core icon), and ENABLE the
-   Dynamic Token Ring so the rectangular art reads as a framed token:
-   `"prototypeToken": { "texture": { "src": "<path>" }, "ring": { "enabled": true, "subject": { "scale": 1 } } }`.
+   `cp <image> forge-content/assets/tokens/<slug>.png` → use it for the actor `img`
+   (the sheet portrait can be the full rectangle).
+   **The token must be SQUARE** — a rectangular subject gets stretched inside the
+   Dynamic Token Ring. Crop a square focused on head + upper body:
+   `convert <slug>.png -crop WxW+0+<yoff> +repage <slug>-token.png` (W = the image
+   width; pick yoff to frame the head). Point `prototypeToken.texture.src` at the
+   `-token.png` and enable the ring:
+   `"prototypeToken": { "texture": { "src": "modules/forge-content/assets/tokens/<slug>-token.png" }, "ring": { "enabled": true, "subject": { "scale": 1 } } }`.
    If no usable source image, fall back to a fitting core icon under
    `FoundryVTT-Linux-13.351/resources/app/public/icons/` (verify the path exists) and
    leave the ring off.
