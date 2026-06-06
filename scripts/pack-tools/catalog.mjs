@@ -11,11 +11,17 @@ import { MODULES, COLLECTIONS } from "./modules.mjs";
 
 const DESC_LEN = 120;
 
-// Markdown table-cell safe: strip tags, collapse whitespace, escape pipes, clip.
-function cell(s, clip) {
+// Strip HTML tags + collapse whitespace (no markdown escaping). Shared by both
+// the .md cell formatter and the .json builder.
+function plain(s, clip) {
   let t = String(s ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
   if (clip && t.length > clip) t = t.slice(0, clip - 1).trimEnd() + "…";
-  return t.replace(/\|/g, "\\|");
+  return t;
+}
+
+// Markdown table-cell safe: plain() + escape pipes.
+function cell(s, clip) {
+  return plain(s, clip).replace(/\|/g, "\\|");
 }
 
 export function buildCatalog(rows) {
@@ -33,6 +39,20 @@ export function buildCatalog(rows) {
     "",
     head, sep, ...body, "",
   ].join("\n");
+}
+
+// Machine-readable twin of buildCatalog — consumed by the image→statblock match
+// step + statblock-validate (so they read structured data, not parse markdown).
+// Same rows, HTML stripped from description (kept full-length, unlike the .md clip).
+export function buildCatalogJson(rows) {
+  const sorted = [...rows].sort((a, b) => a.identifier.localeCompare(b.identifier));
+  return sorted.map(r => ({
+    identifier: plain(r.identifier),
+    name: plain(r.name),
+    tier: r.tier ?? null,
+    img: plain(r.img),
+    description: plain(r.description),
+  }));
 }
 
 // Read every item-collection pack's source docs (+ co-located expect tier).
@@ -66,10 +86,13 @@ export function writeCatalogs() {
     const rows = readRows(srcPacks);
     if (!rows.length) continue;
     // Catalog lives in the abilities pack dir (where authors look).
-    const target = join(srcPacks, "forge-abilities", "CATALOG.md");
-    if (!existsSync(join(srcPacks, "forge-abilities"))) continue;
-    writeFileSync(target, buildCatalog(rows) + "\n");
-    console.log(`[${mod.name}] CATALOG.md written (${rows.length} abilities)`);
+    const abilitiesDir = join(srcPacks, "forge-abilities");
+    if (!existsSync(abilitiesDir)) continue;
+    writeFileSync(join(abilitiesDir, "CATALOG.md"), buildCatalog(rows) + "\n");
+    // Machine-readable twin for the image→statblock match step + validator.
+    // `_`-prefixed so the build/loadAbilityMap/readRows globs skip it (it is not a doc).
+    writeFileSync(join(abilitiesDir, "_CATALOG.json"), JSON.stringify(buildCatalogJson(rows), null, 2) + "\n");
+    console.log(`[${mod.name}] CATALOG.md + _CATALOG.json written (${rows.length} abilities)`);
   }
 }
 

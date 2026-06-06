@@ -1,0 +1,28 @@
+{
+  "_id": "J3Xr1lP5d9VrBHhH",
+  "name": "Cave Gnoll",
+  "type": "npc",
+  "img": "icons/creatures/mammals/humanoid-wolf-dog-blue.webp",
+  "system": {
+    "abilities": {
+      "str": { "value": 14 },
+      "dex": { "value": 12 },
+      "con": { "value": 11 },
+      "int": { "value": 6 },
+      "wis": { "value": 10 },
+      "cha": { "value": 7 }
+    },
+    "attributes": {
+      "hp": { "value": 22, "max": 22, "formula": "" },
+      "ac": { "calc": "flat", "flat": 15 }
+    },
+    "details": { "cr": 0.5, "type": { "value": "humanoid" } }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "example-strike", "name": "Rending Bite", "set": { "dmg": "8" } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

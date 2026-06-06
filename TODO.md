@@ -15,7 +15,7 @@ Master checklist for an agent army. Each links to its detail section below. Inde
 - [x] **BUG-2. `[object Object]` description** — DONE. Root cause `effect-creator.js:432` (AE `description` must be a plain string, not `{value}`); fixed + `packs:build` guard throws on any literal `[object Object]`.
 - [ ] **C-gate. Publish should be gated by B** — every push to main publishes unverified. See `## Roadmap → C`.
 - [ ] **A2-redo. Real compendium-load proof** — LOW. See `## Now → A2-redo`.
-- [ ] **D. Image → statblock** — LAST, highest risk, gated by B. See `## Roadmap → D`.
+- [~] **D. Image → statblock** — Iter 1 DONE (match-catalog-only, gate-valid output, no exec content). See `## Roadmap → D`.
 - [ ] **Icons-API. Generated-icon authoring** — FUTURE, discuss first. See `## Icons`.
 
 ## Gate hardening (found 2026-06-02 review)
@@ -221,7 +221,23 @@ T3-combat gate works: Searing Bolt (flat 10 fire) → exact -10 on rigged defend
 ## Roadmap (after A)
 - [~] B. Functional gate. DONE B1: `npm run content:verify` boots Foundry, applies each ability on a dummy actor, asserts co-located `<name>.expect.json` (acDelta/abilityDelta/effectApplied). Fails on untested abilities + on wrong assertions (negative-tested). LOCAL + MANUAL (run before push; CI can't run Foundry). TODO B3: T3 combat scenarios (damage/save/duration on real midi workflow).
 - [x] C. Publish automation DONE: release.yml builds forge-content packs in CI, zips, uploads forge-content.zip to rolling `latest` release. Manifest + download verified HTTP 200. PENDING: B should gate publish (currently every push to main publishes, even unverified).
-- [ ] D. Image → statblock (vision → JSON → pipeline A). Last, highest risk.
+- [~] D. Image → statblock (vision → JSON → pipeline A). Iter 1 DONE. See `## Roadmap → D`.
+
+## Roadmap → D — Image → statblock
+Front-end onto the EXISTING actor pipeline: image → gate-valid `forge-npcs/<slug>.json` → `packs:build` + `content:verify` carry it the rest. Spec/plan: `docs/superpowers/{specs,plans}/2026-06-06-image-statblock-iter1*`.
+
+### Iter 1 — DONE ✅ (match-catalog-only, zero executable content)
+- **Vision engine = Claude Code itself** (no API/key/deps). Skill `.claude/skills/forge-image-statblock/SKILL.md` directs it to Read the image + emit actor JSON per `forge-content/docs/statblock-schema.md`.
+- **Match CATALOG only, stub the rest.** Statblock abilities matched to existing `forge-abilities` identifiers (string ref or `{ability,name,set:{dmg,dc,range}}` knob); unmatched → `<slug>.STUBS.md` for human authoring. NO new abilities, NO macro JS, NO shape knobs — honors the security lock (auto-gen must not auto-run untrusted macros). Validator HARD-fails any ref ∉ catalog → nothing un-vetted reaches Foundry.
+- **Machine catalog:** `catalog.mjs#buildCatalogJson` writes `forge-abilities/_CATALOG.json` (consumed by match step + validator; `_`-prefixed so doc-globs skip it) at every packs:build.
+- **Validator** `scripts/pack-tools/statblock-validate.mjs` (`content:statblock-validate`): stat ranges, `_id===genId(slug)`, icon-path existence, refs ∈ catalog (reuses `schema.mjs#validateActorRefs` for ref/knob shape).
+- **Auto-expect** `scripts/pack-tools/gen-expect.mjs` (`content:gen-expect`): T2 expect (hpMax/ac/abilities/hasItems) auto-derived from the resolved actor; `--t3` writes a scaffold with TODO damage; never overwrites a hand-edited expect.
+- **Demo fixture** `forge-npcs/cave-gnoll.json` (+auto `.expect.json`, `.STUBS.md`): proves image-shaped authoring → validate → gen-expect → build → T2 gate, reusing `example-strike` (knobbed) — no new mechanic.
+- **Verified:** content:unit 113 pass; packs:build green (`_CATALOG.json` 10); validator mutation-tested (str=25 RED, unknown ref RED, revert GREEN); content:verify Cave Gnoll T2 green + full suite green.
+
+### Deferred
+- **D-iter2** — unmatched-ability authoring loop: human authors each stubbed ability, gate-proven (T2/T3) before the actor that needs it builds; fill T3 scaffold damage from real runs.
+- **D-iter3** — batch import, token-image generation (see `## Icons`), CI hook (intersects open C-gate: publish should be gated by B).
 
 ## Icons
 - Convention NOW: every ability uses a fitting **Foundry core icon** (`icons/<cat>/...`, 6323 available under FoundryVTT-Linux-13.351/resources/app/public/icons — weapons/magic/equipment/creatures/consumables/skills/tools/...). Pick by theme; verify path exists before authoring.

@@ -1,0 +1,18 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 22,
+    "ac": 15,
+    "abilities": {
+      "str": 14,
+      "dex": 12,
+      "con": 11,
+      "int": 6,
+      "wis": 10,
+      "cha": 7
+    },
+    "hasItems": [
+      "Rending Bite"
+    ]
+  }
+}

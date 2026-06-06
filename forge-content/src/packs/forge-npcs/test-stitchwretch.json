@@ -1,0 +1,28 @@
+{
+  "_id": "SuWaO8cocawq2EcO",
+  "name": "Test Stitchwretch",
+  "type": "npc",
+  "img": "icons/creatures/tentacles/tentacles-thing-green.webp",
+  "system": {
+    "abilities": {
+      "str": { "value": 16 },
+      "dex": { "value": 11 },
+      "con": { "value": 16 },
+      "int": { "value": 7 },
+      "wis": { "value": 11 },
+      "cha": { "value": 6 }
+    },
+    "attributes": {
+      "hp": { "value": 45, "max": 45, "formula": "" },
+      "ac": { "calc": "flat", "flat": 15 }
+    },
+    "details": { "cr": 3, "type": { "value": "aberration" } }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "example-strike", "name": "Grafted Tentacle Lash", "set": { "dmg": "13", "range": 10 } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

@@ -1,0 +1,18 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 45,
+    "ac": 15,
+    "abilities": {
+      "str": 16,
+      "dex": 11,
+      "con": 16,
+      "int": 7,
+      "wis": 11,
+      "cha": 6
+    },
+    "hasItems": [
+      "Grafted Tentacle Lash"
+    ]
+  }
+}

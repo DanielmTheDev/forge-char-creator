@@ -1,0 +1,72 @@
+[
+  {
+    "identifier": "bracers-of-defense",
+    "name": "Bracers of Defense",
+    "tier": "T2",
+    "img": "icons/equipment/wrist/bracer-banded-leather-brown.webp",
+    "description": "While worn, your Armor Class increases by 2."
+  },
+  {
+    "identifier": "example-blast",
+    "name": "Example Blast",
+    "tier": "T3",
+    "img": "icons/magic/fire/explosion-fireball-medium-orange.webp",
+    "description": "Reference ability proving multi-target, save-each resolution. Up to three creatures within 30 feet each make a DC 14 Dexterity save, taking 12 fire damage, or half as much on a success. Each target saves independently. Pattern reused by future multi-target abilities."
+  },
+  {
+    "identifier": "example-boon",
+    "name": "Example Boon",
+    "tier": "T3",
+    "img": "icons/magic/light/explosion-star-glow-yellow.webp",
+    "description": "As an action, point out an opening to one ally within 30 ft. That ally has advantage on attack rolls until the end of your next turn. Reference ability proving ally-targeted buff grants."
+  },
+  {
+    "identifier": "example-rally",
+    "name": "Example Rally",
+    "tier": "T3",
+    "img": "icons/magic/holy/barrier-shield-winged-blue.webp",
+    "description": "Reference ability proving macro-driven cross-recipient logic. One creature within 30 ft makes a DC 14 Dexterity save. On a failed save it takes 10 force damage, and every ally within 30 ft of you gains 5 temporary hit points. Nothing happens on a success."
+  },
+  {
+    "identifier": "example-retaliate",
+    "name": "Example Retaliate",
+    "tier": "T3",
+    "img": "icons/skills/melee/strike-blade-knife-white-red.webp",
+    "description": "Reaction, when you take damage from a creature you can see: lash back, dealing 6 force damage to that attacker."
+  },
+  {
+    "identifier": "example-strike",
+    "name": "Example Strike",
+    "tier": "T3",
+    "img": "icons/weapons/swords/sword-broad-steel.webp",
+    "description": "Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities."
+  },
+  {
+    "identifier": "radiant-rebuke",
+    "name": "Radiant Rebuke",
+    "tier": "T3",
+    "img": "icons/magic/light/explosion-star-large-blue-yellow.webp",
+    "description": "Derek calls down a flash of judgment light. One creature within 30 ft makes a DC 14 Dexterity save, taking 12 radiant damage, or half as much on a success. Recharge 5–6."
+  },
+  {
+    "identifier": "rending-pounce",
+    "name": "Rending Pounce",
+    "tier": "T3",
+    "img": "icons/creatures/claws/claw-hooked-barbed.webp",
+    "description": "Mucknathal pounces a foe Derek has marked and tears a deep wound: 3d6 bleed at the start of the target's turns for 2 rounds. Only marked foes bleed. Recharge 5–6."
+  },
+  {
+    "identifier": "searing-bolt",
+    "name": "Searing Bolt",
+    "tier": "T3",
+    "img": "icons/magic/fire/projectile-fireball-orange.webp",
+    "description": "You hurl a mote of fire at a creature within range, dealing 10 fire damage."
+  },
+  {
+    "identifier": "squires-mark",
+    "name": "Squire's Mark",
+    "tier": "T3",
+    "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+    "description": "As a bonus action, Derek marks a foe for his bonded hunter. The marked creature is primed for Mucknathal's Rending Pounce. Recharge 5–6."
+  }
+]
