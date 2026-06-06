@@ -99,7 +99,19 @@ export function installGateHelpers() {
       for (let i = 0; i < names.length; i++) {
         const n = names[i];
         const cfg = spec.actors[n];
-        const actor = track(await makeActor(`T3 ${n}`, { hp: cfg.hp ?? 100, ac: cfg.ac, temp: cfg.temp }));
+        // Authored roster slot (Iter 4): build this actor FROM the resolved NPC doc
+        // (so it carries its own inlined embedded abilities) instead of a bare makeActor.
+        // hp/ac may still be overridden for the scene; otherwise the statblock's own.
+        let actor;
+        if (cfg.authored) {
+          const data = strip(cfg.authored);
+          foundry.utils.setProperty(data, 'flags.forge-content.test', true);
+          if (cfg.hp !== undefined) foundry.utils.setProperty(data, 'system.attributes.hp', { value: cfg.hp, max: cfg.hp });
+          if (cfg.ac !== undefined) foundry.utils.setProperty(data, 'system.attributes.ac', { calc: 'flat', flat: cfg.ac });
+          actor = track(await Actor.create(data));
+        } else {
+          actor = track(await makeActor(`T3 ${n}`, { hp: cfg.hp ?? 100, ac: cfg.ac, temp: cfg.temp }));
+        }
         A[n] = actor;
         const fr = cfg.forces ?? {};
         if (fr.save) await actor.update({ [FORCE.save[fr.save]]: 1 });
@@ -145,21 +157,37 @@ export function installGateHelpers() {
 
       for (const step of spec.steps) {
         if (step.onlyScenarios && !step.onlyScenarios.includes(spec.__scenario)) continue;
-        if ('cast' in step) {
-          const caster = A[step.cast];
-          const docData = resolveDoc(step.ability);
-          if (!docData) return { error: `ability "${step.ability}" not resolved to a doc` };
+        if ('cast' in step || 'castOwn' in step) {
+          const who = 'cast' in step ? step.cast : step.castOwn;
+          const caster = A[who];
           if (!combatOn) {
+            // Non-combat apply path (only the standalone-doc `cast` variant uses it).
+            const docData = resolveDoc(step.ability);
+            if (!docData) return { error: `ability "${step.ability}" not resolved to a doc` };
             await caster.createEmbeddedDocuments('Item', [strip(docData)]);
             await new Promise(r => setTimeout(r, 400));
           } else {
             const targetUuids = (step.targets ?? []).map(t => T[t].uuid);
             for (const t of step.targets ?? []) targetToken(T[t]);
-            const { wf, item } = await useActivity(caster, docData, targetUuids, { settle: 2500 });
-            if (!wf) return { error: `midi workflow did not run (cast ${step.cast} ${step.ability})` };
-            lastItem[step.cast] = item;
+            let wf, item;
+            if ('castOwn' in step) {
+              // Authored NPC casts its OWN inlined embedded ability, matched by
+              // system.identifier (preserved through inlineAbility's re-key). Proves the
+              // re-keyed item actually executes in real midi — actor-assembly glue.
+              item = caster.items.find(it => it.system?.identifier === step.ability);
+              if (!item) return { error: `castOwn: actor "${who}" holds no ability "${step.ability}"` };
+              const activity = [...item.system.activities][0];
+              wf = await MidiQOL.completeActivityUse(activity.uuid, { midiOptions: { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always', targetUuids, ignoreUserTargets: true } });
+              await new Promise(r => setTimeout(r, 2500));
+            } else {
+              const docData = resolveDoc(step.ability);
+              if (!docData) return { error: `ability "${step.ability}" not resolved to a doc` };
+              ({ wf, item } = await useActivity(caster, docData, targetUuids, { settle: 2500 }));
+            }
+            if (!wf) return { error: `midi workflow did not run (cast ${who} ${step.ability})` };
+            lastItem[who] = item;
             runTargeted = wf.targets?.size ?? 0;
-            lastWf[step.cast] = {
+            lastWf[who] = {
               advantage: !!wf.advantage, disadvantage: !!wf.disadvantage,
               hit: (wf.hitTargets?.size ?? 0) > 0, crit: !!wf.isCritical, total: wf.attackRoll?.total ?? null,
             };
@@ -245,6 +273,49 @@ export async function genericCheck({ doc, expectation, setupDocs = [], knownKeys
   const fails = [];
   for (const run of runs) {
     const spec = { combat: expectation.combat, actors: run.actors, steps: expectation.steps, __docs: docs, __scenario: run.label };
+    const r = await runScene(spec);
+    if (r.error) { fails.push(`${run.label}: ${r.error}`); continue; }
+    for (const msg of assertSnapshot(run.assert, r.snapshots, knownKeys)) fails.push(`${run.label}: ${msg}`);
+  }
+  return { ok: fails.length === 0, fails };
+}
+
+// Iter 4 actor T3 gate. The authored NPC fights in real midi combat with its OWN
+// inlined embedded ability (via runScene's `authored` slot + `castOwn` step). Proves
+// actor-assembly glue — the re-keyed item executes — NOT the ability mechanic (that's
+// proven once by the ability's own expect; test-explosion guard). Mirrors genericCheck
+// but injects the resolved NPC doc into the `authored:true` roster slot.
+// arg = { doc, expectation, setupDocs, knownKeys }. Returns { ok, fails:[] }.
+export async function actorCombatCheck({ doc, expectation, setupDocs = [], knownKeys }) {
+  if (typeof MidiQOL === 'undefined') return { ok: false, fails: ['midi-qol inactive'] };
+  const { runScene, assertSnapshot } = globalThis.__fcGate;
+  const setupMap = {};
+  (expectation.setup ?? []).forEach((id, i) => { if (setupDocs[i]) setupMap[id] = setupDocs[i]; });
+  const docs = { main: doc, setup: setupMap };
+
+  // Clone the roster and replace the boolean authored marker with the actual NPC doc,
+  // so runScene builds that slot from the statblock (with its inlined abilities).
+  const injectAuthored = (actors) => {
+    const out = JSON.parse(JSON.stringify(actors));
+    for (const name of Object.keys(out)) if (out[name]?.authored === true) out[name].authored = doc;
+    return out;
+  };
+  const mergeForces = (forces) => {
+    const actors = injectAuthored(expectation.actors);
+    for (const [name, f] of Object.entries(forces ?? {})) {
+      actors[name] = actors[name] ?? {};
+      actors[name].forces = { ...(actors[name].forces ?? {}), ...f };
+    }
+    return actors;
+  };
+
+  const runs = expectation.scenarios
+    ? expectation.scenarios.map(sc => ({ label: sc.name, actors: mergeForces(sc.forces), assert: sc.assert ?? [] }))
+    : [{ label: 'main', actors: injectAuthored(expectation.actors), assert: expectation.assert ?? [] }];
+
+  const fails = [];
+  for (const run of runs) {
+    const spec = { combat: true, actors: run.actors, steps: expectation.steps, __docs: docs, __scenario: run.label };
     const r = await runScene(spec);
     if (r.error) { fails.push(`${run.label}: ${r.error}`); continue; }
     for (const msg of assertSnapshot(run.assert, r.snapshots, knownKeys)) fails.push(`${run.label}: ${msg}`);

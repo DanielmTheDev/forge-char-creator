@@ -33,6 +33,14 @@
     "type": { "value": "", "subtype": "" }
   },
   "effects": [],
-  "flags": {},
+  "flags": {
+    "dae": {
+      "macro": {
+        "name": "Example Retaliate",
+        "type": "script",
+        "command": "if (args?.[0]?.macroPass !== 'isDamaged') return;\nconst attacker = workflow?.token;\nif (!attacker?.actor) return;\nconst cur = attacker.actor.system.attributes.hp.value;\nawait attacker.actor.update({ 'system.attributes.hp.value': cur - 6 });"
+      }
+    }
+  },
   "folder": "folderexample001"
 }

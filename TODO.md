@@ -10,7 +10,7 @@ Master checklist for an agent army. Each links to its detail section below. Inde
 - [x] **G3. Test-doc residue sweep** — DONE. `makeScene`/`makeActor` now stamp `flags.forge-content.test` (combats already did); `isolate()` (content.spec.mjs) generalized to sweep flagged Combats+Scenes+Actors, run at run-START + between handlers. Best-effort finally-cleanup orphans no longer pile up run-over-run (root of the stale-combat/broken-scene isolation bugs). NOTE: separate-test-world idea (was "Increment 1") DROPPED — `ishait` is a disposable test world, not the live campaign; flag-sweep is enough. Gate green (1 passed 3.1m).
 - [x] **G4. Declarative scene engine** — DONE. Collapsed 5 bespoke handlers into ONE `genericCheck`; all 9 abilities on v2 expect.json; CHECKS map + shape-dispatch fork deleted; pre-boot `validate()` now covers ALL items. Gate green (1 passed 3.3m).
 - [x] **#5. Recharge actually firing** — DONE. `usesSpent` assert key + `recharge` force (success|fail) via a `dnd5e.rollRecharge` hook (NOT formula rig — rig silently breaks the cast). radiant-rebuke now CONSUMES its use (added `consumption.targets:[{type:itemUses,target:"",value:"1"}]` — it never did, so Recharge 5–6 was a no-op). rechargeOk (spent 1→0) + rechargeFail (stays 1) scenarios, mutation-tested. **FOLLOW-UP: squires-mark + rending-pounce share the same missing-`consumption` bug → their Recharge 5–6 is a no-op too. Add consumption + usesSpent asserts.**
-- [x] **#6. Reaction abilities** — DONE (payload-proven). Example Retaliate (T3, Examples): reaction-activation damage activity; gate fires it after a forced hit → −6 on the attacker, mutation-tested. **LIMITATION (documented):** auto-TRIGGER not gate-covered — true midi reactions need the interactive reactionDialog (no headless auto-fire); target onUse macros (`isDamaged`) read the actor's `_source` flags, so a DAE transfer effect on a bare-NPC-held ITEM can't arm them — only an actor-statblock `_source` macro can (revisit in boss/actor phase). New engine bits: `FC_ONLY` env filter + byId from unfiltered gather; test timeout 360s→600s.
+- [x] **#6. Reaction abilities** — DONE + auto-trigger CLOSED (Iter 4). Payload first proven via gate-fired cast (Example Retaliate). Auto-TRIGGER now gate-covered headless via an authored NPC statblock `_source` onUseMacro: **Test Retaliator** (forge-npcs) auto-fires −6 on the attacker on `isDamaged` with NO manual cast. The old "infeasible headless" limitation was specific to a DAE transfer effect on a bare-NPC ITEM (can't inject `_source` flags); an authored actor bakes `flags.midi-qol.onUseMacroName="[isDamaged]ItemMacro.<ReactionItemName>"` into `_source` at Actor.create. `ItemMacro.<Name>` resolves to the DEFENDER's own item (bare `ItemMacro` → ATTACKER's). See `## Actor creation → Iter 4`.
 - [x] **BUG-1. Pack test residue** — DONE. overtime.spec cleanup now deletes E2E/Test docs from the compendium (was searching `game.items`, which never holds pack docs); forge-features pack emptied (+.gitkeep); `packs:build` guard added.
 - [x] **BUG-2. `[object Object]` description** — DONE. Root cause `effect-creator.js:432` (AE `description` must be a plain string, not `{value}`); fixed + `packs:build` guard throws on any literal `[object Object]`.
 - [ ] **C-gate. Publish should be gated by B** — every push to main publishes unverified. See `## Roadmap → C`.
@@ -92,8 +92,35 @@ boot.mjs now waits for game.ready (fixed a flaky "coll is not iterable").
     reused). content:unit 87 green; GATE GREEN (1 passed 3.9m, Goblin+Ogre); gate
     mutation (break rename) → RED `missing item "Greater Searing Bolt"` → reverted.
   - Spec/plan: docs/superpowers/{specs,plans}/2026-06-06-actor-creation-iter3-knobs*.
-- NEXT: Iter 4 — actor T3 combat + reaction unlock (authored NPC fights with its own
-  abilities in real midi; `_source`-macro reactions auto-fire, closes #6).
+- Iter 4 DONE ✅: actor T3 combat + reaction auto-fire (closes #6).
+  - `runScene` (checks.mjs) gained TWO additive, opt-in branches (no-ops for the 10
+    ability expects): (1) **authored roster slot** — `spec.actors[n].authored=<resolved
+    NPC doc>` builds that actor from the statblock (with its inlined embedded abilities)
+    via `Actor.create` instead of bare `makeActor`; (2) **`castOwn` step** —
+    `{castOwn:<name>, ability:<identifier>, targets}` finds the actor's OWN embedded item
+    by `system.identifier` (preserved through inlineAbility re-key) + runs its first
+    activity in real midi. New `actorCombatCheck` handler (sibling of actorLoadCheck)
+    injects the resolved doc into the `authored:true` slot, mirrors genericCheck.
+  - Schema: `validateActor` branches on `tier:"T3"` → `validateActorCombat` (reuses the
+    ability actors/steps/assert grammar via factored-out `validateStepsAndAsserts`; rules:
+    exactly one `authored:true` actor, `castOwn` ability ∈ actor's held refs). T1/T2
+    unchanged. content:unit 95 green.
+  - **Test Bruiser** (forge-npcs, `abilities:["searing-bolt"]`, T3 expect): casts its own
+    inlined searing-bolt at a dummy → −10. Proves assembly glue (re-keyed item executes
+    in real combat), NOT the mechanic again (test-explosion guard). Mutation-tested.
+  - **#6 reaction auto-fire CLOSED** (overturns the prior "infeasible headless" finding).
+    **Test Retaliator** (forge-npcs, `abilities:["example-retaliate"]`): actor `_source`
+    flag `flags.midi-qol.onUseMacroName="[isDamaged]ItemMacro.Example Retaliate"` +
+    inline-JS `flags.dae.macro.command` on the item (deal flat 6 force to `workflow.token`
+    attacker, guarded on `macroPass==='isDamaged'`). Gate: attacker forced-hit strikes
+    retaliator, **NO manual reaction cast** → attacker −6 auto-applied. Mutation-tested.
+    The key unlock: an authored NPC bakes onUseMacroName into `_source` at Actor.create
+    (a DAE transfer effect on a bare-NPC item couldn't), AND `ItemMacro.<Name>` (vs bare
+    `ItemMacro`, which resolves to the ATTACKER's item) resolves to the DEFENDER's own
+    item. Example Retaliate's existing manual-fire expect still green (item has no
+    item-level onUseMacroName, so the macro stays dormant during a normal cast).
+  - DEFERRED to a later boss phase (per spec): multiattack routing, legendary
+    resist/actions, healing. FC_ONLY=<substr> works for fast single-actor iteration.
 
 ## NEXT UP — boss-combat mechanics (#1 DONE; next = #5 then #6)
 Goal: close the ability-mechanic gaps that block real boss combat, BEFORE the full-actor/character-creation pivot. Each battle-tested in real midi + deterministic gate, same discipline as macro/save/attack work. Items 2 (multiattack), 3 (legendary resist/actions), 4 (healing) intentionally DEFERRED to the actor/boss phase.
@@ -115,14 +142,12 @@ Example Blast (Examples folder): "up to 3 creatures within 30 ft", DEX DC14, fla
 - **Save activities must force the save in recharge scenarios too** — an unforced save blocks the headless workflow (dialog) → `completeActivityUse` returns falsy. radiant-rebuke's recharge scenarios force `defender.save:"fail"`.
 - Scenarios: rechargeOk (spent 1→0), rechargeFail (stays 1); both mutation-tested. See memory [[recharge-gate]].
 
-### 6. Reaction abilities (trigger-based) — MEDIUM.
+### 6. Reaction abilities (trigger-based) — DONE ✅ (payload + auto-trigger, Iter 4).
 Why: bosses have reactions (parry/riposte, Hellish Rebuke-style retaliate). Reactions fire OFF another workflow, not the actor's own turn.
-- **Result: payload proven, auto-trigger deferred.** Example Retaliate (Examples) = `activation.type:"reaction"` damage activity, 6 force. Gate (existing cast steps, no new tier): attacker strikes defender (force hit) → gate fires the holder's reaction at the attacker → assert −6 on the attacker. Mutation-tested.
-- **Why the auto-trigger isn't gate-covered (spike findings):**
-  - True midi reactions ALWAYS route through the interactive `reactionDialog` (`promptReactions` midi-qol.js:17530); headless it only times out → no reaction. No `doReactions` setting auto-SELECTS a reaction without a click.
-  - midi target onUse macros (`isDamaged` etc., `MQOnUseOptions` ~37148) DO auto-fire on the damaged target with no dialog — BUT `triggerTargetMacros` reads `target.actor.flags['midi-qol'].onUseMacroParts`, which is built from the actor's **`_source`** flags. A DAE transfer effect on a bare-NPC-held ITEM can't inject `_source` flags, and `"ItemMacro"` in a target macro resolves to the ATTACKER's item (`callMacros(this.item,...)`). So an item-based auto-reaction isn't feasible on a bare NPC.
-  - **→ Auto-trigger works only when the macro lives in the actor statblock `_source` (boss/actor phase). Revisit then.** Same documented-limitation class as ranged-template AoE.
-- New engine: `FC_ONLY=<substr>` env filter (single-ability iteration; byId uses unfiltered gather so setup still resolves); test timeout 360s→600s.
+- **Payload proof** (first pass): Example Retaliate (Examples) = `activation.type:"reaction"` damage activity, 6 force. Gate fires the holder's reaction at the attacker after a forced hit → −6 on the attacker. Mutation-tested.
+- **Auto-trigger CLOSED in Iter 4** (overturns the spike's "infeasible headless"): **Test Retaliator** (forge-npcs) carries an actor `_source` flag `flags.midi-qol.onUseMacroName="[isDamaged]ItemMacro.Example Retaliate"`; the inlined item carries inline-JS `flags.dae.macro.command` (flat 6 force to `workflow.token` attacker, guarded on `macroPass==='isDamaged'`). Gate: attacker forced-hit strikes the retaliator, NO manual reaction cast → attacker −6 auto-applied. Mutation-tested.
+- **Why it works now vs the spike's blocker:** midi `triggerTargetMacros` reads `target.actor.flags['midi-qol'].onUseMacroParts` from the actor's `_source`. The spike only tried a DAE transfer effect on a bare-NPC ITEM (can't inject `_source`). An AUTHORED NPC bakes the flag into `_source` at Actor.create. And `ItemMacro.<Name>` resolves to the DEFENDER's own item (bare `ItemMacro` resolves to the ATTACKER's item — `callMacros(this.item,...)`). True reaction-dialog reactions still can't headless-auto-fire (interactive `reactionDialog`), but the actor onUse-macro path covers retaliate-style reactions.
+- New engine (Iter 4): `runScene` authored slot + `castOwn` step; `actorCombatCheck` handler; `validateActorCombat`. `FC_ONLY=<substr>` env filter (single-ability/actor iteration; byId uses unfiltered gather so setup still resolves); test timeout 600s.
 
 ## Macro-driven abilities — DONE ✅
 First "if X then do Y to Z" content logic. Example Rally (Examples folder): DEX DC14 save, range 30ft; on FAIL → 10 force to target (`damage.onSave:"none"`) AND every same-disposition ally within 30ft of caster gains 5 temp HP. Green 2x via new T3-macro gate (both branches). Spec+plan: `docs/superpowers/specs|plans/2026-06-02-macro-save-buff-ability.*`.

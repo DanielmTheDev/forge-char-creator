@@ -1,0 +1,14 @@
+{
+  "tier": "T3",
+  "actors": {
+    "bruiser": { "authored": true, "disposition": 1, "pos": [100, 100] },
+    "dummy": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "castOwn": "bruiser", "ability": "searing-bolt", "targets": ["dummy"] },
+    { "snapshot": "hit" }
+  ],
+  "assert": [
+    { "at": "hit", "actor": "dummy", "hpDelta": -10 }
+  ]
+}

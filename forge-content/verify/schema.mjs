@@ -13,30 +13,25 @@ export const KNOWN_KEYS = [
 const TOP_KEYS = ['tier', 'combat', 'actors', 'steps', 'scenarios', 'assert', 'setup'];
 const RUN_KEYS = ['targetedCount'];
 
-// expectation: a parsed expect.json. identifiers: string[] of ability identifiers in
-// the suite (the dispatcher's byId keys). Returns string[] of errors (empty = valid).
-export function validate(expectation, identifiers) {
-  if (!expectation || typeof expectation !== 'object') return ['expectation must be a non-null object'];
-  const e = expectation;
+// Shared step + assert grammar checker — the single source of the steps/scenarios/
+// assert vocabulary, reused by ability `validate()` AND actor T3 `validateActorCombat()`.
+// `e` is the expectation, `roster` a Set of actor names, `identifiers` the suite ability
+// ids. Handles both `cast` (ability expects) and `castOwn` (actor T3) step variants.
+function validateStepsAndAsserts(e, roster, identifiers) {
   const errs = [];
-  for (const k of Object.keys(e)) if (!TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (legacy? migrate to v2)`);
-
-  const combatOn = expectation.combat !== false;
-  const roster = new Set(Object.keys(e.actors ?? {}));
-  if (!roster.size) errs.push('no actors defined');
-  for (const s of e.setup ?? []) if (!identifiers.includes(s)) errs.push(`setup ability "${s}" not found in suite`);
-
+  const combatOn = e.combat !== false;
   const steps = e.steps ?? [];
   const labels = new Set();
   for (const s of steps) {
     if ('snapshot' in s) { if (labels.has(s.snapshot)) errs.push(`duplicate snapshot label "${s.snapshot}"`); labels.add(s.snapshot); continue; }
-    if ('cast' in s) {
-      if (!roster.has(s.cast)) errs.push(`step cast actor "${s.cast}" not in roster`);
+    if ('cast' in s || 'castOwn' in s) {
+      const caster = 'cast' in s ? s.cast : s.castOwn;
+      if (!roster.has(caster)) errs.push(`step cast actor "${caster}" not in roster`);
       for (const t of s.targets ?? []) if (!roster.has(t)) errs.push(`step target "${t}" not in roster`);
       if (s.ability !== 'main' && !identifiers.includes(s.ability)) errs.push(`ability "${s.ability}" not found in suite`);
     }
     if (s.onlyScenarios) {
-      const scNames = new Set((expectation.scenarios ?? []).map(x => x.name));
+      const scNames = new Set((e.scenarios ?? []).map(x => x.name));
       for (const n of s.onlyScenarios) if (!scNames.has(n)) errs.push(`step onlyScenarios references unknown scenario "${n}"`);
     }
     if ('countDamageTo' in s && !roster.has(s.countDamageTo)) errs.push(`countDamageTo "${s.countDamageTo}" not in roster`);
@@ -69,14 +64,65 @@ export function validate(expectation, identifiers) {
   return errs;
 }
 
+// expectation: a parsed expect.json. identifiers: string[] of ability identifiers in
+// the suite (the dispatcher's byId keys). Returns string[] of errors (empty = valid).
+export function validate(expectation, identifiers) {
+  if (!expectation || typeof expectation !== 'object') return ['expectation must be a non-null object'];
+  const e = expectation;
+  const errs = [];
+  for (const k of Object.keys(e)) if (!TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (legacy? migrate to v2)`);
+
+  const roster = new Set(Object.keys(e.actors ?? {}));
+  if (!roster.size) errs.push('no actors defined');
+  for (const s of e.setup ?? []) if (!identifiers.includes(s)) errs.push(`setup ability "${s}" not found in suite`);
+
+  errs.push(...validateStepsAndAsserts(e, roster, identifiers));
+  return errs;
+}
+
 // --- Actor pack expectations (Iter 1: load + derived-stat asserts only) ---
 // Distinct shape from ability expects: no scaffold actors/steps, just stat asserts
 // against the single authored actor under test.
 const ACTOR_TOP_KEYS = ['tier', 'assert'];
 export const ACTOR_ASSERT_KEYS = ['hpMax', 'ac', 'abilities', 'hasItems'];
 
-export function validateActor(expectation) {
+// Iter 4 — actor T3 combat expect. Reuses the ability `actors`/`steps`/`scenarios`/
+// `assert` grammar (one shared vocab via validateStepsAndAsserts) but is gated behind
+// tier:"T3" and adds two actor-glue rules: exactly one roster actor is the authored NPC
+// under test (`authored:true`), and every `castOwn` step names that actor + an ability it
+// actually holds (cross-check vs the SOURCE doc's `abilities` refs — validateActor runs
+// pre-resolve). Test-explosion guard: this proves the inlined item fires, not the mechanic.
+const ACTOR_T3_TOP_KEYS = ['tier', 'actors', 'steps', 'scenarios', 'assert', 'setup'];
+
+function validateActorCombat(expectation, actorDoc, idList) {
+  const e = expectation;
+  const errs = [];
+  for (const k of Object.keys(e)) if (!ACTOR_T3_TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (actor T3 expect)`);
+  const actors = e.actors ?? {};
+  const roster = new Set(Object.keys(actors));
+  if (!roster.size) { errs.push('no actors defined'); return errs; }
+
+  const authored = Object.entries(actors).filter(([, c]) => c && c.authored === true).map(([n]) => n);
+  if (authored.length !== 1) errs.push(`actor T3 expect needs exactly one actor with "authored:true" (got ${authored.length})`);
+
+  const ids = idList ?? [];
+  for (const s of e.setup ?? []) if (!ids.includes(s)) errs.push(`setup ability "${s}" not found in suite`);
+  errs.push(...validateStepsAndAsserts(e, roster, ids));
+
+  // castOwn must be the authored actor casting an ability it actually holds.
+  const refs = Array.isArray(actorDoc?.abilities) ? actorDoc.abilities : [];
+  const held = new Set(refs.map(r => (typeof r === 'string' ? r : r?.ability)));
+  for (const s of e.steps ?? []) {
+    if (!('castOwn' in s)) continue;
+    if (authored.length === 1 && s.castOwn !== authored[0]) errs.push(`castOwn actor "${s.castOwn}" is not the authored actor "${authored[0]}"`);
+    if (!held.has(s.ability)) errs.push(`castOwn ability "${s.ability}" not held by actor (its abilities: ${[...held].join(', ') || 'none'})`);
+  }
+  return errs;
+}
+
+export function validateActor(expectation, actorDoc, idList) {
   if (!expectation || typeof expectation !== 'object') return ['actor expectation must be a non-null object'];
+  if (expectation.tier === 'T3') return validateActorCombat(expectation, actorDoc, idList);
   const errs = [];
   for (const k of Object.keys(expectation)) if (!ACTOR_TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (actor expect)`);
   const a = expectation.assert;

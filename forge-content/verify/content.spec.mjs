@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bootFoundry } from './boot.mjs';
-import { installGateHelpers, genericCheck, actorLoadCheck } from './checks.mjs';
+import { installGateHelpers, genericCheck, actorLoadCheck, actorCombatCheck } from './checks.mjs';
 import { assertSnapshot } from './assert.mjs';
 import { validate, validateActor, validateActorRefs, KNOWN_KEYS } from './schema.mjs';
 import { COLLECTIONS } from '../../scripts/pack-tools/modules.mjs';
@@ -60,7 +60,7 @@ test.describe('forge-content verify', () => {
     // Actor packs (Iter 1): load + derived-stat checks. Distinct expect shape.
     const actorUntested = ACTORS.filter(a => !a.expectation).map(a => a.doc.name);
     expect(actorUntested, `Actors missing <name>.expect.json: ${actorUntested.join(', ')}`).toEqual([]);
-    const actorErrors = ACTORS.flatMap(a => validateActor(a.expectation).map(e => `${a.doc.name}: ${e}`));
+    const actorErrors = ACTORS.flatMap(a => validateActor(a.expectation, a.doc, idList).map(e => `${a.doc.name}: ${e}`));
     expect(actorErrors, `actor expect.json validation errors:\n${actorErrors.join('\n')}`).toEqual([]);
     // Iter 2: actor source carries `abilities: [<identifier>]` refs. Validate them
     // pre-boot, then resolve+inline (re-keyed embedded items) so actorLoadCheck —
@@ -118,9 +118,17 @@ test.describe('forge-content verify', () => {
 
     for (const actorItem of ACTORS) {
       await page.evaluate(isolate);
-      const r = await page.evaluate((arg) => globalThis.__fcGate.actorLoadCheck(arg), { doc: actorItem.doc, expectation: actorItem.expectation });
-      results.push({ name: actorItem.doc.name, tier: actorItem.expectation.tier, ...r });
-      console.log(`${r.ok ? '✓' : '✘'} [${actorItem.expectation.tier}] ${actorItem.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
+      const exp = actorItem.expectation;
+      let r;
+      if (exp.tier === 'T3') {
+        // Iter 4: authored NPC fights in real combat with its own inlined abilities.
+        const setupDocs = (exp.setup ?? []).map(s => byId.get(s));
+        r = await page.evaluate(actorCombatCheck, { doc: actorItem.doc, expectation: exp, setupDocs, knownKeys: KNOWN_KEYS });
+      } else {
+        r = await page.evaluate((arg) => globalThis.__fcGate.actorLoadCheck(arg), { doc: actorItem.doc, expectation: exp });
+      }
+      results.push({ name: actorItem.doc.name, tier: exp.tier, ...r });
+      console.log(`${r.ok ? '✓' : '✘'} [${exp.tier}] ${actorItem.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
     }
 
     const failed = results.filter(r => !r.ok);

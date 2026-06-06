@@ -204,3 +204,51 @@ test('validateActorRefs rejects an unknown identifier in an object ref', () => {
   const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'no-such' }] }, actorIds);
   assert.match(errs.join(), /Ogre.*no-such|no-such.*Ogre/);
 });
+
+// --- Iter 4: actor T3 combat expect ---
+const t3Doc = { name: 'Bruiser', type: 'npc', abilities: ['searing-bolt'] };
+const t3Expect = () => ({
+  tier: 'T3',
+  actors: { bruiser: { authored: true, disposition: 1 }, dummy: { hp: 100, disposition: -1 } },
+  steps: [{ castOwn: 'bruiser', ability: 'searing-bolt', targets: ['dummy'] }, { snapshot: 'hit' }],
+  assert: [{ at: 'hit', actor: 'dummy', hpDelta: -10 }],
+});
+
+test('validateActor accepts a well-formed T3 actor-combat expect', () => {
+  assert.deepEqual(validateActor(t3Expect(), t3Doc, actorIds), []);
+});
+
+test('validateActor T3 requires exactly one authored actor', () => {
+  const e = t3Expect(); delete e.actors.bruiser.authored;
+  assert.match(validateActor(e, t3Doc, actorIds).join(), /exactly one actor with "authored:true" \(got 0\)/);
+});
+
+test('validateActor T3 rejects two authored actors', () => {
+  const e = t3Expect(); e.actors.dummy.authored = true;
+  assert.match(validateActor(e, t3Doc, actorIds).join(), /authored:true" \(got 2\)/);
+});
+
+test('validateActor T3 rejects castOwn of an ability the actor does not hold', () => {
+  const e = t3Expect(); e.steps[0].ability = 'radiant-rebuke';
+  assert.match(validateActor(e, t3Doc, actorIds).join(), /castOwn ability "radiant-rebuke" not held by actor/);
+});
+
+test('validateActor T3 rejects castOwn by a non-authored actor', () => {
+  const e = t3Expect(); e.steps[0].castOwn = 'dummy';
+  assert.match(validateActor(e, t3Doc, actorIds).join(), /castOwn actor "dummy" is not the authored actor "bruiser"/);
+});
+
+test('validateActor T3 rejects an unknown top-level key', () => {
+  const e = t3Expect(); e.combat = true;
+  assert.match(validateActor(e, t3Doc, actorIds).join(), /unknown top-level key "combat" \(actor T3 expect\)/);
+});
+
+test('validateActor T3 still validates the shared assert vocab', () => {
+  const e = t3Expect(); e.assert[0] = { at: 'hit', actor: 'dummy', bogusKey: 1 };
+  assert.match(validateActor(e, t3Doc, actorIds).join(), /unknown assert key "bogusKey"/);
+});
+
+test('validateActor T2 path unchanged when extra args passed', () => {
+  const errs = validateActor({ tier: 'T2', assert: { hpMax: 20 } }, t3Doc, actorIds);
+  assert.deepEqual(errs, []);
+});

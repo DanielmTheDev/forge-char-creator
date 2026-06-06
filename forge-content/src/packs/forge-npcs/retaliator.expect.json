@@ -1,0 +1,15 @@
+{
+  "tier": "T3",
+  "actors": {
+    "attacker": { "hp": 100, "disposition": 1, "pos": [100, 100] },
+    "retaliator": { "authored": true, "ac": 1, "disposition": -1, "pos": [200, 100], "forces": { "attack": "hit" } }
+  },
+  "setup": ["example-strike"],
+  "steps": [
+    { "cast": "attacker", "ability": "example-strike", "targets": ["retaliator"] },
+    { "snapshot": "hit" }
+  ],
+  "assert": [
+    { "at": "hit", "actor": "attacker", "hpDelta": -6 }
+  ]
+}
