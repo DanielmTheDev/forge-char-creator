@@ -9,6 +9,8 @@
     "content:statblock-validate": "node scripts/pack-tools/statblock-validate.mjs",
     "content:gen-expect": "node scripts/pack-tools/gen-expect.mjs",
     "content:dist": "node scripts/pack-tools/export-dist.mjs",
+    "content:tokenize": "node scripts/pack-tools/tokenize.mjs",
+    "content:portrait": "node scripts/pack-tools/portrait.mjs",
     "content:verify": "bash content-verify.sh",
     "content:unit": "node --test 'forge-content/verify/*.test.mjs' 'forge-content/scripts/*.test.mjs' 'scripts/pack-tools/*.test.mjs'"
   },
