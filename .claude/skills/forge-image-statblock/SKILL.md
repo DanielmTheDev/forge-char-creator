@@ -43,10 +43,14 @@ exact shape you must emit.
 3. **Portrait + token = the creature.** Save the SOURCE image as a module asset:
    `cp <image> forge-content/assets/tokens/<slug>.png` → use it for the actor `img`
    (the sheet portrait can be the full rectangle).
-   **The token must be SQUARE** — a rectangular subject gets stretched inside the
-   Dynamic Token Ring. Crop a square focused on head + upper body:
-   `convert <slug>.png -crop WxW+0+<yoff> +repage <slug>-token.png` (W = the image
-   width; pick yoff to frame the head). Point `prototypeToken.texture.src` at the
+   **The token must be SQUARE and CIRCULAR-MASKED** — a rectangular subject gets
+   stretched inside the Dynamic Token Ring, and an OPAQUE square one covers the
+   ring entirely (no ring visible at all; found 2026-06-11 — subject art needs
+   transparency like dnd5e's own subject tokens). Crop a square focused on head +
+   upper body, then cut a transparent circle:
+   `convert <slug>.png -crop WxW+0+<yoff> +repage \( +clone -alpha extract -fill black -colorize 100 -fill white -draw "circle C,C C,M" \) -alpha off -compose CopyOpacity -composite <slug>-token.png`
+   (W = image width; C = W/2; M ≈ W/40 top margin; pick yoff to frame the head).
+   Point `prototypeToken.texture.src` at the
    `-token.png` and enable the ring:
    `"prototypeToken": { "texture": { "src": "modules/forge-content/assets/tokens/<slug>-token.png" }, "ring": { "enabled": true, "subject": { "scale": 1 } } }`.
    If no usable source image, fall back to a fitting core icon under

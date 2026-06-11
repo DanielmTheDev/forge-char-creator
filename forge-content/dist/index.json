@@ -141,7 +141,7 @@
   "assets": [
     {
       "path": "tokens/test-stitchwretch-token.png",
-      "hash": "453d5bb49175ff99ec264d88719a45760f124178179f87c47d1a9642280ffadb"
+      "hash": "c88df1eaf86607438b2ea045d44f68f1290f415587a5fbcc51113fe904a45b5f"
     },
     {
       "path": "tokens/test-stitchwretch.png",
@@ -149,7 +149,7 @@
     },
     {
       "path": "tokens/unchained-thrall-token.png",
-      "hash": "264eb63d2a9a74d442b5d646945be8f364c5091e5015ed019bd3edd2d13594ab"
+      "hash": "311fb5d0797bb88a0c2c89d1519b08602e894660fea5821d04671d9bf8796176"
     },
     {
       "path": "tokens/unchained-thrall.png",
