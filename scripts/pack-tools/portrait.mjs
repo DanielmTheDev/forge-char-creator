@@ -2,21 +2,17 @@
 // Generate a character portrait via the Gemini image API:
 //   node scripts/pack-tools/portrait.mjs <prompt.txt|-> <out.png>
 // Prompt source: a text file, or "-" to read stdin (paste the vault note's 🖼️
-// prompt). Key: GEMINI_API_KEY env, falling back to ~/.config/forge-content/
-// gemini-api-key (single line). Create a key at https://aistudio.google.com/apikey
-// (free tier covers a few portraits/day; Google One subscription does NOT
-// include API access).
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { homedir } from "node:os";
+// prompt). Key: GEMINI_API_KEY env var (exported from the user's ~/.zshrc —
+// sessions started from zsh inherit it). Create a key at
+// https://aistudio.google.com/apikey (free tier covers a few portraits/day;
+// Google One subscription does NOT include API access).
+import { readFileSync, writeFileSync } from "node:fs";
 
 const MODEL = "gemini-2.5-flash-image";
 
 function apiKey() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
-  const f = join(homedir(), ".config", "forge-content", "gemini-api-key");
-  if (existsSync(f)) return readFileSync(f, "utf8").trim();
-  console.error("No GEMINI_API_KEY env and no ~/.config/forge-content/gemini-api-key file.");
+  console.error("GEMINI_API_KEY env var not set (export it in ~/.zshrc and start the session from zsh).");
   console.error("Create a key at https://aistudio.google.com/apikey");
   process.exit(1);
 }

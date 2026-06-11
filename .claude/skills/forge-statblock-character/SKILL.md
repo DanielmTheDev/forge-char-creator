@@ -78,8 +78,8 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    `node scripts/pack-tools/tokenize.mjs <image> <slug> [--yoff N|--xoff N]`
    → portrait + circle-masked `-token.png` + `/tmp/thumb-<slug>-token.png`
    (Read it — verify head framing). No image but a 🖼️ prompt?
-   `node scripts/pack-tools/portrait.mjs <prompt.txt|-> <out.png>` (key at
-   `~/.config/forge-content/gemini-api-key`) then tokenize.
+   `node scripts/pack-tools/portrait.mjs <prompt.txt|-> <out.png>` (needs
+   `GEMINI_API_KEY` env — user's ~/.zshrc; if unset, ask user) then tokenize.
    No image at all → fitting core icon, ring off.
 
 8. **Actor JSON** (`forge-content/src/packs/forge-npcs/<slug>.json`): schema
