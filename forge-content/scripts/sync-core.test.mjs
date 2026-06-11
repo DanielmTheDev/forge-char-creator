@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeDelta, rawUrl, apiCommitUrl } from './sync-core.mjs';
+import { computeDelta, computeAssetDelta, rewriteAssetPaths, rawUrl, apiCommitUrl } from './sync-core.mjs';
 
 const manifest = () => ([
   { pack: 'forge-abilities', collection: 'items', id: 'abilityaaaaaaaa1', name: 'Searing Bolt', path: 'forge-abilities/abilityaaaaaaaa1.json', hash: 'h1' },
@@ -58,6 +58,43 @@ test('everything in sync -> empty delta', () => {
   assert.deepEqual(d.upserts, []);
   assert.deepEqual(d.deletes, []);
   assert.equal(d.unchanged, 3);
+});
+
+test('computeAssetDelta: new/stale assets -> upload, matching -> reuse stored url', () => {
+  const manifestAssets = [
+    { path: 'tokens/a.png', hash: 'h1' },
+    { path: 'tokens/b.png', hash: 'h2' },
+    { path: 'tokens/c.png', hash: 'h3' },
+  ];
+  const stored = {
+    'tokens/a.png': { hash: 'h1', url: 'uploaded/tokens/a.png' },
+    'tokens/b.png': { hash: 'OLD', url: 'uploaded/tokens/b.png' },
+  };
+  const d = computeAssetDelta(manifestAssets, stored);
+  assert.deepEqual(d.uploads.map(u => u.path), ['tokens/b.png', 'tokens/c.png']);
+  assert.deepEqual(d.urlMap, { 'tokens/a.png': 'uploaded/tokens/a.png' });
+});
+
+test('rewriteAssetPaths deep-replaces module asset refs with uploaded urls', () => {
+  const doc = {
+    img: 'modules/forge-content/assets/tokens/a.png',
+    prototypeToken: { texture: { src: 'modules/forge-content/assets/tokens/a-token.png' } },
+    items: [{ img: 'icons/svg/item-bag.svg' }],
+  };
+  const out = rewriteAssetPaths(doc, {
+    'tokens/a.png': 'https://assets.example/x/tokens/a.png',
+    'tokens/a-token.png': 'uploaded/tokens/a-token.png',
+  });
+  assert.equal(out.img, 'https://assets.example/x/tokens/a.png');
+  assert.equal(out.prototypeToken.texture.src, 'uploaded/tokens/a-token.png');
+  assert.equal(out.items[0].img, 'icons/svg/item-bag.svg');
+  // input not mutated
+  assert.equal(doc.img, 'modules/forge-content/assets/tokens/a.png');
+});
+
+test('rewriteAssetPaths leaves unmapped module refs untouched', () => {
+  const doc = { img: 'modules/forge-content/assets/tokens/missing.png' };
+  assert.equal(rewriteAssetPaths(doc, {}).img, 'modules/forge-content/assets/tokens/missing.png');
 });
 
 test('url builders', () => {

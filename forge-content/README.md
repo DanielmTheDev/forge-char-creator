@@ -56,6 +56,14 @@ So: author → verify → push → reload world. The module zip still ships comp
 packs as the first-install/offline baseline; a module reinstall resets packs to
 that baseline and the next sync self-heals them.
 
+**Assets sync too.** The manifest lists every file under `forge-content/assets/`
+with a sha256; sync downloads new/changed ones from the repo and uploads them via
+`FilePicker` (Data dir locally, Assets Library on The Forge), then rewrites synced
+docs' image refs (`modules/forge-content/assets/<p>`) to the uploaded location.
+Upload state lives in the `assetState` world setting; when any asset uploads, ALL
+docs are re-created so stale refs re-point. Zip installs still resolve the
+module-install path directly — both render.
+
 **Limits:** docs already imported into the world/scenes are copies — sync only
 updates the compendium; re-drag to pick up changes. The `manifestUrl` setting
 overrides the source (used by `tests/content-sync.spec.js` to test against the

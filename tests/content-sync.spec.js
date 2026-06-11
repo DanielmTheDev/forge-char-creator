@@ -33,17 +33,37 @@ test.describe('forge-content runtime sync', () => {
 
     const first = await page.evaluate(async () => {
       await game.settings.set('forge-content', 'manifestUrl', 'modules/forge-content/dist/index.json');
+      await game.settings.set('forge-content', 'assetState', {}); // force asset re-upload path
       return game.modules.get('forge-content').api.syncContent();
     });
     console.log('First sync:', JSON.stringify(first));
     expect(first.failed ?? 0).toBe(0);
+    expect(first.assetsFailed ?? 0).toBe(0);
+    expect(first.assetsUploaded).toBeGreaterThanOrEqual(2); // thrall portrait + token crop
 
-    // Second run must be a no-op (hash stamps now present in the packs).
+    // Second run must be a no-op (hash stamps now present in packs + assetState).
     const second = await page.evaluate(() => game.modules.get('forge-content').api.syncContent());
     console.log('Second sync:', JSON.stringify(second));
     expect(second.upserts).toBe(0);
     expect(second.deletes ?? 0).toBe(0);
+    expect(second.assetsUploaded ?? 0).toBe(0);
     expect(second.unchanged).toBeGreaterThan(0);
+
+    // Synced docs must point at the UPLOADED asset copies, and those files must
+    // exist server-side (FilePicker browse) — this is the Forge-image story.
+    const thrall = await page.evaluate(async () => {
+      const pack = game.packs.get('forge-content.forge-npcs');
+      const docs = await pack.getDocuments();
+      const t = docs.find(d => d.name === 'Unchained Thrall');
+      const FP = foundry.applications?.apps?.FilePicker?.implementation ?? FilePicker;
+      const dir = await FP.browse('data', 'forge-content/assets/tokens');
+      return { img: t?.img, token: t?.prototypeToken?.texture?.src, files: dir.files };
+    });
+    console.log('Thrall after sync:', JSON.stringify(thrall));
+    expect(thrall.img).toBe('forge-content/assets/tokens/unchained-thrall.png');
+    expect(thrall.token).toBe('forge-content/assets/tokens/unchained-thrall-token.png');
+    expect(thrall.files).toContain('forge-content/assets/tokens/unchained-thrall.png');
+    expect(thrall.files).toContain('forge-content/assets/tokens/unchained-thrall-token.png');
 
     // Spot-check a synced doc: recharge fix + hash stamp landed in the pack.
     const mark = await page.evaluate(async () => {

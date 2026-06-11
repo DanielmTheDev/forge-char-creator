@@ -20,6 +20,36 @@ export function computeDelta(manifestDocs, existingDocs) {
   return { upserts, deletes, unchanged };
 }
 
+// Asset delta. manifestAssets: index.json `assets` rows [{ path, hash }] (path
+// relative to forge-content/assets/). stored: world-setting map
+// { [path]: { hash, url } } recording what a prior sync uploaded and where the
+// server put it (locally a data-relative path, on The Forge an Assets Library
+// URL). Matching hash -> reuse stored url, no re-upload; new/stale -> upload.
+export function computeAssetDelta(manifestAssets, stored) {
+  const uploads = manifestAssets.filter(a => stored[a.path]?.hash !== a.hash);
+  const urlMap = {};
+  for (const a of manifestAssets) {
+    if (stored[a.path]?.hash === a.hash) urlMap[a.path] = stored[a.path].url;
+  }
+  return { uploads, urlMap };
+}
+
+// Replace every doc string referencing a module asset with its uploaded url.
+// Docs are authored against the module-install path (modules/forge-content/
+// assets/<path>) — valid for zip installs; synced copies must point at the
+// uploaded location instead. Unmapped refs stay untouched (zip baseline still
+// resolves them). Returns a rewritten clone; input is not mutated.
+const MODULE_ASSET_PREFIX = "modules/forge-content/assets/";
+export function rewriteAssetPaths(doc, urlMap) {
+  return JSON.parse(JSON.stringify(doc), (key, value) => {
+    if (typeof value === "string" && value.startsWith(MODULE_ASSET_PREFIX)) {
+      const rel = value.slice(MODULE_ASSET_PREFIX.length);
+      return urlMap[rel] ?? value;
+    }
+    return value;
+  });
+}
+
 // Manifest + doc payloads are fetched from raw.githubusercontent.com PINNED to
 // a commit SHA (immutable URL -> no CDN staleness). The SHA itself comes from
 // the GitHub API, which is not cached, so a push is visible immediately.

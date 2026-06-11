@@ -137,5 +137,23 @@
       "path": "forge-npcs/testogre00000001.json",
       "hash": "ba8c9eb77921f89345776e2e30ecf7cb2fd19f09b81b9d3a51abdbbf44413d7a"
     }
+  ],
+  "assets": [
+    {
+      "path": "tokens/test-stitchwretch-token.png",
+      "hash": "453d5bb49175ff99ec264d88719a45760f124178179f87c47d1a9642280ffadb"
+    },
+    {
+      "path": "tokens/test-stitchwretch.png",
+      "hash": "c9bb719292c4ff50b2ed2d59c49683893168f10777c9585e72e78a8faadd1b72"
+    },
+    {
+      "path": "tokens/unchained-thrall-token.png",
+      "hash": "264eb63d2a9a74d442b5d646945be8f364c5091e5015ed019bd3edd2d13594ab"
+    },
+    {
+      "path": "tokens/unchained-thrall.png",
+      "hash": "aee6053923350c8944f8af3fcdaabba9cca67966403eea9cecb3414759e1aa22"
+    }
   ]
 }

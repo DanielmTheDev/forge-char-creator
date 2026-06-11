@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildDistDocs } from './export-dist.mjs';
+import { buildDistDocs, buildAssetIndex } from './export-dist.mjs';
 
 const samplePacks = () => ([
   {
@@ -68,6 +68,20 @@ test('emitted docs carry no _key and index rows carry pack/collection/name/versi
   const row = index.docs.find(d => d.id === 'actorbbbbbbbbbb1');
   assert.deepEqual({ pack: row.pack, collection: row.collection, name: row.name },
     { pack: 'forge-npcs', collection: 'actors', name: 'Test Goblin' });
+});
+
+test('buildAssetIndex hashes file bytes, sorted by path', () => {
+  const files = [
+    { path: 'tokens/zeta.png', data: Buffer.from('zzz') },
+    { path: 'tokens/alpha.png', data: Buffer.from('aaa') },
+  ];
+  const idx = buildAssetIndex(files);
+  assert.deepEqual(idx.map(a => a.path), ['tokens/alpha.png', 'tokens/zeta.png']);
+  for (const a of idx) assert.match(a.hash, /^[0-9a-f]{64}$/);
+  assert.notEqual(idx[0].hash, idx[1].hash);
+  // Same bytes -> same hash (content-addressed, not name-addressed)
+  const again = buildAssetIndex([{ path: 'other.png', data: Buffer.from('aaa') }]);
+  assert.equal(again[0].hash, idx[0].hash);
 });
 
 test('index ordering is deterministic (pack, then id)', () => {

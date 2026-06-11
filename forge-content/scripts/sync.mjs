@@ -13,7 +13,7 @@
 //
 // Limits (by design): docs already IMPORTED into the world/scenes are copies —
 // sync updates the compendium only; re-drag to pick up changes.
-import { computeDelta, rawUrl, apiCommitUrl } from "./sync-core.mjs";
+import { computeDelta, computeAssetDelta, rewriteAssetPaths, rawUrl, apiCommitUrl } from "./sync-core.mjs";
 
 const MODULE_ID = "forge-content";
 const REPO = "DanielmTheDev/forge-char-creator";
@@ -30,6 +30,11 @@ Hooks.once("init", () => {
     name: "Manifest URL override",
     hint: "Advanced/testing: full URL of a dist index.json (doc files are fetched relative to it). Leave empty to use the GitHub API + raw content of the main branch.",
     scope: "world", config: true, type: String, default: "",
+  });
+  // { [assetPath]: { hash, url } } — what a prior sync uploaded and the path the
+  // server stored it under (data-relative locally; Assets Library URL on Forge).
+  game.settings.register(MODULE_ID, "assetState", {
+    scope: "world", config: false, type: Object, default: {},
   });
 });
 
@@ -55,7 +60,12 @@ async function resolveSource() {
   const override = game.settings.get(MODULE_ID, "manifestUrl");
   if (override) {
     const base = override.replace(/\/index\.json$/, "");
-    return { manifest: await fetchJson(override), docUrl: e => `${base}/${e.path}` };
+    return {
+      manifest: await fetchJson(override),
+      docUrl: e => `${base}/${e.path}`,
+      // assets live next to dist/ (forge-content/assets/), not inside it
+      assetUrl: a => `${base.replace(/\/dist$/, "")}/assets/${a.path}`,
+    };
   }
   let ref = BRANCH;
   try {
@@ -66,11 +76,53 @@ async function resolveSource() {
   return {
     manifest: await fetchJson(rawUrl(REPO, ref, `${DIST_PATH}/index.json`)),
     docUrl: e => rawUrl(REPO, ref, `${DIST_PATH}/${e.path}`),
+    assetUrl: a => rawUrl(REPO, ref, `forge-content/assets/${a.path}`),
   };
 }
 
+// Download stale/new assets and upload them through FilePicker so they land
+// wherever this server keeps user files (Data dir locally, Assets Library on
+// The Forge — its FilePicker override returns the CDN URL). Returns
+// { urlMap, uploaded, failed }; urlMap feeds rewriteAssetPaths so synced docs
+// point at the uploaded copies instead of the module-install path.
+async function syncAssets(manifest, assetUrl) {
+  const stored = game.settings.get(MODULE_ID, "assetState") ?? {};
+  const { uploads, urlMap } = computeAssetDelta(manifest.assets ?? [], stored);
+  if (!uploads.length) return { urlMap, uploaded: 0, failed: 0 };
+
+  const FP = foundry.applications?.apps?.FilePicker?.implementation ?? FilePicker;
+  const state = foundry.utils.deepClone(stored);
+  let uploaded = 0, failed = 0;
+  for (const a of uploads) {
+    try {
+      const res = await fetch(assetUrl(a), { cache: "no-store" });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const blob = await res.blob();
+      const dir = `${MODULE_ID}/assets/${a.path.split("/").slice(0, -1).join("/")}`.replace(/\/$/, "");
+      // Ensure the directory chain exists; createDirectory throws on existing dirs.
+      let walked = "";
+      for (const seg of dir.split("/")) {
+        walked = walked ? `${walked}/${seg}` : seg;
+        await FP.createDirectory("data", walked).catch(() => {});
+      }
+      const name = a.path.split("/").pop();
+      const result = await FP.upload("data", dir, new File([blob], name, { type: blob.type }), {}, { notify: false });
+      if (!result?.path) throw new Error("upload returned no path");
+      state[a.path] = { hash: a.hash, url: result.path };
+      urlMap[a.path] = result.path;
+      uploaded++;
+    } catch (err) {
+      failed++;
+      console.error(`${MODULE_ID} | asset upload failed for ${a.path}`, err);
+    }
+  }
+  await game.settings.set(MODULE_ID, "assetState", state);
+  return { urlMap, uploaded, failed };
+}
+
 export async function syncContent() {
-  const { manifest, docUrl } = await resolveSource();
+  const { manifest, docUrl, assetUrl } = await resolveSource();
+  const assets = await syncAssets(manifest, assetUrl);
 
   const existing = [];
   for (const packName of new Set(manifest.docs.map(d => d.pack))) {
@@ -80,10 +132,14 @@ export async function syncContent() {
     for (const e of index) existing.push({ pack: packName, id: e._id, srcHash: e.flags?.["forge-content"]?.srcHash });
   }
 
-  const { upserts, deletes, unchanged } = computeDelta(manifest.docs, existing);
+  let { upserts, deletes, unchanged } = computeDelta(manifest.docs, existing);
+  // Freshly uploaded assets mean previously-synced docs may still point at the
+  // module-install path — re-create every doc so all refs pick up the uploaded
+  // urls. Rare (only when image files change) and delete+create is exact-state.
+  if (assets.uploaded > 0) { upserts = manifest.docs; unchanged = 0; }
   if (!upserts.length && !deletes.length) {
     console.log(`${MODULE_ID} | content up to date (v${manifest.version}, ${unchanged} docs)`);
-    return { upserts: 0, deletes: 0, unchanged };
+    return { upserts: 0, deletes: 0, unchanged, assetsUploaded: 0 };
   }
 
   let applied = 0, failed = 0;
@@ -102,7 +158,7 @@ export async function syncContent() {
         try {
           if (pack.index.has(entry.id)) await cls.deleteDocuments([entry.id], { pack: pack.collection });
           if (kind === "upsert") {
-            const data = await fetchJson(docUrl(entry));
+            const data = rewriteAssetPaths(await fetchJson(docUrl(entry)), assets.urlMap);
             // Delete-then-create with keepId: exact published state, no diff-merge
             // ambiguity on embedded items/effects/activities.
             await cls.create(data, { pack: pack.collection, keepId: true });
@@ -118,8 +174,11 @@ export async function syncContent() {
     }
   }
 
-  const msg = `Forge Content: synced v${manifest.version} — ${applied} doc(s) updated${failed ? `, ${failed} FAILED (see console)` : ""}.`;
-  failed ? ui.notifications?.warn(msg) : ui.notifications?.info(msg);
+  const allFailed = failed + assets.failed;
+  const msg = `Forge Content: synced v${manifest.version} — ${applied} doc(s) updated`
+    + (assets.uploaded ? `, ${assets.uploaded} asset(s) uploaded` : "")
+    + (allFailed ? `, ${allFailed} FAILED (see console)` : "") + ".";
+  allFailed ? ui.notifications?.warn(msg) : ui.notifications?.info(msg);
   console.log(`${MODULE_ID} | ${msg} (${unchanged} unchanged)`);
-  return { upserts: upserts.length, deletes: deletes.length, unchanged, applied, failed };
+  return { upserts: upserts.length, deletes: deletes.length, unchanged, applied, failed, assetsUploaded: assets.uploaded, assetsFailed: assets.failed };
 }

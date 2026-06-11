@@ -39,6 +39,14 @@ export function buildDistDocs({ packs, version }) {
   return { files, index: { version, docs: indexDocs } };
 }
 
+// Pure: files = [{ path, data: Buffer }] (path relative to forge-content/assets/).
+// Content-addressed sha256 per file so sync can skip unchanged uploads.
+export function buildAssetIndex(files) {
+  return [...files]
+    .sort((a, b) => a.path.localeCompare(b.path))
+    .map(f => ({ path: f.path, hash: createHash("sha256").update(f.data).digest("hex") }));
+}
+
 // fs wrapper: load forge-content source, resolve actors, write dist/.
 export function exportDist() {
   const src = join(MODULE_DIR, "src", "packs");
@@ -67,7 +75,22 @@ export function exportDist() {
     return { name: pack.name, collection, docs };
   });
 
+  // Module assets (token/portrait images). Committed at forge-content/assets/;
+  // sync fetches them straight from the repo at that path, so the manifest only
+  // needs path + hash, not a dist copy.
+  const assetsDir = join(MODULE_DIR, "assets");
+  const assetFiles = [];
+  const walk = (dir, rel) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) walk(join(dir, e.name), p);
+      else assetFiles.push({ path: p, data: readFileSync(join(dir, e.name)) });
+    }
+  };
+  if (existsSync(assetsDir)) walk(assetsDir, "");
+
   const { files, index } = buildDistDocs({ packs, version });
+  index.assets = buildAssetIndex(assetFiles);
   rmSync(out, { recursive: true, force: true });
   for (const f of files) {
     const target = join(out, f.path);
@@ -75,7 +98,7 @@ export function exportDist() {
     writeFileSync(target, JSON.stringify(f.doc, null, 2) + "\n");
   }
   writeFileSync(join(out, "index.json"), JSON.stringify(index, null, 2) + "\n");
-  console.log(`[forge-content] dist export: ${files.length} docs (v${version}) -> forge-content/dist/`);
+  console.log(`[forge-content] dist export: ${files.length} docs, ${index.assets.length} assets (v${version}) -> forge-content/dist/`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && existsSync(MODULE_DIR)) {
