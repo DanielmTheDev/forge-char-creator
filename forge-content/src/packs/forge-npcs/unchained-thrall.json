@@ -5,7 +5,7 @@
   "img": "modules/forge-content/assets/tokens/unchained-thrall.png",
   "prototypeToken": {
     "texture": { "src": "modules/forge-content/assets/tokens/unchained-thrall-token.png" },
-    "ring": { "enabled": true, "subject": { "scale": 1 } }
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
   },
   "system": {
     "abilities": {

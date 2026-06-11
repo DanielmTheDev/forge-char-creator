@@ -52,7 +52,7 @@ exact shape you must emit.
    (W = image width; C = W/2; M ≈ W/40 top margin; pick yoff to frame the head).
    Point `prototypeToken.texture.src` at the
    `-token.png` and enable the ring:
-   `"prototypeToken": { "texture": { "src": "modules/forge-content/assets/tokens/<slug>-token.png" }, "ring": { "enabled": true, "subject": { "scale": 1 } } }`.
+   `"prototypeToken": { "texture": { "src": "modules/forge-content/assets/tokens/<slug>-token.png" }, "ring": { "enabled": true, "subject": { "scale": 0.75 } } }`.
    If no usable source image, fall back to a fitting core icon under
    `FoundryVTT-Linux-13.351/resources/app/public/icons/` (verify the path exists) and
    leave the ring off.

@@ -10,7 +10,7 @@
     "ring": {
       "enabled": true,
       "subject": {
-        "scale": 1
+        "scale": 0.75
       }
     }
   },
@@ -196,7 +196,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "93f663ceea68ff6a8f1c649943a66160e858fd5ef62a19c62c2ec3e595e6be4d"
+      "srcHash": "0d90d9b75bd4039374e4a7f4aa0c3e07310c47ca96cca5d8a9325cba59aab773"
     }
   },
   "folder": null
