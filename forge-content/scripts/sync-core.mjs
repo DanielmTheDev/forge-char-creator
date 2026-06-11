@@ -50,6 +50,16 @@ export function rewriteAssetPaths(doc, urlMap) {
   });
 }
 
+// Upload filename for an asset: inject the first 8 hash chars before the
+// extension. Content-addressed names mean a changed image gets a NEW url, so
+// no CDN/browser cache (The Forge assets CDN, PIXI texture cache) can ever
+// serve stale bytes for an overwritten path. Old files orphan harmlessly.
+export function uploadName(path, hash) {
+  const dot = path.lastIndexOf(".");
+  const tag = hash.slice(0, 8);
+  return dot === -1 ? `${path}.${tag}` : `${path.slice(0, dot)}.${tag}${path.slice(dot)}`;
+}
+
 // Manifest + doc payloads are fetched from raw.githubusercontent.com PINNED to
 // a commit SHA (immutable URL -> no CDN staleness). The SHA itself comes from
 // the GitHub API, which is not cached, so a push is visible immediately.

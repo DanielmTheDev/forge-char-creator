@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // manifestUrl override points at modules/forge-content/dist/index.json, which
 // Foundry serves from the symlinked repo. Run `npm run content:dist` first.
 test.describe('forge-content runtime sync', () => {
-  test.setTimeout(120000);
+  test.setTimeout(240000);
 
   test('syncs dist docs into module packs, idempotent on second run', async ({ page }) => {
 
@@ -32,6 +32,10 @@ test.describe('forge-content runtime sync', () => {
     await page.waitForTimeout(3000);
 
     const first = await page.evaluate(async () => {
+      // join + drain any auto-sync still running from world-ready before
+      // resetting state (concurrent runs are guarded, but the reset must not
+      // land mid-run)
+      await game.modules.get('forge-content').api.syncContent().catch(() => {});
       await game.settings.set('forge-content', 'manifestUrl', 'modules/forge-content/dist/index.json');
       await game.settings.set('forge-content', 'assetState', {}); // force asset re-upload path
       return game.modules.get('forge-content').api.syncContent();
@@ -60,10 +64,13 @@ test.describe('forge-content runtime sync', () => {
       return { img: t?.img, token: t?.prototypeToken?.texture?.src, files: dir.files };
     });
     console.log('Thrall after sync:', JSON.stringify(thrall));
-    expect(thrall.img).toBe('forge-content/assets/tokens/unchained-thrall.png');
-    expect(thrall.token).toBe('forge-content/assets/tokens/unchained-thrall-token.png');
-    expect(thrall.files).toContain('forge-content/assets/tokens/unchained-thrall.png');
-    expect(thrall.files).toContain('forge-content/assets/tokens/unchained-thrall-token.png');
+    // Content-addressed upload names: <name>.<hash8>.<ext> (cache busting)
+    const imgRe = /^forge-content\/assets\/tokens\/unchained-thrall\.[0-9a-f]{8}\.png$/;
+    const tokenRe = /^forge-content\/assets\/tokens\/unchained-thrall-token\.[0-9a-f]{8}\.png$/;
+    expect(thrall.img).toMatch(imgRe);
+    expect(thrall.token).toMatch(tokenRe);
+    expect(thrall.files.some(f => imgRe.test(f))).toBeTruthy();
+    expect(thrall.files.some(f => tokenRe.test(f))).toBeTruthy();
 
     // Spot-check a synced doc: recharge fix + hash stamp landed in the pack.
     const mark = await page.evaluate(async () => {

@@ -13,7 +13,7 @@
 //
 // Limits (by design): docs already IMPORTED into the world/scenes are copies —
 // sync updates the compendium only; re-drag to pick up changes.
-import { computeDelta, computeAssetDelta, rewriteAssetPaths, rawUrl, apiCommitUrl } from "./sync-core.mjs";
+import { computeDelta, computeAssetDelta, rewriteAssetPaths, uploadName, rawUrl, apiCommitUrl } from "./sync-core.mjs";
 
 const MODULE_ID = "forge-content";
 const REPO = "DanielmTheDev/forge-char-creator";
@@ -98,14 +98,17 @@ async function syncAssets(manifest, assetUrl) {
       const res = await fetch(assetUrl(a), { cache: "no-store" });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       const blob = await res.blob();
-      const dir = `${MODULE_ID}/assets/${a.path.split("/").slice(0, -1).join("/")}`.replace(/\/$/, "");
+      // Content-addressed target name: a changed image always uploads to a NEW
+      // path, sidestepping every cache layer (Forge CDN, browser, PIXI textures).
+      const target = uploadName(a.path, a.hash);
+      const dir = `${MODULE_ID}/assets/${target.split("/").slice(0, -1).join("/")}`.replace(/\/$/, "");
       // Ensure the directory chain exists; createDirectory throws on existing dirs.
       let walked = "";
       for (const seg of dir.split("/")) {
         walked = walked ? `${walked}/${seg}` : seg;
         await FP.createDirectory("data", walked).catch(() => {});
       }
-      const name = a.path.split("/").pop();
+      const name = target.split("/").pop();
       const result = await FP.upload("data", dir, new File([blob], name, { type: blob.type }), {}, { notify: false });
       if (!result?.path) throw new Error("upload returned no path");
       state[a.path] = { hash: a.hash, url: result.path };
@@ -120,7 +123,16 @@ async function syncAssets(manifest, assetUrl) {
   return { urlMap, uploaded, failed };
 }
 
-export async function syncContent() {
+// Reentrancy guard: a second trigger (auto-sync at ready + a manual call, or a
+// double click) joins the in-flight run instead of racing it — concurrent runs
+// double-create pack docs and trip "does not exist" delete errors.
+let running = null;
+export function syncContent() {
+  running ??= doSyncContent().finally(() => { running = null; });
+  return running;
+}
+
+async function doSyncContent() {
   const { manifest, docUrl, assetUrl } = await resolveSource();
   const assets = await syncAssets(manifest, assetUrl);
 

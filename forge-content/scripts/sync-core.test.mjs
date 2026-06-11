@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeDelta, computeAssetDelta, rewriteAssetPaths, rawUrl, apiCommitUrl } from './sync-core.mjs';
+import { computeDelta, computeAssetDelta, rewriteAssetPaths, uploadName, rawUrl, apiCommitUrl } from './sync-core.mjs';
 
 const manifest = () => ([
   { pack: 'forge-abilities', collection: 'items', id: 'abilityaaaaaaaa1', name: 'Searing Bolt', path: 'forge-abilities/abilityaaaaaaaa1.json', hash: 'h1' },
@@ -95,6 +95,13 @@ test('rewriteAssetPaths deep-replaces module asset refs with uploaded urls', () 
 test('rewriteAssetPaths leaves unmapped module refs untouched', () => {
   const doc = { img: 'modules/forge-content/assets/tokens/missing.png' };
   assert.equal(rewriteAssetPaths(doc, {}).img, 'modules/forge-content/assets/tokens/missing.png');
+});
+
+test('uploadName injects short content hash before extension (cache busting)', () => {
+  assert.equal(
+    uploadName('tokens/unchained-thrall-token.png', 'abcdef0123456789'.padEnd(64, '0')),
+    'tokens/unchained-thrall-token.abcdef01.png');
+  assert.equal(uploadName('noext', 'f'.repeat(64)), 'noext.ffffffff');
 });
 
 test('url builders', () => {
