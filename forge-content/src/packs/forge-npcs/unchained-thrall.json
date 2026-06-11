@@ -1,0 +1,33 @@
+{
+  "_id": "ksqaCqEI4okQYqok",
+  "name": "Unchained Thrall",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/unchained-thrall.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/unchained-thrall-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 1 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 13 },
+      "dex": { "value": 12 },
+      "con": { "value": 14 },
+      "int": { "value": 8 },
+      "wis": { "value": 10 },
+      "cha": { "value": 6 }
+    },
+    "attributes": {
+      "hp": { "value": 26, "max": 26, "formula": "" },
+      "ac": { "calc": "flat", "flat": 12 }
+    },
+    "details": { "cr": 1, "type": { "value": "undead" } }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "example-strike", "name": "Chain Lash", "img": "icons/tools/fasteners/chain-brass-yellow.webp", "set": { "dmg": "7" } },
+    { "ability": "searing-bolt", "name": "Brand of the Forge", "img": "icons/magic/fire/flame-burning-embers-orange.webp", "set": { "dmg": "9", "range": 60 } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

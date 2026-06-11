@@ -1,0 +1,19 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 26,
+    "ac": 12,
+    "abilities": {
+      "str": 13,
+      "dex": 12,
+      "con": 14,
+      "int": 8,
+      "wis": 10,
+      "cha": 6
+    },
+    "hasItems": [
+      "Chain Lash",
+      "Brand of the Forge"
+    ]
+  }
+}

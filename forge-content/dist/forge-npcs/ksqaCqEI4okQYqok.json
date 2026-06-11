@@ -1,0 +1,203 @@
+{
+  "_id": "ksqaCqEI4okQYqok",
+  "name": "Unchained Thrall",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/unchained-thrall.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/unchained-thrall-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 1
+      }
+    }
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 13
+      },
+      "dex": {
+        "value": 12
+      },
+      "con": {
+        "value": 14
+      },
+      "int": {
+        "value": 8
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 6
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 26,
+        "max": 26,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 12
+      }
+    },
+    "details": {
+      "cr": 1,
+      "type": {
+        "value": "undead"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Chain Lash",
+      "img": "icons/tools/fasteners/chain-brass-yellow.webp",
+      "type": "feat",
+      "_id": "5DJ9Pb1FtvtXpthD",
+      "system": {
+        "description": {
+          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "UYkK8kkkKUY0eGyY": {
+            "_id": "UYkK8kkkKUY0eGyY",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "slashing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "7"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    },
+    {
+      "name": "Brand of the Forge",
+      "img": "icons/magic/fire/flame-burning-embers-orange.webp",
+      "type": "feat",
+      "_id": "C8eS4OKyAe4e4GGK",
+      "system": {
+        "description": {
+          "value": "<p>You hurl a mote of fire at a creature within range, dealing 10 fire damage.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "p3Z97xtXrrXTBLt5": {
+            "_id": "p3Z97xtXrrXTBLt5",
+            "type": "damage",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 60,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "fire"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "9"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "searing-bolt",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "93f663ceea68ff6a8f1c649943a66160e858fd5ef62a19c62c2ec3e595e6be4d"
+    }
+  },
+  "folder": null
+}

@@ -92,6 +92,14 @@
     {
       "pack": "forge-npcs",
       "collection": "actors",
+      "id": "ksqaCqEI4okQYqok",
+      "name": "Unchained Thrall",
+      "path": "forge-npcs/ksqaCqEI4okQYqok.json",
+      "hash": "93f663ceea68ff6a8f1c649943a66160e858fd5ef62a19c62c2ec3e595e6be4d"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
       "id": "retaliatornpc001",
       "name": "Test Retaliator",
       "path": "forge-npcs/retaliatornpc001.json",
