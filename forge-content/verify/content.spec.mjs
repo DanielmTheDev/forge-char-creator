@@ -107,6 +107,18 @@ test.describe('forge-content verify', () => {
     // Clear any residue left by a prior (crashed/interrupted) run before starting.
     await page.evaluate(isolate);
 
+    // An ACTIVE world scene breaks T3 determinism (observed 2026-06-11: Example
+    // Boon's advantage grant + Rending Pounce's DoT ticked one turn short with a
+    // campaign scene active; both green with none). Gate scenes only VIEW
+    // themselves, so a world-active scene keeps owning game.combat turn order.
+    // Deactivate for the run, restore afterwards — the shared test world is also
+    // a play world, so leave it as found.
+    const activeSceneId = await page.evaluate(async () => {
+      const a = game.scenes.active;
+      if (a) await a.update({ active: false });
+      return a?.id ?? null;
+    });
+
     const results = [];
     for (const item of ITEMS) {
       const setupDocs = (item.expectation.setup ?? []).map(s => byId.get(s));
@@ -130,6 +142,12 @@ test.describe('forge-content verify', () => {
       results.push({ name: actorItem.doc.name, tier: exp.tier, ...r });
       console.log(`${r.ok ? '✓' : '✘'} [${exp.tier}] ${actorItem.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
     }
+
+    // Restore the world's active scene before asserting (runs on pass or fail
+    // of the results check; an earlier crash skips it — next run re-deactivates).
+    await page.evaluate(async (id) => {
+      if (id) await game.scenes.get(id)?.update({ active: true });
+    }, activeSceneId);
 
     const failed = results.filter(r => !r.ok);
     expect(failed, `Failed checks:\n${JSON.stringify(failed, null, 2)}`).toEqual([]);
