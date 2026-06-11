@@ -40,6 +40,7 @@ PREREQ: `content:verify` runs **headed under xvfb** (`sudo apt-get install -y xv
 **Duration/DoT expiry needs Times-Up.** Effect `duration.rounds` only auto-expires if the **Times-Up** module is active — dnd5e core + midi do NOT delete expired effects themselves (midi delegates to `globalThis.TimesUp.isEffectExpired`). Without it, OverTime DoTs tick forever (unbounded/OP). So: any bounded DoT relies on Times-Up; the test instance + the user's game must have it active. forge-content recommends it. Test world has midi-qol/dae/lib-wrapper/socketlib/**times-up**/forge-content active (forge-content symlinked into FoundryData/Data/modules).
 
 ## Ability authoring rules
+- **Before building from a user statblock: list every piece that can't be cleanly automated (conditional riders, situational advantages, flavor effects) and ASK the user how to handle each — model / simplify / drop-to-note. Don't decide unilaterally.** (user request 2026-06-11)
 - **Every ability MUST have a concise `system.description.value`** the user understands at a glance — what it does, its dice/effect, recharge/cost. Plain, short, scannable. No untitled/empty descriptions.
 - Every ability ships a fitting Foundry core icon + a `<name>.expect.json` functional check.
 - **All `_id`s — doc, embedded effects, AND activity ids (the activities map key = the activity `_id`) — must be exactly 16 alphanumeric chars.** A wrong-length id silently drops the activity/item at Foundry-load. `scripts/pack-tools/keys.mjs` enforces this at build (`npm run packs:build` throws).

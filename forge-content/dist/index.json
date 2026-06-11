@@ -12,6 +12,14 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "aUuacQcymwyqYGSo",
+      "name": "Emberlight",
+      "path": "forge-abilities/aUuacQcymwyqYGSo.json",
+      "hash": "92f9a2a3675636364e6fc80d3f8468e7a884d30969370d08920399f2f6ca82dd"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "exampleblast0001",
       "name": "Example Blast",
       "path": "forge-abilities/exampleblast0001.json",
@@ -136,6 +144,14 @@
       "name": "Test Ogre",
       "path": "forge-npcs/testogre00000001.json",
       "hash": "ba8c9eb77921f89345776e2e30ecf7cb2fd19f09b81b9d3a51abdbbf44413d7a"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "VVxRd1PNZVNrNrjz",
+      "name": "Lireth Daenil",
+      "path": "forge-npcs/VVxRd1PNZVNrNrjz.json",
+      "hash": "4c2128f21603f3345cda56156086a1535579023f0aaa36c1fa60dbaae6aa60df"
     }
   ],
   "assets": [

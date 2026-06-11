@@ -1,0 +1,114 @@
+{
+  "name": "Emberlight",
+  "img": "icons/magic/light/explosion-star-glow-blue.webp",
+  "type": "feat",
+  "_id": "aUuacQcymwyqYGSo",
+  "system": {
+    "description": {
+      "value": "<p>The last spark of the sun-gift flares. One creature within 15 ft makes a <strong>DC 13 Constitution save</strong> or is <strong>blinded for 1 round</strong> and takes <strong>1d6 radiant damage</strong> (nothing on a success). The flash also lights the area for a round. <strong>2/day</strong>.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "2",
+      "recovery": [
+        {
+          "period": "day"
+        }
+      ]
+    },
+    "activities": {
+      "emberlightsave01": {
+        "_id": "emberlightsave01",
+        "type": "save",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1"
+            }
+          ]
+        },
+        "range": {
+          "value": 15,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "save": {
+          "ability": [
+            "con"
+          ],
+          "dc": {
+            "calculation": "custom",
+            "formula": "13"
+          }
+        },
+        "damage": {
+          "onSave": "none",
+          "parts": [
+            {
+              "types": [
+                "radiant"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "1d6"
+              }
+            }
+          ]
+        },
+        "effects": [
+          {
+            "_id": "emberblindeff001",
+            "onSave": false
+          }
+        ]
+      }
+    },
+    "identifier": "emberlight",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Blinded (Emberlight)",
+      "img": "icons/magic/light/explosion-star-glow-blue.webp",
+      "type": "base",
+      "_id": "emberblindeff001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {
+        "rounds": 1
+      },
+      "changes": [],
+      "statuses": [
+        "blinded"
+      ],
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "92f9a2a3675636364e6fc80d3f8468e7a884d30969370d08920399f2f6ca82dd"
+    }
+  },
+  "folder": null
+}

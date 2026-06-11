@@ -7,6 +7,13 @@
     "description": "While worn, your Armor Class increases by 2."
   },
   {
+    "identifier": "emberlight",
+    "name": "Emberlight",
+    "tier": "T3",
+    "img": "icons/magic/light/explosion-star-glow-blue.webp",
+    "description": "The last spark of the sun-gift flares. One creature within 15 ft makes a DC 13 Constitution save or is blinded for 1 round and takes 1d6 radiant damage (nothing on a success). The flash also lights the area for a round. 2/day."
+  },
+  {
     "identifier": "example-blast",
     "name": "Example Blast",
     "tier": "T3",

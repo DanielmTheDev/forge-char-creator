@@ -1,0 +1,39 @@
+{
+  "_id": "VVxRd1PNZVNrNrjz",
+  "name": "Lireth Daenil",
+  "type": "npc",
+  "img": "icons/magic/light/explosion-star-glow-blue.webp",
+  "system": {
+    "abilities": {
+      "str": { "value": 14 },
+      "dex": { "value": 14 },
+      "con": { "value": 12 },
+      "int": { "value": 10 },
+      "wis": { "value": 12 },
+      "cha": { "value": 16 }
+    },
+    "attributes": {
+      "hp": { "value": 22, "max": 22, "formula": "" },
+      "ac": { "calc": "flat", "flat": 13 },
+      "senses": { "darkvision": 60 }
+    },
+    "details": {
+      "cr": 2,
+      "type": { "value": "humanoid" },
+      "biography": {
+        "value": "<p>CAELNOR — level 3 PC, Aelrathil (sun-elf) escapee. Fey Ancestry: advantage on saves vs. being charmed, magic can't put her to sleep. Emberlight's flash also lights the area for 1 round (toggle token light). Tally-stake can snap off in a wound: target has disadvantage on its next save against her (adjudicate manually).</p>"
+      }
+    },
+    "skills": {
+      "prc": { "value": 1, "ability": "wis" }
+    }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "example-strike", "name": "Sharpened Tally-Stake", "img": "icons/weapons/polearms/javelin-simple.webp", "set": { "dmg": "1d6" } },
+    "emberlight"
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

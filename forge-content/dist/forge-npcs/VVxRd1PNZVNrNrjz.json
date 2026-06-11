@@ -1,0 +1,250 @@
+{
+  "_id": "VVxRd1PNZVNrNrjz",
+  "name": "Lireth Daenil",
+  "type": "npc",
+  "img": "icons/magic/light/explosion-star-glow-blue.webp",
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 14
+      },
+      "dex": {
+        "value": 14
+      },
+      "con": {
+        "value": 12
+      },
+      "int": {
+        "value": 10
+      },
+      "wis": {
+        "value": 12
+      },
+      "cha": {
+        "value": 16
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 22,
+        "max": 22,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 13
+      },
+      "senses": {
+        "darkvision": 60
+      }
+    },
+    "details": {
+      "cr": 2,
+      "type": {
+        "value": "humanoid"
+      },
+      "biography": {
+        "value": "<p>CAELNOR — level 3 PC, Aelrathil (sun-elf) escapee. Fey Ancestry: advantage on saves vs. being charmed, magic can't put her to sleep. Emberlight's flash also lights the area for 1 round (toggle token light). Tally-stake can snap off in a wound: target has disadvantage on its next save against her (adjudicate manually).</p>"
+      }
+    },
+    "skills": {
+      "prc": {
+        "value": 1,
+        "ability": "wis"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Sharpened Tally-Stake",
+      "img": "icons/weapons/polearms/javelin-simple.webp",
+      "type": "feat",
+      "_id": "rxN1HLXtNxnbzVFJ",
+      "system": {
+        "description": {
+          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "COIE8WYAqIK0WsSU": {
+            "_id": "COIE8WYAqIK0WsSU",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "slashing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d6"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    },
+    {
+      "name": "Emberlight",
+      "img": "icons/magic/light/explosion-star-glow-blue.webp",
+      "type": "feat",
+      "_id": "y06Sa6E8ykGwkOGM",
+      "system": {
+        "description": {
+          "value": "<p>The last spark of the sun-gift flares. One creature within 15 ft makes a <strong>DC 13 Constitution save</strong> or is <strong>blinded for 1 round</strong> and takes <strong>1d6 radiant damage</strong> (nothing on a success). The flash also lights the area for a round. <strong>2/day</strong>.</p>",
+          "chat": ""
+        },
+        "uses": {
+          "spent": 0,
+          "max": "2",
+          "recovery": [
+            {
+              "period": "day"
+            }
+          ]
+        },
+        "activities": {
+          "rlNtjPLNh5Tx7jXx": {
+            "_id": "rlNtjPLNh5Tx7jXx",
+            "type": "save",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "consumption": {
+              "targets": [
+                {
+                  "type": "itemUses",
+                  "target": "",
+                  "value": "1"
+                }
+              ]
+            },
+            "range": {
+              "value": 15,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "save": {
+              "ability": [
+                "con"
+              ],
+              "dc": {
+                "calculation": "custom",
+                "formula": "13"
+              }
+            },
+            "damage": {
+              "onSave": "none",
+              "parts": [
+                {
+                  "types": [
+                    "radiant"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d6"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "_id": "NHxdnPvfXVZR5dx1",
+                "onSave": false
+              }
+            ]
+          }
+        },
+        "identifier": "emberlight",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [
+        {
+          "name": "Blinded (Emberlight)",
+          "img": "icons/magic/light/explosion-star-glow-blue.webp",
+          "type": "base",
+          "_id": "NHxdnPvfXVZR5dx1",
+          "transfer": false,
+          "disabled": false,
+          "duration": {
+            "rounds": 1
+          },
+          "changes": [],
+          "statuses": [
+            "blinded"
+          ],
+          "flags": {}
+        }
+      ],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "4c2128f21603f3345cda56156086a1535579023f0aaa36c1fa60dbaae6aa60df"
+    }
+  },
+  "folder": null
+}
