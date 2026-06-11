@@ -23,13 +23,13 @@
         "value": 10
       },
       "con": {
-        "value": 14
+        "value": 16
       },
       "int": {
         "value": 12
       },
       "wis": {
-        "value": 13
+        "value": 12
       },
       "cha": {
         "value": 8
@@ -43,7 +43,7 @@
       },
       "ac": {
         "calc": "flat",
-        "flat": 14
+        "flat": 15
       },
       "movement": {
         "walk": 25
@@ -67,7 +67,7 @@
         "value": "humanoid"
       },
       "biography": {
-        "value": "<p>THORD — level 3 PC pregen, Dhul Maldur dwarf dissident, \"the turncoat\". Knows the mine in his bones.</p><p><strong>Manual riders:</strong> Dwarven resilience — advantage on saves vs. poison (resist poison damage is on the sheet). Stonecunning — knows tunnel layout, finds hidden seams/levers, never lost underground (Perception/Survival proficient). Drop the Prop: the 10-ft spill becomes difficult terrain (mark on scene); can seal a small passage instead.</p>"
+        "value": "<p>THORD — level 3 PC pregen, Dhul Maldur dwarf dissident, \"the turncoat\". Knows the mine in his bones; brings the roof down.</p><p><strong>Manual:</strong> Stonecunning — tunnel layout, hidden seams/levers, never lost underground (Perception/Survival proficient). Dwarven Resilience — advantage on saves vs. poison (poison resistance is on the sheet).</p>"
       }
     },
     "skills": {
@@ -83,13 +83,13 @@
   },
   "items": [
     {
-      "name": "Drop the Prop",
-      "img": "icons/environment/settlement/mine-cart-rocks-red.webp",
+      "name": "Cave-In",
+      "img": "icons/environment/wilderness/cave-entrance-dwarven-hill.webp",
       "type": "feat",
-      "_id": "KGKyuWQWMgkWyI4o",
+      "_id": "im226u00g60cKa8w",
       "system": {
         "description": {
-          "value": "<p>He knows every weak support. Collapse a pillar, beam or cart within 20 ft: creatures in the spill (target up to 2) make a <strong>DC 13 Dexterity save</strong> or take <strong>2d6 bludgeoning</strong> and are <strong>knocked prone</strong> (nothing on a success). <strong>1/day</strong>.</p><p><em>Manual riders: the 10-ft area becomes difficult terrain (mark it on the scene); can instead seal a small passage — narrate it.</em></p>",
+          "value": "<p>Snaps a weak support — the roof comes down. Up to <strong>2 creatures within 15 ft</strong> make a <strong>DC 13 Dexterity save</strong>: <strong>3d6 bludgeoning</strong> on a fail (half on a success) and a failed save also knocks the target <strong>prone</strong>. <strong>1/day</strong>.</p>",
           "chat": ""
         },
         "uses": {
@@ -102,8 +102,8 @@
           ]
         },
         "activities": {
-          "hvtX17vhfj1vfjND": {
-            "_id": "hvtX17vhfj1vfjND",
+          "OwkOiuqMC2Aqywuq": {
+            "_id": "OwkOiuqMC2Aqywuq",
             "type": "save",
             "activation": {
               "type": "action",
@@ -119,7 +119,7 @@
               ]
             },
             "range": {
-              "value": 20,
+              "value": 15,
               "units": "ft"
             },
             "target": {
@@ -138,7 +138,7 @@
               }
             },
             "damage": {
-              "onSave": "none",
+              "onSave": "half",
               "parts": [
                 {
                   "types": [
@@ -146,20 +146,20 @@
                   ],
                   "custom": {
                     "enabled": true,
-                    "formula": "2d6"
+                    "formula": "3d6"
                   }
                 }
               ]
             },
             "effects": [
               {
-                "_id": "fXXHRpVTr5ZnfDXT",
+                "_id": "IuIEaMm68cg4ygui",
                 "onSave": false
               }
             ]
           }
         },
-        "identifier": "drop-the-prop",
+        "identifier": "cave-in",
         "source": {
           "revision": 1,
           "rules": "2024"
@@ -173,10 +173,10 @@
       },
       "effects": [
         {
-          "name": "Prone (Drop the Prop)",
-          "img": "icons/environment/settlement/mine-cart-rocks-red.webp",
+          "name": "Prone (Cave-In)",
+          "img": "icons/environment/wilderness/cave-entrance-dwarven-hill.webp",
           "type": "base",
-          "_id": "fXXHRpVTr5ZnfDXT",
+          "_id": "IuIEaMm68cg4ygui",
           "transfer": false,
           "disabled": false,
           "duration": {},
@@ -190,18 +190,18 @@
       "flags": {}
     },
     {
-      "name": "Vicious Pick",
+      "name": "Broken Miner's Pick",
       "img": "icons/tools/hand/pickaxe-simple-stone.webp",
       "type": "feat",
-      "_id": "ScuIEcsMmG2uwwkI",
+      "_id": "xvJp73vLRzvr3xZL",
       "system": {
         "description": {
-          "value": "<p>A miner's pick with the head snapped to a jagged spike. <strong>Melee attack: 1d8+3 piercing, crits on 19–20</strong> (vicious shard). At-will.</p>",
+          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
           "chat": ""
         },
         "activities": {
-          "Q4EEqic88mQYoOiy": {
-            "_id": "Q4EEqic88mQYoOiy",
+          "0WWu4esoSiIe0YEq": {
+            "_id": "0WWu4esoSiIe0YEq",
             "type": "attack",
             "activation": {
               "type": "action",
@@ -221,7 +221,7 @@
               "ability": "str",
               "bonus": "",
               "critical": {
-                "threshold": 19
+                "threshold": null
               },
               "flat": false,
               "type": {
@@ -233,7 +233,7 @@
               "parts": [
                 {
                   "types": [
-                    "piercing"
+                    "slashing"
                   ],
                   "custom": {
                     "enabled": true,
@@ -249,7 +249,7 @@
             }
           }
         },
-        "identifier": "vicious-pick",
+        "identifier": "example-strike",
         "source": {
           "revision": 1,
           "rules": "2024"
@@ -268,7 +268,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "217e801ac476baa28e8f99d7bf640a8ac34801405662b2d91884b75e0e88faba"
+      "srcHash": "9f98b78007e2c9285ca9ac01a8c313b50a75a7768a1fa62b38f163a6fb6cb656"
     }
   },
   "folder": null

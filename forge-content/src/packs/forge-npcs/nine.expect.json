@@ -1,12 +1,12 @@
 {
   "tier": "T2",
   "assert": {
-    "hpMax": 34,
-    "ac": 12,
+    "hpMax": 36,
+    "ac": 13,
     "abilities": {
       "str": 16,
       "dex": 12,
-      "con": 14,
+      "con": 17,
       "int": 8,
       "wis": 10,
       "cha": 8

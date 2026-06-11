@@ -2,18 +2,18 @@
   "tier": "T2",
   "assert": {
     "hpMax": 30,
-    "ac": 14,
+    "ac": 15,
     "abilities": {
       "str": 16,
       "dex": 10,
-      "con": 14,
+      "con": 16,
       "int": 12,
-      "wis": 13,
+      "wis": 12,
       "cha": 8
     },
     "hasItems": [
-      "Drop the Prop",
-      "Vicious Pick"
+      "Cave-In",
+      "Broken Miner's Pick"
     ]
   }
 }

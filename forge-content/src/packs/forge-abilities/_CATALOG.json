@@ -7,6 +7,13 @@
     "description": "While worn, your Armor Class increases by 2."
   },
   {
+    "identifier": "cave-in",
+    "name": "Cave-In",
+    "tier": "T3",
+    "img": "icons/environment/wilderness/cave-entrance-dwarven-hill.webp",
+    "description": "Snaps a weak support — the roof comes down. Up to 2 creatures within 15 ft make a DC 13 Dexterity save: 3d6 bludgeoning on a fail (half on a success) and a failed save also knocks the target prone. 1/day."
+  },
+  {
     "identifier": "drop-the-prop",
     "name": "Drop the Prop",
     "tier": "T3",
@@ -56,6 +63,13 @@
     "description": "Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities."
   },
   {
+    "identifier": "finesse-strike",
+    "name": "Finesse Strike",
+    "tier": "T3",
+    "img": "icons/weapons/daggers/dagger-bone-black.webp",
+    "description": "Reference ability: a DEX-based melee weapon attack against one creature dealing 10 piercing on a hit. Base for finesse/improvised-blade reskins (knob the damage per character)."
+  },
+  {
     "identifier": "radiant-rebuke",
     "name": "Radiant Rebuke",
     "tier": "T3",
@@ -82,6 +96,13 @@
     "tier": "T3",
     "img": "icons/skills/targeting/target-strike-triple-blue.webp",
     "description": "As a bonus action, Derek marks a foe for his bonded hunter. The marked creature is primed for Mucknathal's Rending Pounce. Recharge 5–6."
+  },
+  {
+    "identifier": "sunbrand",
+    "name": "Sunbrand",
+    "tier": "T3",
+    "img": "icons/skills/targeting/target-glowing-yellow.webp",
+    "description": "Mark one creature within 30 ft with clinging sunlight (no save): attack rolls against it have advantage until the start of your next turn. 1/day."
   },
   {
     "identifier": "unshaped-surge",

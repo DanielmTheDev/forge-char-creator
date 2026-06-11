@@ -1,0 +1,24 @@
+{
+  "tier": "T3",
+  "setup": ["example-strike"],
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 15, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["defender"], "onlyScenarios": ["marked"] },
+    { "snapshot": "mark", "onlyScenarios": ["marked"] },
+    { "cast": "attacker", "ability": "example-strike", "targets": ["defender"] },
+    { "snapshot": "struck" }
+  ],
+  "scenarios": [
+    { "name": "marked", "forces": { "defender": { "attack": "hit" } }, "assert": [
+      { "at": "mark", "actor": "attacker", "usesSpent": 1 },
+      { "at": "mark", "actor": "defender", "effectApplied": "Sunbrand" },
+      { "at": "struck", "actor": "attacker", "lastWorkflow.hit": true, "lastWorkflow.advantage": true }
+    ] },
+    { "name": "unmarked", "forces": { "defender": { "attack": "hit" } }, "assert": [
+      { "at": "struck", "actor": "attacker", "lastWorkflow.hit": true, "lastWorkflow.advantage": false }
+    ] }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 22,
+    "ac": 14,
+    "abilities": {
+      "str": 8,
+      "dex": 16,
+      "con": 12,
+      "int": 12,
+      "wis": 14,
+      "cha": 16
+    },
+    "hasItems": [
+      "Last Light",
+      "Sunbrand",
+      "Sharpened Tally-Stake"
+    ]
+  }
+}

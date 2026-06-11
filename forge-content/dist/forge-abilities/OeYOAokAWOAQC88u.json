@@ -1,0 +1,112 @@
+{
+  "name": "Cave-In",
+  "img": "icons/environment/wilderness/cave-entrance-dwarven-hill.webp",
+  "type": "feat",
+  "_id": "OeYOAokAWOAQC88u",
+  "system": {
+    "description": {
+      "value": "<p>Snaps a weak support — the roof comes down. Up to <strong>2 creatures within 15 ft</strong> make a <strong>DC 13 Dexterity save</strong>: <strong>3d6 bludgeoning</strong> on a fail (half on a success) and a failed save also knocks the target <strong>prone</strong>. <strong>1/day</strong>.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [
+        {
+          "period": "day"
+        }
+      ]
+    },
+    "activities": {
+      "caveinsave000001": {
+        "_id": "caveinsave000001",
+        "type": "save",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1"
+            }
+          ]
+        },
+        "range": {
+          "value": 15,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "2"
+          }
+        },
+        "save": {
+          "ability": [
+            "dex"
+          ],
+          "dc": {
+            "calculation": "custom",
+            "formula": "13"
+          }
+        },
+        "damage": {
+          "onSave": "half",
+          "parts": [
+            {
+              "types": [
+                "bludgeoning"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "3d6"
+              }
+            }
+          ]
+        },
+        "effects": [
+          {
+            "_id": "caveinprone00001",
+            "onSave": false
+          }
+        ]
+      }
+    },
+    "identifier": "cave-in",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Prone (Cave-In)",
+      "img": "icons/environment/wilderness/cave-entrance-dwarven-hill.webp",
+      "type": "base",
+      "_id": "caveinprone00001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {},
+      "changes": [],
+      "statuses": [
+        "prone"
+      ],
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "5ae2397a064b7a93e14f409be9a0e066bd308ee38e9cc477ebdf9d12015df88a"
+    }
+  },
+  "folder": null
+}

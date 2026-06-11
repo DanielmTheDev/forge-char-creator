@@ -1,0 +1,43 @@
+{
+  "_id": "blpjZr9XdNL9nv7R",
+  "name": "Nine",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/nine.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/nine-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 16 },
+      "dex": { "value": 12 },
+      "con": { "value": 17 },
+      "int": { "value": 8 },
+      "wis": { "value": 10 },
+      "cha": { "value": 8 }
+    },
+    "attributes": {
+      "hp": { "value": 36, "max": 36, "formula": "" },
+      "ac": { "calc": "flat", "flat": 13 }
+    },
+    "traits": {
+      "dr": { "value": ["acid"], "bypasses": [], "custom": "" }
+    },
+    "details": {
+      "cr": 2,
+      "type": { "value": "monstrosity" },
+      "biography": {
+        "value": "<p>\"NINE\" (Vesk Half-made, the Unshaped) — level 3 PC pregen, Flesh-Crafted scaleweave-warped, fighting its own body. Kin to Gruffud the Writhing.</p><p><strong>Manual:</strong> resistance is acid — DM may re-pick per mutation. Writhing Lash escape DC 13 (remove the Grappled condition when the target escapes). Natural armor — AC includes warped hide.</p>"
+      }
+    }
+  },
+  "items": [],
+  "abilities": [
+    "writhing-lash",
+    "unshaped-surge",
+    { "ability": "example-strike", "name": "Manacle-Flail", "img": "icons/commodities/metal/chain-steel.webp", "set": { "dmg": "1d6+3" } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

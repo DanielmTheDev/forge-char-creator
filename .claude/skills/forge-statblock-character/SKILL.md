@@ -44,6 +44,12 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    | X/day or limited uses | `emberlight.json` | `uses{max,recovery:[{period:"day"}]}` + `consumption.targets itemUses` — without consumption uses are a NO-OP |
    | expanded crit | `vicious-pick.json` | `attack.critical.threshold: N` |
 
+   **Vanilla 5e SPELLS are NEVER modeled** (user rule 2026-06-11): they already
+   exist fully automated in Foundry's dnd5e compendiums (2024 PHB `dnd5e.spells24`
+   if the user owns it, else SRD `dnd5e.spells`). List them in the actor
+   biography as "drag from compendium: <spell list>" + STUBS. Only CUSTOM
+   abilities go through this pipeline.
+
    Rules: every `_id` (doc + activity-map key + effect) EXACTLY 16 alnum chars;
    doc `_id = genId(slug)` (`node -e "import('./scripts/pack-tools/keys.mjs').then(m=>console.log(m.genId('<slug>')))"`);
    concise `system.description.value` the user reads at a glance — manual

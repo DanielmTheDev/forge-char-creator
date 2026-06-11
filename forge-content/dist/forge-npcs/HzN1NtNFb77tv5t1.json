@@ -1,11 +1,11 @@
 {
-  "_id": "4u6GmEGC6YIeuyco",
-  "name": "Vesk Half-made",
+  "_id": "HzN1NtNFb77tv5t1",
+  "name": "Caelnor",
   "type": "npc",
-  "img": "modules/forge-content/assets/tokens/vesk-half-made.png",
+  "img": "modules/forge-content/assets/tokens/caelnor.png",
   "prototypeToken": {
     "texture": {
-      "src": "modules/forge-content/assets/tokens/vesk-half-made-token.png"
+      "src": "modules/forge-content/assets/tokens/caelnor-token.png"
     },
     "ring": {
       "enabled": true,
@@ -17,75 +17,87 @@
   "system": {
     "abilities": {
       "str": {
-        "value": 16
+        "value": 8
       },
       "dex": {
-        "value": 12
+        "value": 16
       },
       "con": {
-        "value": 14
+        "value": 12
       },
       "int": {
-        "value": 8
+        "value": 12
       },
       "wis": {
-        "value": 10
+        "value": 14
       },
       "cha": {
-        "value": 8
+        "value": 16
       }
     },
     "attributes": {
       "hp": {
-        "value": 34,
-        "max": 34,
+        "value": 22,
+        "max": 22,
         "formula": ""
       },
       "ac": {
         "calc": "flat",
-        "flat": 12
-      }
-    },
-    "traits": {
-      "dr": {
-        "value": [
-          "acid"
-        ],
-        "bypasses": [],
-        "custom": ""
+        "flat": 14
+      },
+      "senses": {
+        "darkvision": 60
       }
     },
     "details": {
       "cr": 2,
       "type": {
-        "value": "monstrosity"
+        "value": "humanoid"
       },
       "biography": {
-        "value": "<p>\"NINE\" — level 3 PC pregen, Flesh-Crafted (scaleweave-warped), fighting its own body. Kin to Gruffud the Writhing.</p><p><strong>Manual riders:</strong> resistance is acid by default — DM may re-pick per mutation. Writhing Lash: escape DC 13; while grappling can drag the target 5 ft; if Vesk starts its turn grappling an ALLY, DC 10 Wis save or the mutation keeps holding on. Unshaped Surge: cast it MANUALLY when bloodied (≤17 HP); only growls while it lasts. Natural armor — AC includes warped hide.</p>"
+        "value": "<p>CAELNOR — level 3 PC pregen, Aelrathil sun-elf lightweaver, slave escapee. Light-starved by captivity; one flare of the sun-gift left.</p><p><strong>Drag from compendium (2024 PHB / SRD spells):</strong> Sacred Flame, Light, Guiding Bolt (2× 1st-level slots), Healing Word.</p><p><strong>Manual:</strong> Fey Ancestry — advantage on saves vs. being charmed, magic can't put him to sleep.</p>"
       }
     }
   },
   "items": [
     {
-      "name": "Writhing Lash",
-      "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+      "name": "Last Light",
+      "img": "icons/magic/light/explosion-star-glow-blue.webp",
       "type": "feat",
-      "_id": "h1b3tN79L5V3tFZh",
+      "_id": "RXNTLjjlTVtBXV7X",
       "system": {
         "description": {
-          "value": "<p>The tendril acts on its own. <strong>Melee attack, reach 10 ft: 1d8+3 bludgeoning</strong> and on a hit the target is <strong>grappled</strong> (escape DC 13 — DM adjudicates; remove the condition when it escapes). At-will.</p><p><em>Manual riders: while grappling you can drag the target 5 ft. If you start your turn grappling an ALLY, DC 10 Wis save or the mutation keeps holding on.</em></p>",
+          "value": "<p>The last spark of the sun-gift flares. One creature within 15 ft makes a <strong>DC 13 Constitution save</strong> or is <strong>blinded for 1 round</strong> and takes <strong>1d6 radiant damage</strong> (nothing on a success). The flash also lights the area for a round. <strong>2/day</strong>.</p>",
           "chat": ""
         },
+        "uses": {
+          "spent": 0,
+          "max": "2",
+          "recovery": [
+            {
+              "period": "day"
+            }
+          ]
+        },
         "activities": {
-          "yi0KmQMYQkoI06U2": {
-            "_id": "yi0KmQMYQkoI06U2",
-            "type": "attack",
+          "0gWWweEgoAWQkGUQ": {
+            "_id": "0gWWweEgoAWQkGUQ",
+            "type": "save",
             "activation": {
               "type": "action",
               "value": 1
             },
+            "consumption": {
+              "targets": [
+                {
+                  "type": "itemUses",
+                  "target": "",
+                  "value": "1"
+                }
+              ]
+            },
             "range": {
-              "value": 10,
+              "value": 15,
               "units": "ft"
             },
             "target": {
@@ -94,44 +106,38 @@
                 "count": "1"
               }
             },
-            "attack": {
-              "ability": "str",
-              "bonus": "",
-              "critical": {
-                "threshold": null
-              },
-              "flat": false,
-              "type": {
-                "value": "melee",
-                "classification": "weapon"
+            "save": {
+              "ability": [
+                "con"
+              ],
+              "dc": {
+                "calculation": "custom",
+                "formula": "13"
               }
             },
             "damage": {
+              "onSave": "none",
               "parts": [
                 {
                   "types": [
-                    "bludgeoning"
+                    "radiant"
                   ],
                   "custom": {
                     "enabled": true,
-                    "formula": "1d8+3"
-                  },
-                  "scaling": {
-                    "mode": "",
-                    "number": null,
-                    "formula": ""
+                    "formula": "2d6"
                   }
                 }
               ]
             },
             "effects": [
               {
-                "_id": "M4Ccg8mQKSIskkAM"
+                "_id": "kKMgKQimymyGIqwG",
+                "onSave": false
               }
             ]
           }
         },
-        "identifier": "writhing-lash",
+        "identifier": "emberlight",
         "source": {
           "revision": 1,
           "rules": "2024"
@@ -145,16 +151,18 @@
       },
       "effects": [
         {
-          "name": "Grappled (Writhing Lash)",
-          "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+          "name": "Blinded (Emberlight)",
+          "img": "icons/magic/light/explosion-star-glow-blue.webp",
           "type": "base",
-          "_id": "M4Ccg8mQKSIskkAM",
+          "_id": "kKMgKQimymyGIqwG",
           "transfer": false,
           "disabled": false,
-          "duration": {},
+          "duration": {
+            "rounds": 1
+          },
           "changes": [],
           "statuses": [
-            "grappled"
+            "blinded"
           ],
           "flags": {}
         }
@@ -162,13 +170,13 @@
       "flags": {}
     },
     {
-      "name": "Unshaped Surge",
-      "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+      "name": "Sunbrand",
+      "img": "icons/skills/targeting/target-glowing-yellow.webp",
       "type": "feat",
-      "_id": "ASYeqiOkau0yKEUE",
+      "_id": "KUqoIiICsaU0iCsm",
       "system": {
         "description": {
-          "value": "<p>The scales flare and close over the body. <strong>Self: +2 AC and resistance to ALL damage until the end of your next turn.</strong> 1/day.</p><p><em>MANUAL TRIGGER: cast this yourself when bloodied (17 HP or less) — it does not fire automatically. While it lasts you can speak only in growls.</em></p>",
+          "value": "<p>Mark one creature within 30 ft with clinging sunlight (no save): <strong>attack rolls against it have advantage</strong> until the start of your next turn. <strong>1/day</strong>.</p>",
           "chat": ""
         },
         "uses": {
@@ -181,8 +189,8 @@
           ]
         },
         "activities": {
-          "SUyMEQcYcMu6KAew": {
-            "_id": "SUyMEQcYcMu6KAew",
+          "pBd7n5tprd7lb9nF": {
+            "_id": "pBd7n5tprd7lb9nF",
             "type": "utility",
             "activation": {
               "type": "bonus",
@@ -198,23 +206,23 @@
               ]
             },
             "range": {
-              "value": 5,
+              "value": 30,
               "units": "ft"
             },
             "target": {
               "affects": {
-                "type": "ally",
+                "type": "creature",
                 "count": "1"
               }
             },
             "effects": [
               {
-                "_id": "Nx1Hxt39Zdr3FTB9"
+                "_id": "AgsMI6ESwCksMkAY"
               }
             ]
           }
         },
-        "identifier": "unshaped-surge",
+        "identifier": "sunbrand",
         "source": {
           "revision": 1,
           "rules": "2024"
@@ -228,10 +236,10 @@
       },
       "effects": [
         {
-          "name": "Unshaped Surge",
-          "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+          "name": "Sunbrand",
+          "img": "icons/skills/targeting/target-glowing-yellow.webp",
           "type": "base",
-          "_id": "Nx1Hxt39Zdr3FTB9",
+          "_id": "AgsMI6ESwCksMkAY",
           "transfer": false,
           "disabled": false,
           "duration": {
@@ -239,14 +247,8 @@
           },
           "changes": [
             {
-              "key": "system.attributes.ac.bonus",
-              "mode": 2,
-              "value": "2",
-              "priority": 20
-            },
-            {
-              "key": "system.traits.dr.all",
-              "mode": 0,
+              "key": "flags.midi-qol.grants.advantage.attack.all",
+              "mode": 5,
               "value": "1",
               "priority": 20
             }
@@ -255,7 +257,7 @@
           "flags": {
             "dae": {
               "specialDuration": [
-                "turnEndSource"
+                "turnStartSource"
               ]
             }
           }
@@ -264,18 +266,18 @@
       "flags": {}
     },
     {
-      "name": "Manacle-Flail",
-      "img": "icons/commodities/metal/chain-steel.webp",
+      "name": "Sharpened Tally-Stake",
+      "img": "icons/weapons/polearms/javelin-simple.webp",
       "type": "feat",
-      "_id": "LdjrVN3XX77RjhtX",
+      "_id": "0s2mmGeSEcMGOsqU",
       "system": {
         "description": {
-          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "value": "<p>Reference ability: a DEX-based melee weapon attack against one creature dealing <strong>10 piercing</strong> on a hit. Base for finesse/improvised-blade reskins (knob the damage per character).</p>",
           "chat": ""
         },
         "activities": {
-          "0a6m8qiCcukuSyKe": {
-            "_id": "0a6m8qiCcukuSyKe",
+          "g8E4qaUKiAW24oWe": {
+            "_id": "g8E4qaUKiAW24oWe",
             "type": "attack",
             "activation": {
               "type": "action",
@@ -292,7 +294,7 @@
               }
             },
             "attack": {
-              "ability": "str",
+              "ability": "dex",
               "bonus": "",
               "critical": {
                 "threshold": null
@@ -307,7 +309,7 @@
               "parts": [
                 {
                   "types": [
-                    "slashing"
+                    "piercing"
                   ],
                   "custom": {
                     "enabled": true,
@@ -323,7 +325,7 @@
             }
           }
         },
-        "identifier": "example-strike",
+        "identifier": "finesse-strike",
         "source": {
           "revision": 1,
           "rules": "2024"
@@ -342,7 +344,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "c3714debc35e016cf72ef7bda73d9398730f0fe1c0d2db31dd7010dc045ca4bc"
+      "srcHash": "3d31fe6f669d9f183b9b1ef9292f49fc47a0376395d7a57fd076379621917a41"
     }
   },
   "folder": null

@@ -1,0 +1,20 @@
+{
+  "tier": "T3",
+  "actors": {
+    "caster": { "disposition": 1, "pos": [300, 300] },
+    "def0": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 200], "forces": { "save": "fail" } },
+    "def1": { "hp": 100, "ac": 1, "disposition": -1, "pos": [400, 200], "forces": { "save": "success" } }
+  },
+  "steps": [
+    { "cast": "caster", "ability": "main", "targets": ["def0", "def1"], "expectTargets": 2 },
+    { "snapshot": "collapse" }
+  ],
+  "assert": [
+    { "at": "collapse", "targetedCount": 2 },
+    { "at": "collapse", "actor": "def0", "hpDeltaMin": -18, "hpDeltaMax": -3 },
+    { "at": "collapse", "actor": "def0", "conditionApplied": "prone" },
+    { "at": "collapse", "actor": "def1", "hpDeltaMin": -9, "hpDeltaMax": -1 },
+    { "at": "collapse", "actor": "def1", "effectAbsent": "Prone (Cave-In)" },
+    { "at": "collapse", "actor": "caster", "usesSpent": 1 }
+  ]
+}

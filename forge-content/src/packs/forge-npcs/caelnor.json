@@ -1,0 +1,41 @@
+{
+  "_id": "HzN1NtNFb77tv5t1",
+  "name": "Caelnor",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/caelnor.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/caelnor-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 8 },
+      "dex": { "value": 16 },
+      "con": { "value": 12 },
+      "int": { "value": 12 },
+      "wis": { "value": 14 },
+      "cha": { "value": 16 }
+    },
+    "attributes": {
+      "hp": { "value": 22, "max": 22, "formula": "" },
+      "ac": { "calc": "flat", "flat": 14 },
+      "senses": { "darkvision": 60 }
+    },
+    "details": {
+      "cr": 2,
+      "type": { "value": "humanoid" },
+      "biography": {
+        "value": "<p>CAELNOR — level 3 PC pregen, Aelrathil sun-elf lightweaver, slave escapee. Light-starved by captivity; one flare of the sun-gift left.</p><p><strong>Drag from compendium (2024 PHB / SRD spells):</strong> Sacred Flame, Light, Guiding Bolt (2× 1st-level slots), Healing Word.</p><p><strong>Manual:</strong> Fey Ancestry — advantage on saves vs. being charmed, magic can't put him to sleep.</p>"
+      }
+    }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "emberlight", "name": "Last Light", "set": { "dmg": "2d6" } },
+    "sunbrand",
+    { "ability": "finesse-strike", "name": "Sharpened Tally-Stake", "img": "icons/weapons/polearms/javelin-simple.webp", "set": { "dmg": "1d6+3" } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

@@ -1,0 +1,80 @@
+{
+  "name": "Finesse Strike",
+  "img": "icons/weapons/daggers/dagger-bone-black.webp",
+  "type": "feat",
+  "_id": "v91pXvFrnBZ351Fh",
+  "system": {
+    "description": {
+      "value": "<p>Reference ability: a DEX-based melee weapon attack against one creature dealing <strong>10 piercing</strong> on a hit. Base for finesse/improvised-blade reskins (knob the damage per character).</p>",
+      "chat": ""
+    },
+    "activities": {
+      "finesseatk000001": {
+        "_id": "finesseatk000001",
+        "type": "attack",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "range": {
+          "value": 5,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "attack": {
+          "ability": "dex",
+          "bonus": "",
+          "critical": {
+            "threshold": null
+          },
+          "flat": false,
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "piercing"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "10"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "finesse-strike",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "829b533b9c1e4de2ca854ed49d52898967bd8be06fb624d252096bb887143d5a"
+    }
+  },
+  "folder": null
+}

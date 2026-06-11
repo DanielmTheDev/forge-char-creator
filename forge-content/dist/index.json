@@ -68,10 +68,26 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "iO8oEoQuI0ECoA4k",
+      "name": "Sunbrand",
+      "path": "forge-abilities/iO8oEoQuI0ECoA4k.json",
+      "hash": "964d612286dd9e56e24bf154afce2d345d421108d9f8405f73f39a5272aed307"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "iuIKuySY4QwI6yi0",
       "name": "Writhing Lash",
       "path": "forge-abilities/iuIKuySY4QwI6yi0.json",
       "hash": "27f027bbccac447e869be3611308d2a6901981076af43a72908b7b8a4214c85e"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "OeYOAokAWOAQC88u",
+      "name": "Cave-In",
+      "path": "forge-abilities/OeYOAokAWOAQC88u.json",
+      "hash": "5ae2397a064b7a93e14f409be9a0e066bd308ee38e9cc477ebdf9d12015df88a"
     },
     {
       "pack": "forge-abilities",
@@ -122,12 +138,12 @@
       "hash": "873dfbeec815f4245c4a8db16f81b04b6bef918742ea618470ae774799220e36"
     },
     {
-      "pack": "forge-npcs",
-      "collection": "actors",
-      "id": "4u6GmEGC6YIeuyco",
-      "name": "Vesk Half-made",
-      "path": "forge-npcs/4u6GmEGC6YIeuyco.json",
-      "hash": "c3714debc35e016cf72ef7bda73d9398730f0fe1c0d2db31dd7010dc045ca4bc"
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "v91pXvFrnBZ351Fh",
+      "name": "Finesse Strike",
+      "path": "forge-abilities/v91pXvFrnBZ351Fh.json",
+      "hash": "829b533b9c1e4de2ca854ed49d52898967bd8be06fb624d252096bb887143d5a"
     },
     {
       "pack": "forge-npcs",
@@ -135,7 +151,23 @@
       "id": "Asw42i222yOGqQO0",
       "name": "Thord",
       "path": "forge-npcs/Asw42i222yOGqQO0.json",
-      "hash": "217e801ac476baa28e8f99d7bf640a8ac34801405662b2d91884b75e0e88faba"
+      "hash": "9f98b78007e2c9285ca9ac01a8c313b50a75a7768a1fa62b38f163a6fb6cb656"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "blpjZr9XdNL9nv7R",
+      "name": "Nine",
+      "path": "forge-npcs/blpjZr9XdNL9nv7R.json",
+      "hash": "0b5fb771dfb28cf88af5873445176641e7d915167bf36bc10e3f0cf14db3accd"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "HzN1NtNFb77tv5t1",
+      "name": "Caelnor",
+      "path": "forge-npcs/HzN1NtNFb77tv5t1.json",
+      "hash": "3d31fe6f669d9f183b9b1ef9292f49fc47a0376395d7a57fd076379621917a41"
     },
     {
       "pack": "forge-npcs",
@@ -192,24 +224,24 @@
       "name": "Test Ogre",
       "path": "forge-npcs/testogre00000001.json",
       "hash": "ba8c9eb77921f89345776e2e30ecf7cb2fd19f09b81b9d3a51abdbbf44413d7a"
-    },
-    {
-      "pack": "forge-npcs",
-      "collection": "actors",
-      "id": "VVxRd1PNZVNrNrjz",
-      "name": "Lireth Daenil",
-      "path": "forge-npcs/VVxRd1PNZVNrNrjz.json",
-      "hash": "76914042accb99e7606b4bf83cc4cbb00b1d9e4bc3f8655b471d74b43019cb19"
     }
   ],
   "assets": [
     {
-      "path": "tokens/lireth-daenil-token.png",
-      "hash": "a78c0218016741546bb528264697007614fb7c2f5aff2a58ca00d33de0caacbf"
+      "path": "tokens/caelnor-token.png",
+      "hash": "18672c75842a3442b617a4a391c5cfb1e740886031e98bed2a0b7f286073844e"
     },
     {
-      "path": "tokens/lireth-daenil.png",
-      "hash": "2083bbbd738eb53d68dc44f6a36fee758638c152655ea3df5dba9a115ec30cd6"
+      "path": "tokens/caelnor.png",
+      "hash": "b4f6e9d56732cd07d31c7d053b6c12c8cfb62d974d9ef7a124db07b1c3e9a92b"
+    },
+    {
+      "path": "tokens/nine-token.png",
+      "hash": "76d84fca697750e80fa6372f683c3983d79680235ce63ba6d0ded02e546b7594"
+    },
+    {
+      "path": "tokens/nine.png",
+      "hash": "c29c6b8e81a0a6c06c237e11b51d6a6571c1cdd156fb3539ba623ee76e458ae0"
     },
     {
       "path": "tokens/test-stitchwretch-token.png",
@@ -221,11 +253,11 @@
     },
     {
       "path": "tokens/thord-token.png",
-      "hash": "c032110caccfaad38030c17e0871a2eb7c914dae8710fb79eb55335e1906fba4"
+      "hash": "5c13510b9f5ad359e8f3988e015ff7ac016e14ca01ad7083e2ba6f8d0ffcfd51"
     },
     {
       "path": "tokens/thord.png",
-      "hash": "709b1ee1340d79347fdeea0b7fbed6989853290a1f6d7891fe4bfbb88d510a6f"
+      "hash": "8cb4a7661dd113a05a2cc29e4c3fe3732be00f40146dd98fbaf691b12467b7ee"
     },
     {
       "path": "tokens/unchained-thrall-token.png",
@@ -234,14 +266,6 @@
     {
       "path": "tokens/unchained-thrall.png",
       "hash": "aee6053923350c8944f8af3fcdaabba9cca67966403eea9cecb3414759e1aa22"
-    },
-    {
-      "path": "tokens/vesk-half-made-token.png",
-      "hash": "f881bd697c8f9d3edf1705428c4bd5b58844cefe8a1a80f13e0c14842ec4ba97"
-    },
-    {
-      "path": "tokens/vesk-half-made.png",
-      "hash": "5bebde86dc0187bd80f8d267e6fe2c0cabd0a78223c6ca920da9960715ecfbbe"
     }
   ]
 }

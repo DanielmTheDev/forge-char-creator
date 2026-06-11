@@ -1,0 +1,349 @@
+{
+  "_id": "blpjZr9XdNL9nv7R",
+  "name": "Nine",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/nine.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/nine-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 0.75
+      }
+    }
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 16
+      },
+      "dex": {
+        "value": 12
+      },
+      "con": {
+        "value": 17
+      },
+      "int": {
+        "value": 8
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 8
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 36,
+        "max": 36,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 13
+      }
+    },
+    "traits": {
+      "dr": {
+        "value": [
+          "acid"
+        ],
+        "bypasses": [],
+        "custom": ""
+      }
+    },
+    "details": {
+      "cr": 2,
+      "type": {
+        "value": "monstrosity"
+      },
+      "biography": {
+        "value": "<p>\"NINE\" (Vesk Half-made, the Unshaped) — level 3 PC pregen, Flesh-Crafted scaleweave-warped, fighting its own body. Kin to Gruffud the Writhing.</p><p><strong>Manual:</strong> resistance is acid — DM may re-pick per mutation. Writhing Lash escape DC 13 (remove the Grappled condition when the target escapes). Natural armor — AC includes warped hide.</p>"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Writhing Lash",
+      "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+      "type": "feat",
+      "_id": "z5jLxTjtn5dlv9nf",
+      "system": {
+        "description": {
+          "value": "<p>The tendril acts on its own. <strong>Melee attack, reach 10 ft: 1d8+3 bludgeoning</strong> and on a hit the target is <strong>grappled</strong> (escape DC 13 — DM adjudicates; remove the condition when it escapes). At-will.</p><p><em>Manual riders: while grappling you can drag the target 5 ft. If you start your turn grappling an ALLY, DC 10 Wis save or the mutation keeps holding on.</em></p>",
+          "chat": ""
+        },
+        "activities": {
+          "KOSA2uGouC2cIcOS": {
+            "_id": "KOSA2uGouC2cIcOS",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 10,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "bludgeoning"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d8+3"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "_id": "i0qikIE0I2oskgIy"
+              }
+            ]
+          }
+        },
+        "identifier": "writhing-lash",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [
+        {
+          "name": "Grappled (Writhing Lash)",
+          "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+          "type": "base",
+          "_id": "i0qikIE0I2oskgIy",
+          "transfer": false,
+          "disabled": false,
+          "duration": {},
+          "changes": [],
+          "statuses": [
+            "grappled"
+          ],
+          "flags": {}
+        }
+      ],
+      "flags": {}
+    },
+    {
+      "name": "Unshaped Surge",
+      "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+      "type": "feat",
+      "_id": "yQ6AiAckoaOYu60Q",
+      "system": {
+        "description": {
+          "value": "<p>The scales flare and close over the body. <strong>Self: +2 AC and resistance to ALL damage until the end of your next turn.</strong> 1/day.</p><p><em>MANUAL TRIGGER: cast this yourself when bloodied (17 HP or less) — it does not fire automatically. While it lasts you can speak only in growls.</em></p>",
+          "chat": ""
+        },
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "day"
+            }
+          ]
+        },
+        "activities": {
+          "KcEYIcACSKOK82wO": {
+            "_id": "KcEYIcACSKOK82wO",
+            "type": "utility",
+            "activation": {
+              "type": "bonus",
+              "value": 1
+            },
+            "consumption": {
+              "targets": [
+                {
+                  "type": "itemUses",
+                  "target": "",
+                  "value": "1"
+                }
+              ]
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "ally",
+                "count": "1"
+              }
+            },
+            "effects": [
+              {
+                "_id": "hXfLnTbLBJzhhDbt"
+              }
+            ]
+          }
+        },
+        "identifier": "unshaped-surge",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [
+        {
+          "name": "Unshaped Surge",
+          "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+          "type": "base",
+          "_id": "hXfLnTbLBJzhhDbt",
+          "transfer": false,
+          "disabled": false,
+          "duration": {
+            "rounds": 1
+          },
+          "changes": [
+            {
+              "key": "system.attributes.ac.bonus",
+              "mode": 2,
+              "value": "2",
+              "priority": 20
+            },
+            {
+              "key": "system.traits.dr.all",
+              "mode": 0,
+              "value": "1",
+              "priority": 20
+            }
+          ],
+          "statuses": [],
+          "flags": {
+            "dae": {
+              "specialDuration": [
+                "turnEndSource"
+              ]
+            }
+          }
+        }
+      ],
+      "flags": {}
+    },
+    {
+      "name": "Manacle-Flail",
+      "img": "icons/commodities/metal/chain-steel.webp",
+      "type": "feat",
+      "_id": "NBtxVf55FPbbj5vl",
+      "system": {
+        "description": {
+          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "om2aw0iEaokO0qAQ": {
+            "_id": "om2aw0iEaokO0qAQ",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "slashing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d6+3"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "0b5fb771dfb28cf88af5873445176641e7d915167bf36bc10e3f0cf14db3accd"
+    }
+  },
+  "folder": null
+}

@@ -11,14 +11,14 @@
     "abilities": {
       "str": { "value": 16 },
       "dex": { "value": 10 },
-      "con": { "value": 14 },
+      "con": { "value": 16 },
       "int": { "value": 12 },
-      "wis": { "value": 13 },
+      "wis": { "value": 12 },
       "cha": { "value": 8 }
     },
     "attributes": {
       "hp": { "value": 30, "max": 30, "formula": "" },
-      "ac": { "calc": "flat", "flat": 14 },
+      "ac": { "calc": "flat", "flat": 15 },
       "movement": { "walk": 25 },
       "senses": { "darkvision": 60 }
     },
@@ -29,7 +29,7 @@
       "cr": 2,
       "type": { "value": "humanoid" },
       "biography": {
-        "value": "<p>THORD — level 3 PC pregen, Dhul Maldur dwarf dissident, \"the turncoat\". Knows the mine in his bones.</p><p><strong>Manual riders:</strong> Dwarven resilience — advantage on saves vs. poison (resist poison damage is on the sheet). Stonecunning — knows tunnel layout, finds hidden seams/levers, never lost underground (Perception/Survival proficient). Drop the Prop: the 10-ft spill becomes difficult terrain (mark on scene); can seal a small passage instead.</p>"
+        "value": "<p>THORD — level 3 PC pregen, Dhul Maldur dwarf dissident, \"the turncoat\". Knows the mine in his bones; brings the roof down.</p><p><strong>Manual:</strong> Stonecunning — tunnel layout, hidden seams/levers, never lost underground (Perception/Survival proficient). Dwarven Resilience — advantage on saves vs. poison (poison resistance is on the sheet).</p>"
       }
     },
     "skills": {
@@ -39,8 +39,8 @@
   },
   "items": [],
   "abilities": [
-    "drop-the-prop",
-    "vicious-pick"
+    "cave-in",
+    { "ability": "example-strike", "name": "Broken Miner's Pick", "img": "icons/tools/hand/pickaxe-simple-stone.webp", "set": { "dmg": "1d8+3" } }
   ],
   "effects": [],
   "flags": {},
