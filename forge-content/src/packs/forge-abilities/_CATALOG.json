@@ -7,6 +7,13 @@
     "description": "While worn, your Armor Class increases by 2."
   },
   {
+    "identifier": "drop-the-prop",
+    "name": "Drop the Prop",
+    "tier": "T3",
+    "img": "icons/environment/settlement/mine-cart-rocks-red.webp",
+    "description": "He knows every weak support. Collapse a pillar, beam or cart within 20 ft: creatures in the spill (target up to 2) make a DC 13 Dexterity save or take 2d6 bludgeoning and are knocked prone (nothing on a success). 1/day.Manual riders: the 10-ft area becomes difficult terrain (mark it on the scene); can instead seal a small passage — narrate it."
+  },
+  {
     "identifier": "emberlight",
     "name": "Emberlight",
     "tier": "T3",
@@ -75,5 +82,26 @@
     "tier": "T3",
     "img": "icons/skills/targeting/target-strike-triple-blue.webp",
     "description": "As a bonus action, Derek marks a foe for his bonded hunter. The marked creature is primed for Mucknathal's Rending Pounce. Recharge 5–6."
+  },
+  {
+    "identifier": "unshaped-surge",
+    "name": "Unshaped Surge",
+    "tier": "T3",
+    "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+    "description": "The scales flare and close over the body. Self: +2 AC and resistance to ALL damage until the end of your next turn. 1/day.MANUAL TRIGGER: cast this yourself when bloodied (17 HP or less) — it does not fire automatically. While it lasts you can speak only in growls."
+  },
+  {
+    "identifier": "vicious-pick",
+    "name": "Vicious Pick",
+    "tier": "T3",
+    "img": "icons/tools/hand/pickaxe-simple-stone.webp",
+    "description": "A miner's pick with the head snapped to a jagged spike. Melee attack: 1d8+3 piercing, crits on 19–20 (vicious shard). At-will."
+  },
+  {
+    "identifier": "writhing-lash",
+    "name": "Writhing Lash",
+    "tier": "T3",
+    "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+    "description": "The tendril acts on its own. Melee attack, reach 10 ft: 1d8+3 bludgeoning and on a hit the target is grappled (escape DC 13 — DM adjudicates; remove the condition when it escapes). At-will.Manual riders: while grappling you can drag the target 5 ft. If you start your turn grappling an ALLY, DC 10 Wis save or the mutation keeps holding on."
   }
 ]

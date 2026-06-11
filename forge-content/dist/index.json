@@ -20,6 +20,14 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "camKkgIqSeOkY2S0",
+      "name": "Drop the Prop",
+      "path": "forge-abilities/camKkgIqSeOkY2S0.json",
+      "hash": "71932de5ce1db4ac6b91b2460a9425b18b3e38a6455ec0e8e22a58ce2e0d4853"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "exampleblast0001",
       "name": "Example Blast",
       "path": "forge-abilities/exampleblast0001.json",
@@ -60,6 +68,22 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "iuIKuySY4QwI6yi0",
+      "name": "Writhing Lash",
+      "path": "forge-abilities/iuIKuySY4QwI6yi0.json",
+      "hash": "27f027bbccac447e869be3611308d2a6901981076af43a72908b7b8a4214c85e"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "QM8MISQgY0GKsY2S",
+      "name": "Unshaped Surge",
+      "path": "forge-abilities/QM8MISQgY0GKsY2S.json",
+      "hash": "6426438f755d43beeea54658ce4ab14cc4c321e4668c9d5bbf244ddb2e9ef1e2"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "radiantrebuke001",
       "name": "Radiant Rebuke",
       "path": "forge-abilities/radiantrebuke001.json",
@@ -88,6 +112,30 @@
       "name": "Squire's Mark",
       "path": "forge-abilities/squiresmark00001.json",
       "hash": "65af5f5859e79982fd1092fc1be00c6cc51af6b6a694285673cf936033f376fd"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "TrbPrprxNJdzfP3z",
+      "name": "Vicious Pick",
+      "path": "forge-abilities/TrbPrprxNJdzfP3z.json",
+      "hash": "873dfbeec815f4245c4a8db16f81b04b6bef918742ea618470ae774799220e36"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "4u6GmEGC6YIeuyco",
+      "name": "Vesk Half-made",
+      "path": "forge-npcs/4u6GmEGC6YIeuyco.json",
+      "hash": "c3714debc35e016cf72ef7bda73d9398730f0fe1c0d2db31dd7010dc045ca4bc"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "Asw42i222yOGqQO0",
+      "name": "Thord",
+      "path": "forge-npcs/Asw42i222yOGqQO0.json",
+      "hash": "217e801ac476baa28e8f99d7bf640a8ac34801405662b2d91884b75e0e88faba"
     },
     {
       "pack": "forge-npcs",
@@ -151,10 +199,18 @@
       "id": "VVxRd1PNZVNrNrjz",
       "name": "Lireth Daenil",
       "path": "forge-npcs/VVxRd1PNZVNrNrjz.json",
-      "hash": "4c2128f21603f3345cda56156086a1535579023f0aaa36c1fa60dbaae6aa60df"
+      "hash": "76914042accb99e7606b4bf83cc4cbb00b1d9e4bc3f8655b471d74b43019cb19"
     }
   ],
   "assets": [
+    {
+      "path": "tokens/lireth-daenil-token.png",
+      "hash": "a78c0218016741546bb528264697007614fb7c2f5aff2a58ca00d33de0caacbf"
+    },
+    {
+      "path": "tokens/lireth-daenil.png",
+      "hash": "2083bbbd738eb53d68dc44f6a36fee758638c152655ea3df5dba9a115ec30cd6"
+    },
     {
       "path": "tokens/test-stitchwretch-token.png",
       "hash": "c88df1eaf86607438b2ea045d44f68f1290f415587a5fbcc51113fe904a45b5f"
@@ -164,12 +220,28 @@
       "hash": "c9bb719292c4ff50b2ed2d59c49683893168f10777c9585e72e78a8faadd1b72"
     },
     {
+      "path": "tokens/thord-token.png",
+      "hash": "c032110caccfaad38030c17e0871a2eb7c914dae8710fb79eb55335e1906fba4"
+    },
+    {
+      "path": "tokens/thord.png",
+      "hash": "709b1ee1340d79347fdeea0b7fbed6989853290a1f6d7891fe4bfbb88d510a6f"
+    },
+    {
       "path": "tokens/unchained-thrall-token.png",
       "hash": "311fb5d0797bb88a0c2c89d1519b08602e894660fea5821d04671d9bf8796176"
     },
     {
       "path": "tokens/unchained-thrall.png",
       "hash": "aee6053923350c8944f8af3fcdaabba9cca67966403eea9cecb3414759e1aa22"
+    },
+    {
+      "path": "tokens/vesk-half-made-token.png",
+      "hash": "f881bd697c8f9d3edf1705428c4bd5b58844cefe8a1a80f13e0c14842ec4ba97"
+    },
+    {
+      "path": "tokens/vesk-half-made.png",
+      "hash": "5bebde86dc0187bd80f8d267e6fe2c0cabd0a78223c6ca920da9960715ecfbbe"
     }
   ]
 }

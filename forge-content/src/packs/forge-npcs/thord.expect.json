@@ -1,0 +1,19 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 30,
+    "ac": 14,
+    "abilities": {
+      "str": 16,
+      "dex": 10,
+      "con": 14,
+      "int": 12,
+      "wis": 13,
+      "cha": 8
+    },
+    "hasItems": [
+      "Drop the Prop",
+      "Vicious Pick"
+    ]
+  }
+}

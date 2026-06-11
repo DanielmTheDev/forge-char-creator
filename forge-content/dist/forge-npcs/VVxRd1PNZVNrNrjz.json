@@ -2,7 +2,18 @@
   "_id": "VVxRd1PNZVNrNrjz",
   "name": "Lireth Daenil",
   "type": "npc",
-  "img": "icons/magic/light/explosion-star-glow-blue.webp",
+  "img": "modules/forge-content/assets/tokens/lireth-daenil.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/lireth-daenil-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 0.75
+      }
+    }
+  },
   "system": {
     "abilities": {
       "str": {
@@ -243,7 +254,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "4c2128f21603f3345cda56156086a1535579023f0aaa36c1fa60dbaae6aa60df"
+      "srcHash": "76914042accb99e7606b4bf83cc4cbb00b1d9e4bc3f8655b471d74b43019cb19"
     }
   },
   "folder": null

@@ -1,0 +1,51 @@
+{
+  "name": "Drop the Prop",
+  "img": "icons/environment/settlement/mine-cart-rocks-red.webp",
+  "type": "feat",
+  "_id": "camKkgIqSeOkY2S0",
+  "system": {
+    "description": {
+      "value": "<p>He knows every weak support. Collapse a pillar, beam or cart within 20 ft: creatures in the spill (target up to 2) make a <strong>DC 13 Dexterity save</strong> or take <strong>2d6 bludgeoning</strong> and are <strong>knocked prone</strong> (nothing on a success). <strong>1/day</strong>.</p><p><em>Manual riders: the 10-ft area becomes difficult terrain (mark it on the scene); can instead seal a small passage — narrate it.</em></p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [{ "period": "day" }]
+    },
+    "activities": {
+      "propsave00000001": {
+        "_id": "propsave00000001",
+        "type": "save",
+        "activation": { "type": "action", "value": 1 },
+        "consumption": { "targets": [{ "type": "itemUses", "target": "", "value": "1" }] },
+        "range": { "value": 20, "units": "ft" },
+        "target": { "affects": { "type": "creature", "count": "2" } },
+        "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "13" } },
+        "damage": { "onSave": "none", "parts": [{ "types": ["bludgeoning"], "custom": { "enabled": true, "formula": "2d6" } }] },
+        "effects": [{ "_id": "propprone0000001", "onSave": false }]
+      }
+    },
+    "identifier": "drop-the-prop",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [
+    {
+      "name": "Prone (Drop the Prop)",
+      "img": "icons/environment/settlement/mine-cart-rocks-red.webp",
+      "type": "base",
+      "_id": "propprone0000001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {},
+      "changes": [],
+      "statuses": ["prone"],
+      "flags": {}
+    }
+  ],
+  "flags": {},
+  "folder": null
+}

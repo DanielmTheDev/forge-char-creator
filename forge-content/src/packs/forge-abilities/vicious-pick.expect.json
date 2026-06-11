@@ -1,0 +1,21 @@
+{
+  "tier": "T3",
+  "actors": {
+    "attacker": { "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 15, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "main" }
+  ],
+  "scenarios": [
+    { "name": "hit", "forces": { "defender": { "attack": "hit" } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDeltaMin": -19, "hpDeltaMax": -4 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": true }
+    ] },
+    { "name": "miss", "forces": { "defender": { "attack": "miss" } }, "assert": [
+      { "at": "main", "actor": "defender", "hpDelta": 0 },
+      { "at": "main", "actor": "attacker", "lastWorkflow.hit": false }
+    ] }
+  ]
+}

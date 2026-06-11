@@ -1,0 +1,20 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 34,
+    "ac": 12,
+    "abilities": {
+      "str": 16,
+      "dex": 12,
+      "con": 14,
+      "int": 8,
+      "wis": 10,
+      "cha": 8
+    },
+    "hasItems": [
+      "Writhing Lash",
+      "Unshaped Surge",
+      "Manacle-Flail"
+    ]
+  }
+}

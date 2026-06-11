@@ -1,0 +1,20 @@
+{
+  "tier": "T3",
+  "actors": {
+    "caster": { "disposition": 1, "pos": [300, 300] },
+    "def0": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 150], "forces": { "save": "fail" } },
+    "def1": { "hp": 100, "ac": 1, "disposition": -1, "pos": [400, 150], "forces": { "save": "success" } }
+  },
+  "steps": [
+    { "cast": "caster", "ability": "main", "targets": ["def0", "def1"], "expectTargets": 2 },
+    { "snapshot": "collapse" }
+  ],
+  "assert": [
+    { "at": "collapse", "targetedCount": 2 },
+    { "at": "collapse", "actor": "def0", "hpDeltaMin": -12, "hpDeltaMax": -2 },
+    { "at": "collapse", "actor": "def0", "conditionApplied": "prone" },
+    { "at": "collapse", "actor": "def1", "hpDelta": 0 },
+    { "at": "collapse", "actor": "def1", "effectAbsent": "Prone (Drop the Prop)" },
+    { "at": "collapse", "actor": "caster", "usesSpent": 1 }
+  ]
+}

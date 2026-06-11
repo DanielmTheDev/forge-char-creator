@@ -1,0 +1,56 @@
+{
+  "name": "Unshaped Surge",
+  "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+  "type": "feat",
+  "_id": "QM8MISQgY0GKsY2S",
+  "system": {
+    "description": {
+      "value": "<p>The scales flare and close over the body. <strong>Self: +2 AC and resistance to ALL damage until the end of your next turn.</strong> 1/day.</p><p><em>MANUAL TRIGGER: cast this yourself when bloodied (17 HP or less) — it does not fire automatically. While it lasts you can speak only in growls.</em></p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [{ "period": "day" }]
+    },
+    "activities": {
+      "surgebuff0000001": {
+        "_id": "surgebuff0000001",
+        "type": "utility",
+        "activation": { "type": "bonus", "value": 1 },
+        "consumption": { "targets": [{ "type": "itemUses", "target": "", "value": "1" }] },
+        "range": { "value": 5, "units": "ft" },
+        "target": { "affects": { "type": "ally", "count": "1" } },
+        "effects": [{ "_id": "surgescales00001" }]
+      }
+    },
+    "identifier": "unshaped-surge",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [
+    {
+      "name": "Unshaped Surge",
+      "img": "icons/magic/defensive/armor-shield-barrier-steel.webp",
+      "type": "base",
+      "_id": "surgescales00001",
+      "transfer": false,
+      "disabled": false,
+      "duration": { "rounds": 1 },
+      "changes": [
+        { "key": "system.attributes.ac.bonus", "mode": 2, "value": "2", "priority": 20 },
+        { "key": "system.traits.dr.all", "mode": 0, "value": "1", "priority": 20 }
+      ],
+      "statuses": [],
+      "flags": {
+        "dae": {
+          "specialDuration": ["turnEndSource"]
+        }
+      }
+    }
+  ],
+  "flags": {},
+  "folder": null
+}

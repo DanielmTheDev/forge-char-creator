@@ -1,0 +1,25 @@
+{
+  "tier": "T3",
+  "setup": ["example-strike"],
+  "actors": {
+    "attacker": { "hp": 100, "disposition": 1, "pos": [100, 100] },
+    "defender": { "hp": 100, "ac": 1, "disposition": -1, "pos": [200, 100] }
+  },
+  "steps": [
+    { "cast": "attacker", "ability": "main", "targets": ["attacker"] },
+    { "snapshot": "buffed" },
+    { "cast": "defender", "ability": "example-strike", "targets": ["attacker"], "onlyScenarios": ["resist"] },
+    { "snapshot": "struck", "onlyScenarios": ["resist"] }
+  ],
+  "scenarios": [
+    { "name": "buff", "assert": [
+      { "at": "buffed", "actor": "attacker", "acDelta": 2 },
+      { "at": "buffed", "actor": "attacker", "effectApplied": "Unshaped Surge" },
+      { "at": "buffed", "actor": "attacker", "usesSpent": 1 }
+    ] },
+    { "name": "resist", "forces": { "attacker": { "attack": "hit" } }, "assert": [
+      { "at": "buffed", "actor": "attacker", "acDelta": 2 },
+      { "at": "struck", "actor": "attacker", "hpDelta": -5 }
+    ] }
+  ]
+}

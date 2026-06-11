@@ -1,0 +1,48 @@
+{
+  "_id": "Asw42i222yOGqQO0",
+  "name": "Thord",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/thord.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/thord-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 16 },
+      "dex": { "value": 10 },
+      "con": { "value": 14 },
+      "int": { "value": 12 },
+      "wis": { "value": 13 },
+      "cha": { "value": 8 }
+    },
+    "attributes": {
+      "hp": { "value": 30, "max": 30, "formula": "" },
+      "ac": { "calc": "flat", "flat": 14 },
+      "movement": { "walk": 25 },
+      "senses": { "darkvision": 60 }
+    },
+    "traits": {
+      "dr": { "value": ["poison"], "bypasses": [], "custom": "" }
+    },
+    "details": {
+      "cr": 2,
+      "type": { "value": "humanoid" },
+      "biography": {
+        "value": "<p>THORD — level 3 PC pregen, Dhul Maldur dwarf dissident, \"the turncoat\". Knows the mine in his bones.</p><p><strong>Manual riders:</strong> Dwarven resilience — advantage on saves vs. poison (resist poison damage is on the sheet). Stonecunning — knows tunnel layout, finds hidden seams/levers, never lost underground (Perception/Survival proficient). Drop the Prop: the 10-ft spill becomes difficult terrain (mark on scene); can seal a small passage instead.</p>"
+      }
+    },
+    "skills": {
+      "prc": { "value": 1, "ability": "wis" },
+      "sur": { "value": 1, "ability": "wis" }
+    }
+  },
+  "items": [],
+  "abilities": [
+    "drop-the-prop",
+    "vicious-pick"
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}
