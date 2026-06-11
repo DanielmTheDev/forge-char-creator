@@ -244,6 +244,27 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (searchResults.children.length > 0 && searchInput.value.length > 0)
           searchResults.style.display = "block";
       });
+      searchInput.addEventListener("keydown", (e) => {
+        const items = Array.from(searchResults.querySelectorAll("li[data-uuid]"));
+        if (e.key === "Escape") {
+          searchResults.style.display = "none";
+          return;
+        }
+        if (items.length === 0 || searchResults.style.display === "none") return;
+        const activeIndex = items.findIndex(li => li.classList.contains("active"));
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const next = e.key === "ArrowDown"
+            ? (activeIndex + 1) % items.length
+            : (activeIndex <= 0 ? items.length - 1 : activeIndex - 1);
+          items.forEach(li => li.classList.remove("active"));
+          items[next].classList.add("active");
+          items[next].scrollIntoView({ block: "nearest" });
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          if (activeIndex >= 0) this.#selectSearchResult(items[activeIndex], searchResults, selectedBin, searchInput);
+        }
+      });
 
       // Drag & Drop
       selectedBin.addEventListener("dragenter", (e) => { e.preventDefault(); selectedBin.classList.add("drag-hover"); });
@@ -294,16 +315,19 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           <span class="compendium-name">(${m.packTitle})</span>
         </li>`).join("");
       resultsList.querySelectorAll("li[data-uuid]").forEach(li => {
-        li.addEventListener("click", () => {
-          this.selectedItems.set(li.dataset.uuid, { name: li.dataset.name, img: li.dataset.img });
-          this.#renderSelectedItems(selectedBin);
-          resultsList.style.display = "none";
-          searchInput.value = "";
-        });
+        li.addEventListener("click", () => this.#selectSearchResult(li, resultsList, selectedBin, searchInput));
       });
     }
     resultsList.style.display = "block";
   }
+
+  #selectSearchResult(li, resultsList, selectedBin, searchInput) {
+    this.selectedItems.set(li.dataset.uuid, { name: li.dataset.name, img: li.dataset.img });
+    this.#renderSelectedItems(selectedBin);
+    resultsList.style.display = "none";
+    searchInput.value = "";
+  }
+
   #renderSelectedItems(container) {
     if (!container) return;
     if (this.selectedItems.size === 0) {
