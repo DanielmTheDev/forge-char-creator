@@ -2,7 +2,7 @@
   "id": "forge-content",
   "title": "Forge Content",
   "description": "Content-as-code compendium module for Foundry VTT V13 / dnd5e: abilities, items, and (later) NPCs/bosses authored as JSON and compiled to packs.",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "authors": [
     { "name": "Forge Content Developer" }
   ],
