@@ -8,11 +8,13 @@
   "steps": [
     { "cast": "attacker", "ability": "squires-mark", "targets": ["defender"], "onlyScenarios": ["main"] },
     { "cast": "attacker", "ability": "main", "targets": ["defender"] },
+    { "snapshot": "cast" },
     { "advanceTurns": 6, "countDamageTo": "defender" },
     { "snapshot": "after" }
   ],
   "scenarios": [
     { "name": "main", "assert": [
+      { "at": "cast",  "actor": "attacker", "usesSpent": 1 },
       { "at": "after", "actor": "defender", "hpDeltaMin": -36, "hpDeltaMax": -6, "ticks": 2 }
     ] },
     { "name": "negative", "assert": [

@@ -10,6 +10,7 @@
   ],
   "assert": [
     { "at": "main", "actor": "defender", "effectApplied": "Squire's Mark" },
-    { "at": "main", "actor": "defender", "flagPresent": "flags.world.squiresMark" }
+    { "at": "main", "actor": "defender", "flagPresent": "flags.world.squiresMark" },
+    { "at": "main", "actor": "attacker", "usesSpent": 1 }
   ]
 }
