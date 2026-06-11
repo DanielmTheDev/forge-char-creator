@@ -8,7 +8,8 @@ FoundryData/
 .foundry_license_key
 node_modules/
 test-results/
-dist/
+# zip staging at repo root only — forge-content/dist/ is COMMITTED (runtime sync source)
+/dist/
 test-run*.log
 /packs/
 forge-content/packs/

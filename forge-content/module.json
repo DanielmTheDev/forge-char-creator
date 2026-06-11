@@ -21,6 +21,7 @@
       { "id": "times-up", "type": "module" }
     ]
   },
+  "esmodules": ["scripts/sync.mjs"],
   "url": "https://github.com/DanielmTheDev/forge-char-creator",
   "manifest": "https://raw.githubusercontent.com/DanielmTheDev/forge-char-creator/main/forge-content/module.json",
   "download": "https://github.com/DanielmTheDev/forge-char-creator/releases/latest/download/forge-content.zip",

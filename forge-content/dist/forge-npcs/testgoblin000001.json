@@ -1,0 +1,117 @@
+{
+  "_id": "testgoblin000001",
+  "name": "Test Goblin",
+  "type": "npc",
+  "img": "icons/creatures/mammals/humanoid-wolf-dog-blue.webp",
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 8
+      },
+      "dex": {
+        "value": 14
+      },
+      "con": {
+        "value": 10
+      },
+      "int": {
+        "value": 10
+      },
+      "wis": {
+        "value": 8
+      },
+      "cha": {
+        "value": 8
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 20,
+        "max": 20,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 13
+      }
+    },
+    "details": {
+      "cr": 1,
+      "type": {
+        "value": "humanoid"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Searing Bolt",
+      "img": "icons/magic/fire/projectile-fireball-orange.webp",
+      "type": "feat",
+      "_id": "mIqa0UIeiGM0MuEM",
+      "system": {
+        "description": {
+          "value": "<p>You hurl a mote of fire at a creature within range, dealing 10 fire damage.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "pJXD1Pjdfrnrhx7T": {
+            "_id": "pJXD1Pjdfrnrhx7T",
+            "type": "damage",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 60,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "fire"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "10"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "searing-bolt",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "d5a2aa6efd7a81962726b8768ab02add644cf32518b8ae31f971ca2fc0173b5f"
+    }
+  },
+  "folder": null
+}

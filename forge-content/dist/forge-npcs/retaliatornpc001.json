@@ -1,0 +1,128 @@
+{
+  "_id": "retaliatornpc001",
+  "name": "Test Retaliator",
+  "type": "npc",
+  "img": "icons/creatures/mammals/humanoid-wolf-dog-blue.webp",
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 12
+      },
+      "dex": {
+        "value": 14
+      },
+      "con": {
+        "value": 12
+      },
+      "int": {
+        "value": 10
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 10
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 50,
+        "max": 50,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 1
+      }
+    },
+    "details": {
+      "cr": 2,
+      "type": {
+        "value": "humanoid"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Example Retaliate",
+      "img": "icons/skills/melee/strike-blade-knife-white-red.webp",
+      "type": "feat",
+      "_id": "8msMawKwGS2OEWaA",
+      "system": {
+        "description": {
+          "value": "<p><strong>Reaction</strong>, when you take damage from a creature you can see: lash back, dealing <strong>6 force damage</strong> to that attacker.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "MesGeA4ImG0CIYgQ": {
+            "_id": "MesGeA4ImG0CIYgQ",
+            "type": "damage",
+            "activation": {
+              "type": "reaction",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "force"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "6"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-retaliate",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {
+        "dae": {
+          "macro": {
+            "name": "Example Retaliate",
+            "type": "script",
+            "command": "if (args?.[0]?.macroPass !== 'isDamaged') return;\nconst attacker = workflow?.token;\nif (!attacker?.actor) return;\nconst cur = attacker.actor.system.attributes.hp.value;\nawait attacker.actor.update({ 'system.attributes.hp.value': cur - 6 });"
+          }
+        }
+      }
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "midi-qol": {
+      "onUseMacroName": "[isDamaged]ItemMacro.Example Retaliate"
+    },
+    "forge-content": {
+      "srcHash": "0fc1b1486867155b9ced77b211cf31b0418cb02b8ef321f58e3e1035433b4a3e"
+    }
+  },
+  "folder": null
+}

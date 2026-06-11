@@ -1,0 +1,109 @@
+{
+  "name": "Squire's Mark",
+  "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+  "type": "feat",
+  "_id": "squiresmark00001",
+  "system": {
+    "description": {
+      "value": "<p>As a bonus action, Derek marks a foe for his bonded hunter. The marked creature is primed for Mucknathal's Rending Pounce. Recharge 5–6.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [
+        {
+          "period": "recharge",
+          "formula": "5"
+        }
+      ]
+    },
+    "activities": {
+      "markdmg000000001": {
+        "_id": "markdmg000000001",
+        "type": "damage",
+        "activation": {
+          "type": "bonus",
+          "value": 1
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1"
+            }
+          ]
+        },
+        "range": {
+          "value": 30,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "radiant"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "0"
+              }
+            }
+          ]
+        },
+        "effects": [
+          {
+            "_id": "squiremarkeff001"
+          }
+        ]
+      }
+    },
+    "identifier": "squires-mark",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Squire's Mark",
+      "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+      "type": "base",
+      "_id": "squiremarkeff001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {
+        "rounds": 10
+      },
+      "changes": [
+        {
+          "key": "flags.world.squiresMark",
+          "mode": 5,
+          "value": "1",
+          "priority": 20
+        }
+      ],
+      "statuses": [],
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "65af5f5859e79982fd1092fc1be00c6cc51af6b6a694285673cf936033f376fd"
+    }
+  },
+  "folder": "folderderek00001"
+}

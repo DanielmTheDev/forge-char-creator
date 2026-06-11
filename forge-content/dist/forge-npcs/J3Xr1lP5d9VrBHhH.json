@@ -1,0 +1,129 @@
+{
+  "_id": "J3Xr1lP5d9VrBHhH",
+  "name": "Cave Gnoll",
+  "type": "npc",
+  "img": "icons/creatures/mammals/humanoid-wolf-dog-blue.webp",
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 14
+      },
+      "dex": {
+        "value": 12
+      },
+      "con": {
+        "value": 11
+      },
+      "int": {
+        "value": 6
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 7
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 22,
+        "max": 22,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 15
+      }
+    },
+    "details": {
+      "cr": 0.5,
+      "type": {
+        "value": "humanoid"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Rending Bite",
+      "img": "icons/weapons/swords/greatsword-crossguard-blue.webp",
+      "type": "feat",
+      "_id": "2UYyO02wEwKImWwA",
+      "system": {
+        "description": {
+          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "fnnl5tjx5dblH59J": {
+            "_id": "fnnl5tjx5dblH59J",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "slashing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "8"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "64ee3cfa35c5e1f7ac0e77d7723631fb7d5f080959b8bb8b8968c2fef942286a"
+    }
+  },
+  "folder": null
+}

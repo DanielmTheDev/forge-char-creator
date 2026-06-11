@@ -1,0 +1,133 @@
+{
+  "version": "0.1.9",
+  "docs": [
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "aaaaaaaaaaaaaaaa",
+      "name": "Bracers of Defense",
+      "path": "forge-abilities/aaaaaaaaaaaaaaaa.json",
+      "hash": "21553e252c2682ae8b6c093284c861007bd6336a344cb6efb676ad7a96a12431"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "exampleblast0001",
+      "name": "Example Blast",
+      "path": "forge-abilities/exampleblast0001.json",
+      "hash": "122f2ed8a78f9030555199849ac46243afa4c4f532a45a1a96dc7452d4d59ddb"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "exampleboon00001",
+      "name": "Example Boon",
+      "path": "forge-abilities/exampleboon00001.json",
+      "hash": "1c297ab5247af85c396276f00bf4ab29fec555e2223602d78cc0945668feb529"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "examplerally0001",
+      "name": "Example Rally",
+      "path": "forge-abilities/examplerally0001.json",
+      "hash": "1f0a7546bd7b84d5b369d41c18d0f7adfae0899e70e652a977124488a6131e17"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "exampleretal0001",
+      "name": "Example Retaliate",
+      "path": "forge-abilities/exampleretal0001.json",
+      "hash": "b995cde64336c6928437ef87dc58a7b3cf938c597642094c3806a68a6c07882a"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "examplestrike001",
+      "name": "Example Strike",
+      "path": "forge-abilities/examplestrike001.json",
+      "hash": "0bff6dcbc2a1dcca4f908d2efceb4d0c19e83888df73dda0734da19caac1fc95"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "radiantrebuke001",
+      "name": "Radiant Rebuke",
+      "path": "forge-abilities/radiantrebuke001.json",
+      "hash": "4616b5a4b74db127f2e8896bada8b2c068d6374fab229d4f69c29b1efbd3148c"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "rendingpounce001",
+      "name": "Rending Pounce",
+      "path": "forge-abilities/rendingpounce001.json",
+      "hash": "0988a594cfcad4c28f724a6c868c5e2cbe791ac0c36fc3e5b4f020d982d07766"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "searingbolt00001",
+      "name": "Searing Bolt",
+      "path": "forge-abilities/searingbolt00001.json",
+      "hash": "53732fd404aa15cd780812c14cddd1cfc4a3ae32810cdcb9fbbfa5a0030ec00d"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "squiresmark00001",
+      "name": "Squire's Mark",
+      "path": "forge-abilities/squiresmark00001.json",
+      "hash": "65af5f5859e79982fd1092fc1be00c6cc51af6b6a694285673cf936033f376fd"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "J3Xr1lP5d9VrBHhH",
+      "name": "Cave Gnoll",
+      "path": "forge-npcs/J3Xr1lP5d9VrBHhH.json",
+      "hash": "64ee3cfa35c5e1f7ac0e77d7723631fb7d5f080959b8bb8b8968c2fef942286a"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "retaliatornpc001",
+      "name": "Test Retaliator",
+      "path": "forge-npcs/retaliatornpc001.json",
+      "hash": "0fc1b1486867155b9ced77b211cf31b0418cb02b8ef321f58e3e1035433b4a3e"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "SuWaO8cocawq2EcO",
+      "name": "Test Stitchwretch",
+      "path": "forge-npcs/SuWaO8cocawq2EcO.json",
+      "hash": "c5740f9bab00be0485a6587f588eed30d92f09c4e5b4f29d5d7f02f09126e4c0"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "testbruiser00001",
+      "name": "Test Bruiser",
+      "path": "forge-npcs/testbruiser00001.json",
+      "hash": "d7b5ee0b2cfce892e61dc7a7b95a1fefc8ec1856fdba7fab5a21d762c2aea5be"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "testgoblin000001",
+      "name": "Test Goblin",
+      "path": "forge-npcs/testgoblin000001.json",
+      "hash": "d5a2aa6efd7a81962726b8768ab02add644cf32518b8ae31f971ca2fc0173b5f"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "testogre00000001",
+      "name": "Test Ogre",
+      "path": "forge-npcs/testogre00000001.json",
+      "hash": "ba8c9eb77921f89345776e2e30ecf7cb2fd19f09b81b9d3a51abdbbf44413d7a"
+    }
+  ]
+}

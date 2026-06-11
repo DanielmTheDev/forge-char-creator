@@ -1,0 +1,141 @@
+{
+  "_id": "SuWaO8cocawq2EcO",
+  "name": "Test Stitchwretch",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/test-stitchwretch.png",
+  "prototypeToken": {
+    "name": "Test Stitchwretch",
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/test-stitchwretch-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 1
+      }
+    }
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 16
+      },
+      "dex": {
+        "value": 11
+      },
+      "con": {
+        "value": 16
+      },
+      "int": {
+        "value": 7
+      },
+      "wis": {
+        "value": 11
+      },
+      "cha": {
+        "value": 6
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 45,
+        "max": 45,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "flat",
+        "flat": 15
+      }
+    },
+    "details": {
+      "cr": 3,
+      "type": {
+        "value": "aberration"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Grafted Tentacle Lash",
+      "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+      "type": "feat",
+      "_id": "U4osQaAUwWkWUw44",
+      "system": {
+        "description": {
+          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "VlrrVfFzPd5JbNnX": {
+            "_id": "VlrrVfFzPd5JbNnX",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 10,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "slashing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "13"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "c5740f9bab00be0485a6587f588eed30d92f09c4e5b4f29d5d7f02f09126e4c0"
+    }
+  },
+  "folder": null
+}

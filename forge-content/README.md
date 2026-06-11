@@ -39,3 +39,24 @@ authored as JSON, compiled to LevelDB compendium packs.
 ## Distribution
 Compiled packs are gitignored, so the GitHub-manifest install needs a CI-built
 release artifact (sub-project C). Local zip build compiles first then zips.
+
+## Runtime content sync (no module update needed for content changes)
+On every push to main, CI exports the resolved docs + a hash manifest to
+`forge-content/dist/` (committed). On world load, `scripts/sync.mjs` (GM only,
+`autoSync` world setting, default on):
+1. resolves the latest main commit SHA via the GitHub API (uncached — a push is
+   visible immediately), falls back to the branch ref if the API is down;
+2. fetches `dist/index.json` + changed docs from raw.githubusercontent.com
+   pinned to that SHA;
+3. diffs manifest hashes against each pack doc's `flags["forge-content"].srcHash`
+   stamp and delete+recreates only stale/missing docs (packs unlock/relock
+   around the write). Manual trigger: `game.modules.get("forge-content").api.syncContent()`.
+
+So: author → verify → push → reload world. The module zip still ships compiled
+packs as the first-install/offline baseline; a module reinstall resets packs to
+that baseline and the next sync self-heals them.
+
+**Limits:** docs already imported into the world/scenes are copies — sync only
+updates the compendium; re-drag to pick up changes. The `manifestUrl` setting
+overrides the source (used by `tests/content-sync.spec.js` to test against the
+local `dist/`; regenerate with `npm run content:dist`).

@@ -26,13 +26,17 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
-      - name: Bump patch versions + commit to main
+      - name: Bump patch versions, export content dist, commit to main
         run: |
           node scripts/bump-version.mjs module.json
           node scripts/bump-version.mjs forge-content/module.json
+          # Resolved content JSON + hash manifest, fetched at runtime by the
+          # forge-content sync script (export AFTER bump so the manifest
+          # carries the released version).
+          node scripts/pack-tools/export-dist.mjs
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add module.json forge-content/module.json
+          git add module.json forge-content/module.json forge-content/dist
           git commit -m "chore(release): bump module versions [skip ci]"
           # Token push by GITHUB_TOKEN does not retrigger this workflow.
           git push origin HEAD:main
@@ -74,7 +78,7 @@ jobs:
           cd forge-content
           # `assets` holds committed token/portrait images (image→statblock). Include
           # it only when present so the zip step never fails on a name-not-matched.
-          zip -r ../dist/forge-content.zip module.json packs $([ -d assets ] && echo assets)
+          zip -r ../dist/forge-content.zip module.json packs scripts $([ -d assets ] && echo assets) -x "scripts/*.test.mjs"
 
       - name: Update Latest Release
         uses: softprops/action-gh-release@v1

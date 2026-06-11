@@ -50,6 +50,7 @@ JSON source committed; compiled LevelDB `packs/` gitignored (built on demand / i
 ## Commands
 - `npm run packs:build [moduleName]` — JSON source → LevelDB for all modules (or one).
 - `npm run packs:unpack [moduleName]` — LevelDB → clean JSON source (import only; renames files).
+- `npm run content:dist` — export resolved docs + hash manifest to `forge-content/dist/` (CI does this on release; runtime sync fetches it — see forge-content/README.md "Runtime content sync").
 - `npm run content:verify` — boot Foundry + run forge-content functional gate. Run before push.
 - `./test.sh` — boot Foundry + run char-creator suite (server lifecycle handled).
 - `npm run test` — Playwright char-creator suite only (server already running).
