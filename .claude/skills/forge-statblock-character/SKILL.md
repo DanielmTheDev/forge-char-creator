@@ -89,7 +89,8 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
 6. **Scoped gate per ability:** `npm run content:verify -- <name-substring>`
    (~40s each). Comma-separate to scope a SET in one run (matches ANY part,
    case-insensitive): `npm run content:verify -- caelnor,nine,thord`. Iterate
-   to green BEFORE building the actor. Full run still required before push.
+   to green BEFORE building the actor. Pre-push run still required but is now
+   stale-aware (cheap): only changed docs re-run.
 
 7. **Token assets.** Image normally already exists next to the vault note at
    `<vault>/Generated Characters/img/<slug>.png` (vault skill generates it).
@@ -110,10 +111,12 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    - `npm run content:gen-expect -- <slug>` (T2).
    - `npm run packs:build forge-content`.
 
-9. **Full gate → publish:** `npm run content:verify` (full, must be 100%
-   green) → `npm run content:dist` → commit → `git pull --rebase` → push (CI
-   publishes; sync delivers). Tell the user: reload world, drag from compendium
-   (re-drag if replacing). Never push on a red gate.
+9. **Gate → publish:** `npm run content:verify` (default = changed-only; only
+   the new char + new abilities are stale, so this is cheap — must be 100%
+   green; `-- --full` forces the sweep) → `npm run content:dist` → commit →
+   `git pull --rebase` → push (CI publishes; sync delivers). Tell the user:
+   reload world, drag from compendium (re-drag if replacing). Never push on a
+   red gate.
 
 ## Common mistakes
 

@@ -12,6 +12,7 @@ import { validate, validateActor, validateActorRefs, KNOWN_KEYS } from './schema
 import { COLLECTIONS } from '../../scripts/pack-tools/modules.mjs';
 import { resolveActorAbilities } from '../../scripts/pack-tools/resolve-abilities.mjs';
 import { resolveActorSpells, loadSpellCache } from '../../scripts/pack-tools/resolve-spells.mjs';
+import { computeAllHashes, readMarkers, writeMarkers } from './stale.mjs';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'packs');
 
@@ -24,6 +25,7 @@ function gather() {
       const expectFile = join(dir, `${base}.expect.json`);
       out.push({
         pack: pack.name,
+        key: `${pack.name}/${f}`,
         coll: COLLECTIONS[pack.name] ?? 'items',
         doc: JSON.parse(readFileSync(join(dir, f), 'utf8')),
         expectation: existsSync(expectFile) ? JSON.parse(readFileSync(expectFile, 'utf8')) : null,
@@ -35,19 +37,43 @@ function gather() {
 
 // FC_ONLY=<substring>[,<substring>...] limits the RUN to docs whose name matches
 // ANY comma-separated part (case-insensitive substring) — scope a fresh batch in
-// one run: `npm run content:verify -- caelnor,nine,thord`. Full run still
-// REQUIRED before push. ALL is kept unfiltered so `setup` cross-references still
-// resolve under FC_ONLY.
+// one run: `npm run content:verify -- caelnor,nine,thord`. Default (no FC_ONLY/
+// FC_FULL) is STALE-AWARE: only docs whose gate hash moved re-run (see stale.mjs);
+// engine/module changes mark everything stale. ALL is kept unfiltered so `setup`
+// cross-references still resolve under any filter.
 const ALL = gather();
 const FC_PARTS = (process.env.FC_ONLY ?? '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const match = (i) => !FC_PARTS.length || FC_PARTS.some(p => i.doc.name.toLowerCase().includes(p));
-const ITEMS  = ALL.filter(i => i.coll === 'items').filter(match);
-const ACTORS = ALL.filter(i => i.coll === 'actors').filter(match);
+let ITEMS  = ALL.filter(i => i.coll === 'items').filter(match);
+let ACTORS = ALL.filter(i => i.coll === 'actors').filter(match);
+
+// Stale-aware default: drop docs whose gate hash matches their green marker
+// (.gate-green.json — written per-doc on PASS below). FC_FULL=1 forces the
+// sweep; explicit FC_ONLY selections always run (but still record markers).
+// HASHES is computed for ALL runs so the marker write always has current hashes.
+const FC_FULL = process.env.FC_FULL === '1';
+const HASHES = computeAllHashes();
+let GREEN_SKIPPED = 0;
+if (!FC_FULL && !FC_PARTS.length) {
+  const markers = readMarkers();
+  const stale = (i) => HASHES.get(i.key) !== markers[i.key];
+  const before = ITEMS.length + ACTORS.length;
+  ITEMS = ITEMS.filter(stale);
+  ACTORS = ACTORS.filter(stale);
+  GREEN_SKIPPED = before - ITEMS.length - ACTORS.length;
+  if (GREEN_SKIPPED) console.log(`(${GREEN_SKIPPED} docs green-skipped — FC_FULL=1 for full sweep)`);
+}
 
 test.describe('forge-content verify', () => {
   test.setTimeout(600000);
 
   test('every ability passes its declared functional check', async ({ page }) => {
+    // Everything green-skipped: pass without booting Foundry (content-verify.sh
+    // normally short-circuits earlier; this keeps the spec self-consistent).
+    if (!ITEMS.length && !ACTORS.length && GREEN_SKIPPED) {
+      console.log(`✅ nothing stale (${GREEN_SKIPPED} docs green) — FC_FULL=1 for full sweep`);
+      return;
+    }
     expect(ITEMS.length + ACTORS.length, 'No docs found under src/packs/').toBeGreaterThan(0);
 
     const untested = ITEMS.filter(i => !i.expectation).map(i => i.doc.name);
@@ -135,7 +161,7 @@ test.describe('forge-content verify', () => {
       const setupDocs = (item.expectation.setup ?? []).map(s => byId.get(s));
       await page.evaluate(isolate);
       const r = await page.evaluate(genericCheck, { doc: item.doc, expectation: item.expectation, setupDocs, knownKeys: KNOWN_KEYS });
-      results.push({ name: item.doc.name, tier: item.expectation.tier, ...r });
+      results.push({ name: item.doc.name, key: item.key, tier: item.expectation.tier, ...r });
       console.log(`${r.ok ? '✓' : '✘'} [${item.expectation.tier}] ${item.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
     }
 
@@ -155,7 +181,7 @@ test.describe('forge-content verify', () => {
       } else {
         r = await page.evaluate((arg) => globalThis.__fcGate.actorLoadCheck(arg), { doc: actorItem.doc, expectation: exp });
       }
-      results.push({ name: actorItem.doc.name, tier: exp.tier, ...r });
+      results.push({ name: actorItem.doc.name, key: actorItem.key, tier: exp.tier, ...r });
       console.log(`${r.ok ? '✓' : '✘'} [${exp.tier}] ${actorItem.doc.name}${r.ok ? '' : ' — ' + r.fails.join('; ')}`);
     }
 
@@ -164,6 +190,12 @@ test.describe('forge-content verify', () => {
     await page.evaluate(async (id) => {
       if (id) await game.scenes.get(id)?.update({ active: true });
     }, activeSceneId);
+
+    // Record green markers for every passing doc (merge — failed docs keep
+    // their old marker, i.e. stay stale). Runs before the gate assert so a
+    // partially-red run still banks its greens.
+    const green = Object.fromEntries(results.filter(r => r.ok).map(r => [r.key, HASHES.get(r.key)]));
+    if (Object.keys(green).length) writeMarkers(green);
 
     const failed = results.filter(r => !r.ok);
     expect(failed, `Failed checks:\n${JSON.stringify(failed, null, 2)}`).toEqual([]);

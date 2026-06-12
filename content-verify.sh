@@ -1,13 +1,27 @@
 #!/bin/bash
 # Boot local Foundry, run the forge-content functional gate, kill server.
 # Run before pushing content. Non-zero exit = do not publish.
-# Optional arg: doc-name filter -> only matching docs run (fast iteration).
-# Comma-separate to scope a SET (matches ANY part, case-insensitive substring):
-#   npm run content:verify -- emberlight
-#   npm run content:verify -- caelnor,nine,thord
-# FULL run (no arg) stays the pre-push discipline — cross-doc state leaks are
-# real (active-scene bug, stale-combat leak) and only the full sweep finds them.
-if [ -n "$1" ]; then export FC_ONLY="$1"; echo "Scoped gate: FC_ONLY=$1"; fi
+# DEFAULT (no arg) is CHANGED-ONLY: only docs whose gate hash moved since their
+# last green run re-test (markers in gitignored .gate-green.json; see
+# forge-content/verify/stale.mjs). Engine/resolver code or dnd5e/midi/dae/
+# times-up version changes mark EVERYTHING stale. Nothing stale = exit 0
+# without booting Foundry.
+#   npm run content:verify              # changed-only (default)
+#   npm run content:verify -- --full    # force the full sweep (FC_FULL=1)
+#   npm run content:verify -- emberlight          # scoped filter (always runs)
+#   npm run content:verify -- caelnor,nine,thord  # comma = match ANY part
+if [ "$1" = "--full" ]; then
+  export FC_FULL=1; echo "FULL gate: FC_FULL=1"
+elif [ -n "$1" ]; then
+  export FC_ONLY="$1"; echo "Scoped gate: FC_ONLY=$1"
+elif [ -z "$FC_FULL" ]; then
+  STALE=$(node forge-content/verify/stale.mjs --list) || exit 1
+  if [ -z "$STALE" ]; then
+    echo "✅ gate: nothing stale (.gate-green.json current) — use -- --full to force"
+    exit 0
+  fi
+  echo "Stale docs:"; echo "$STALE"
+fi
 echo "Starting Foundry VTT Server..."
 node FoundryVTT-Linux-13.351/resources/app/main.js --dataPath=$PWD/FoundryData > /tmp/foundry-content-verify.log 2>&1 &
 SERVER_PID=$!

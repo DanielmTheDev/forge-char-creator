@@ -32,7 +32,7 @@ Version drift (pin dnd5e 5.2.5 / midi 13.0.63, re-test on bump) · combinatorial
 See `TODO.md` — running checklist + tracked bugs + decisions log. Keep it updated.
 
 ## Content gate (B) — LOCAL + MANUAL
-Foundry can't run in CI (binary + license gitignored/secret), so the functional gate is local. Discipline: **run `npm run content:verify` before pushing content** (push→publish, ungated by design — 2-person flow). Each ability needs a co-located `<name>.expect.json` or the gate fails it as untested:
+Foundry can't run in CI (binary + license gitignored/secret), so the functional gate is local. Discipline: **run `npm run content:verify` before pushing content** (push→publish, ungated by design — 2-person flow). Default is **changed-only (stale-aware)**: per-doc gate hash (resolved doc + expect + setup deps + engine/module versions) vs gitignored `.gate-green.json` markers (`forge-content/verify/stale.mjs`); nothing-stale exits ~2s without booting Foundry; engine or dnd5e/midi/dae/times-up version changes auto-trigger the full sweep; `-- --full` forces it; `npm run content:stale` lists stale. Each ability needs a co-located `<name>.expect.json` or the gate fails it as untested:
 - T2-apply: `{tier, actor, assert:{acDelta|abilityDelta|effectApplied}}` — applies item on a dummy actor.
 - T3-combat: `{tier, defender:{hp,ac}, assert:{defenderHpDelta|conditionApplied}}` — real midi workflow in a fresh scene; deterministic via flat damage + rigged AC/HP.
 PREREQ: `content:verify` runs **headed under xvfb** (`sudo apt-get install -y xvfb` once). Headless can't init Foundry's canvas/targeting that real midi combat needs. Handlers live in `forge-content/verify/checks.mjs` (CHECKS map by tier).

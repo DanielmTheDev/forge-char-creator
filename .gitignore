@@ -15,3 +15,5 @@ test-run*.log
 forge-content/packs/
 .pack-build/
 .pack-unpack/
+# local gate-green markers (stale-aware content:verify) — never shared
+.gate-green.json
