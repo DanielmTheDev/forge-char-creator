@@ -19,13 +19,13 @@
     },
     "attributes": {
       "hp": { "value": 45, "max": 45, "formula": "" },
-      "ac": { "calc": "flat", "flat": 15 }
+      "ac": { "calc": "natural", "flat": 15 }
     },
     "details": { "cr": 3, "type": { "value": "aberration" } }
   },
   "items": [],
   "abilities": [
-    { "ability": "example-strike", "name": "Grafted Tentacle Lash", "img": "icons/creatures/tentacles/tentacle-earth-green.webp", "set": { "dmg": "13", "range": 10 } }
+    { "ability": "example-strike", "name": "Grafted Tentacle Lash", "img": "icons/creatures/tentacles/tentacle-earth-green.webp", "desc": "<p>A grafted tentacle whips out. Melee weapon attack, reach <strong>10 ft</strong>: <strong>13 bludgeoning</strong> on a hit.</p>", "set": { "dmg": "13", "range": 10, "dmgType": "bludgeoning" } }
   ],
   "effects": [],
   "flags": {},

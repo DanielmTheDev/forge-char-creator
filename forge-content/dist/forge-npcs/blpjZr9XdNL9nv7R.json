@@ -42,7 +42,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 13
       }
     },
@@ -270,7 +270,7 @@
       "_id": "NBtxVf55FPbbj5vl",
       "system": {
         "description": {
-          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "value": "<p>An iron cuff still chained to the tendril, swung hard. Melee weapon attack: <strong>1d6+3 bludgeoning</strong> on a hit.</p>",
           "chat": ""
         },
         "activities": {
@@ -307,7 +307,7 @@
               "parts": [
                 {
                   "types": [
-                    "slashing"
+                    "bludgeoning"
                   ],
                   "custom": {
                     "enabled": true,
@@ -342,7 +342,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "0b5fb771dfb28cf88af5873445176641e7d915167bf36bc10e3f0cf14db3accd"
+      "srcHash": "923e55720e2733f635b557fce88c7843de2fdd5d112459f7ea8f6bc195008cc4"
     }
   },
   "folder": null

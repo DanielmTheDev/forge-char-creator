@@ -20,8 +20,8 @@ exact shape you must emit.
    never author new ability JSON.
 2. **No executable content.** Never emit `flags.dae.macro.command`,
    `flags.midi-qol.onUseMacroName`, or any macro/JS string. The actor must be inert.
-3. **No shape knobs.** `set` overrides only `dmg`/`dc`/`range` (values), never activity
-   types/targets/new activities.
+3. **No shape knobs.** `set` overrides only `dmg`/`dc`/`range`/`dmgType` (values), never
+   activity types/targets/new activities.
 4. **Surface, don't drop.** Statblock abilities with no catalog match go in
    `<slug>.STUBS.md` — never silently omitted.
 5. **Stop for review.** Do NOT `npm run packs:build` or commit. Hand off after validate.
@@ -34,8 +34,11 @@ exact shape you must emit.
 2. **Load the catalog.** `ctx_read` (or Read) `forge-content/src/packs/forge-abilities/_CATALOG.json`.
    For each statblock action, find the closest identifier by name + description. Where the
    statblock's numbers differ from the catalog base, set knobs:
-   `{ "ability": "<id>", "name": "<statblock name>", "set": { "dmg": "<formula>", "dc": "<n>", "range": <ft> } }`.
-   A plain `"identifier"` string is fine when no override is needed.
+   `{ "ability": "<id>", "name": "<statblock name>", "desc": "<p>…</p>", "set": { "dmg": "<formula>", "dc": "<n>", "range": <ft>, "dmgType": "<type>" } }`.
+   A plain `"identifier"` string is fine when no override is needed. Any ref with
+   `name` or `set` MUST also carry `desc` (statblock wording, numbers matching the
+   knobs) — otherwise the base ability's reference text shows in-game (validator
+   rejects the omission).
 
    For each action, also pick a fitting ability ICON via the `img` ref field (the base
    ability's icon is often generic/dead). Core-icon path, must exist.

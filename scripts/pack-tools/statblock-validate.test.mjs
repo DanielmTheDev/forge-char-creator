@@ -15,11 +15,11 @@ const good = () => ({
   img: 'icons/creatures/mammals/humanoid-goblin-green.webp',
   system: {
     abilities: { str: { value: 10 }, dex: { value: 14 }, con: { value: 10 }, int: { value: 10 }, wis: { value: 8 }, cha: { value: 10 } },
-    attributes: { hp: { value: 21, max: 21, formula: '' }, ac: { calc: 'flat', flat: 17 } },
+    attributes: { hp: { value: 21, max: 21, formula: '' }, ac: { calc: 'natural', flat: 17 } },
     details: { cr: 1, type: { value: 'humanoid' } },
   },
   items: [],
-  abilities: ['searing-bolt', { ability: 'example-strike', name: 'Cleave', set: { dmg: '12' } }],
+  abilities: ['searing-bolt', { ability: 'example-strike', name: 'Cleave', desc: '<p>Cleave: 12 slashing on a hit.</p>', set: { dmg: '12' } }],
   effects: [],
   flags: {},
   folder: null,
@@ -56,9 +56,19 @@ test('hp.value must equal hp.max', () => {
   assert.ok(v(d).some(e => /hp.value \(21\) must equal hp.max \(30\)/.test(e)));
 });
 
-test('ac must be flat + positive', () => {
-  const d = good(); d.system.attributes.ac = { calc: 'flat', flat: 0 };
+test('ac must be natural + positive', () => {
+  const d = good(); d.system.attributes.ac = { calc: 'natural', flat: 0 };
   assert.ok(v(d).some(e => /ac.flat must be a positive integer/.test(e)));
+});
+
+test('ac.calc flat rejected (skips +AC effects)', () => {
+  const d = good(); d.system.attributes.ac = { calc: 'flat', flat: 17 };
+  assert.ok(v(d).some(e => /ac.calc must be "natural"/.test(e)));
+});
+
+test('reskin without desc fails (refs delegated to schema.mjs)', () => {
+  const d = good(); d.abilities = ['searing-bolt', { ability: 'example-strike', name: 'Cleave', set: { dmg: '12' } }];
+  assert.ok(v(d).some(e => /requires "desc"/.test(e)));
 });
 
 test('missing creature type fails', () => {

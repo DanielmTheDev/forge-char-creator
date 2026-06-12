@@ -18,7 +18,7 @@
     },
     "attributes": {
       "hp": { "value": 36, "max": 36, "formula": "" },
-      "ac": { "calc": "flat", "flat": 13 }
+      "ac": { "calc": "natural", "flat": 13 }
     },
     "traits": {
       "dr": { "value": ["acid"], "bypasses": [], "custom": "" }
@@ -35,7 +35,7 @@
   "abilities": [
     "writhing-lash",
     "unshaped-surge",
-    { "ability": "example-strike", "name": "Manacle-Flail", "img": "icons/commodities/metal/chain-steel.webp", "set": { "dmg": "1d6+3" } }
+    { "ability": "example-strike", "name": "Manacle-Flail", "img": "icons/commodities/metal/chain-steel.webp", "desc": "<p>An iron cuff still chained to the tendril, swung hard. Melee weapon attack: <strong>1d6+3 bludgeoning</strong> on a hit.</p>", "set": { "dmg": "1d6+3", "dmgType": "bludgeoning" } }
   ],
   "effects": [],
   "flags": {},

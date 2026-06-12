@@ -18,7 +18,7 @@
     },
     "attributes": {
       "hp": { "value": 22, "max": 22, "formula": "" },
-      "ac": { "calc": "flat", "flat": 14 },
+      "ac": { "calc": "natural", "flat": 14 },
       "senses": { "darkvision": 60 }
     },
     "details": {
@@ -33,9 +33,9 @@
   "spellcasting": { "ability": "cha", "level": 3, "slots": { "1": 2 } },
   "spells": ["Sacred Flame", "Light", "Guiding Bolt", "Healing Word"],
   "abilities": [
-    { "ability": "emberlight", "name": "Last Light", "set": { "dmg": "2d6" } },
+    { "ability": "emberlight", "name": "Last Light", "desc": "<p>The last spark of the sun-gift flares. One creature within <strong>30 ft</strong> makes a <strong>DC 13 Constitution save</strong> or is <strong>blinded for 1 round</strong> and takes <strong>2d6 radiant damage</strong> (nothing on a success). The flash also lights the area for a round. <strong>2/day</strong>.</p>", "set": { "dmg": "2d6", "range": 30 } },
     "sunbrand",
-    { "ability": "finesse-strike", "name": "Sharpened Tally-Stake", "img": "icons/weapons/polearms/javelin-simple.webp", "set": { "dmg": "1d6+3" } }
+    { "ability": "finesse-strike", "name": "Sharpened Tally-Stake", "img": "icons/weapons/polearms/javelin-simple.webp", "desc": "<p>A splintered ore-marker honed to a point. Melee weapon attack: <strong>1d6+3 piercing</strong> on a hit.</p>", "set": { "dmg": "1d6+3" } }
   ],
   "effects": [],
   "flags": {},

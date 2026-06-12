@@ -14,7 +14,7 @@
     },
     "attributes": {
       "hp": { "value": 59, "max": 59, "formula": "" },
-      "ac": { "calc": "flat", "flat": 11 }
+      "ac": { "calc": "natural", "flat": 11 }
     },
     "details": {
       "cr": 2,
@@ -23,7 +23,7 @@
   },
   "items": [],
   "abilities": [
-    { "ability": "searing-bolt", "name": "Greater Searing Bolt", "set": { "dmg": "20", "range": 90 } }
+    { "ability": "searing-bolt", "name": "Greater Searing Bolt", "desc": "<p>A larger mote of fire hurled at a creature within <strong>90 ft</strong>, dealing <strong>20 fire damage</strong>.</p>", "set": { "dmg": "20", "range": 90 } }
   ],
   "effects": [],
   "flags": {},

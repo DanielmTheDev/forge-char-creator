@@ -31,7 +31,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 11
       }
     },
@@ -50,7 +50,7 @@
       "_id": "S6uI8CUmCyIOEkk4",
       "system": {
         "description": {
-          "value": "<p>You hurl a mote of fire at a creature within range, dealing 10 fire damage.</p>",
+          "value": "<p>A larger mote of fire hurled at a creature within <strong>90 ft</strong>, dealing <strong>20 fire damage</strong>.</p>",
           "chat": ""
         },
         "activities": {
@@ -110,7 +110,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "ba8c9eb77921f89345776e2e30ecf7cb2fd19f09b81b9d3a51abdbbf44413d7a"
+      "srcHash": "1bc613c91cfe2ff5aa1beae1c9d096ec2523b4c1276ff62b933e324e9ea33364"
     }
   },
   "folder": null

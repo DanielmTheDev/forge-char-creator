@@ -145,11 +145,15 @@ export function validateActor(expectation, actorDoc, idList, spellIdByName) {
 }
 
 // Validate an actor SOURCE doc's `abilities` ref field. Each entry is either a
-// plain identifier string (Iter 2) or a knob object `{ ability, name?, set }`
+// plain identifier string (Iter 2) or a knob object `{ ability, name?, img?, desc?, set }`
 // (Iter 3). Pre-boot fast fail before resolve/inline, so a typo'd ref or a
 // shape-changing knob is a clear message, not a mid-resolve throw. No field = no-op.
-const REF_KEYS = ['ability', 'name', 'img', 'set'];   // never-shape guard: nothing else allowed
-const KNOB_KEYS = ['dmg', 'dc', 'range'];
+// `desc` is MANDATORY whenever `name` or `set` is present: a renamed/re-numbered
+// reskin must not ship the base ability's description (exemplar text says
+// "Reference ability…" and states the BASE dice/range, not the knobbed ones).
+const REF_KEYS = ['ability', 'name', 'img', 'desc', 'set'];   // never-shape guard: nothing else allowed
+const KNOB_KEYS = ['dmg', 'dc', 'range', 'dmgType'];
+const DAMAGE_TYPES = ['acid', 'bludgeoning', 'cold', 'fire', 'force', 'lightning', 'necrotic', 'piercing', 'poison', 'psychic', 'radiant', 'slashing', 'thunder'];
 export function validateActorRefs(actorDoc, idList) {
   if (!('abilities' in (actorDoc ?? {}))) return [];
   const errs = [];
@@ -165,6 +169,8 @@ export function validateActorRefs(actorDoc, idList) {
     if (!known.has(r.ability)) errs.push(`${who} references unknown ability "${r.ability}"`);
     if ('name' in r && typeof r.name !== 'string') errs.push(`${who} (${r.ability}): "name" must be a string`);
     if ('img' in r && typeof r.img !== 'string') errs.push(`${who} (${r.ability}): "img" must be a string path`);
+    if ('desc' in r && (typeof r.desc !== 'string' || !r.desc.trim())) errs.push(`${who} (${r.ability}): "desc" must be a non-empty string`);
+    if (('name' in r || 'set' in r) && !('desc' in r)) errs.push(`${who} (${r.ability}): reskin (name/set override) requires "desc" — the base ability's description text/numbers no longer match`);
     if ('set' in r) {
       const s = r.set;
       if (typeof s !== 'object' || s === null || Array.isArray(s)) { errs.push(`${who} (${r.ability}): "set" must be an object`); continue; }
@@ -173,6 +179,7 @@ export function validateActorRefs(actorDoc, idList) {
         const v = s[k];
         if (k === 'range' && typeof v !== 'number') errs.push(`${who} (${r.ability}): knob "range" must be a number`);
         if ((k === 'dmg' || k === 'dc') && typeof v !== 'string' && typeof v !== 'number') errs.push(`${who} (${r.ability}): knob "${k}" must be a string or number`);
+        if (k === 'dmgType' && !DAMAGE_TYPES.includes(v)) errs.push(`${who} (${r.ability}): knob "dmgType" must be a 5e damage type (${DAMAGE_TYPES.join('/')})`);
       }
     }
   }

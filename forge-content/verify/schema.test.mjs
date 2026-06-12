@@ -171,18 +171,47 @@ test('validateActorRefs rejects an unknown identifier naming actor + ref', () =>
 
 // --- Iter 3: knob object refs ---
 test('validateActorRefs accepts a knob object ref', () => {
-  const ref = { ability: 'searing-bolt', name: 'Greater Bolt', set: { dmg: '20', range: 90 } };
+  const ref = { ability: 'searing-bolt', name: 'Greater Bolt', desc: '<p>Greater bolt: 20 fire, 90 ft.</p>', set: { dmg: '20', range: 90 } };
   assert.deepEqual(validateActorRefs({ name: 'Ogre', abilities: [ref] }, actorIds), []);
 });
 
 test('validateActorRefs accepts mixed string + object refs', () => {
-  const abilities = ['searing-bolt', { ability: 'radiant-rebuke', set: { dc: 16 } }];
+  const abilities = ['searing-bolt', { ability: 'radiant-rebuke', desc: '<p>DC 16 rebuke.</p>', set: { dc: 16 } }];
   assert.deepEqual(validateActorRefs({ name: 'Ogre', abilities }, actorIds), []);
 });
 
 test('validateActorRefs accepts an img ref override', () => {
-  const ref = { ability: 'searing-bolt', name: 'Tentacle Lash', img: 'icons/creatures/tentacles/tentacle-earth-green.webp' };
+  const ref = { ability: 'searing-bolt', name: 'Tentacle Lash', desc: '<p>Lash: 10 fire.</p>', img: 'icons/creatures/tentacles/tentacle-earth-green.webp' };
   assert.deepEqual(validateActorRefs({ name: 'Wretch', abilities: [ref] }, actorIds), []);
+});
+
+test('validateActorRefs allows img-only override without desc (mechanics unchanged)', () => {
+  const ref = { ability: 'searing-bolt', img: 'icons/creatures/tentacles/tentacle-earth-green.webp' };
+  assert.deepEqual(validateActorRefs({ name: 'Wretch', abilities: [ref] }, actorIds), []);
+});
+
+test('validateActorRefs rejects a name reskin without desc', () => {
+  const errs = validateActorRefs({ name: 'Wretch', abilities: [{ ability: 'searing-bolt', name: 'Tentacle Lash', desc: '<p>x</p>', set: { dmg: '5' } }] }, actorIds);
+  assert.deepEqual(errs, []);
+  const errs2 = validateActorRefs({ name: 'Wretch', abilities: [{ ability: 'searing-bolt', name: 'Tentacle Lash' }] }, actorIds);
+  assert.ok(errs2.some(e => /requires "desc"/.test(e)));
+});
+
+test('validateActorRefs rejects a set knob without desc', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'searing-bolt', set: { dmg: '20' } }] }, actorIds);
+  assert.ok(errs.some(e => /requires "desc"/.test(e)));
+});
+
+test('validateActorRefs accepts a dmgType knob, rejects a non-5e type', () => {
+  const ok = { ability: 'searing-bolt', desc: '<p>x</p>', set: { dmgType: 'bludgeoning' } };
+  assert.deepEqual(validateActorRefs({ name: 'Ogre', abilities: [ok] }, actorIds), []);
+  const bad = { ability: 'searing-bolt', desc: '<p>x</p>', set: { dmgType: 'sonic' } };
+  assert.ok(validateActorRefs({ name: 'Ogre', abilities: [bad] }, actorIds).some(e => /"dmgType" must be a 5e damage type/.test(e)));
+});
+
+test('validateActorRefs rejects an empty desc', () => {
+  const errs = validateActorRefs({ name: 'Ogre', abilities: [{ ability: 'searing-bolt', desc: '  ' }] }, actorIds);
+  assert.ok(errs.some(e => /"desc" must be a non-empty string/.test(e)));
 });
 
 test('validateActorRefs rejects a non-string img ref', () => {

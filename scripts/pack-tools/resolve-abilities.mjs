@@ -32,12 +32,19 @@ function remapIds(node, idMap) {
 // Knobs change VALUES only, never SHAPE (no new activities / type / target changes)
 // so the base ability's gate-proven mechanic still holds — only its numbers move.
 // Broadcast to ALL applicable spots; a knob whose field is absent is a silent no-op.
-const KNOBS = new Set(["dmg", "dc", "range"]);
+const KNOBS = new Set(["dmg", "dc", "range", "dmgType"]);
 function applyKnobs(item, ref) {
   if (ref.name != null) item.name = ref.name;
   // Per-ability icon override (item-level, like name — NOT an activity-value knob).
   // Lets an authored actor give a shared base ability a creature-specific icon.
   if (ref.img != null) item.img = ref.img;
+  // Per-ability description override (item-level, like name/img). Required by the
+  // validator whenever name/set is present — a reskin must not show the base
+  // ability's text (exemplars say "Reference ability…" and carry the BASE numbers).
+  if (ref.desc != null) {
+    item.system = item.system ?? {};
+    item.system.description = { ...(item.system.description ?? { chat: "" }), value: ref.desc };
+  }
   const set = ref.set;
   if (!set) return;
   for (const k of Object.keys(set)) {
@@ -47,6 +54,10 @@ function applyKnobs(item, ref) {
   if ("dmg" in set) {
     for (const act of activities)
       for (const part of act.damage?.parts ?? []) part.custom = { enabled: true, formula: String(set.dmg) };
+  }
+  if ("dmgType" in set) {
+    for (const act of activities)
+      for (const part of act.damage?.parts ?? []) part.types = [String(set.dmgType)];
   }
   if ("dc" in set) {
     for (const act of activities) if (act.save) act.save.dc = { calculation: "custom", formula: String(set.dc) };

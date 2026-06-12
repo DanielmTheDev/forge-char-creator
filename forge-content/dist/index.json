@@ -151,7 +151,7 @@
       "id": "Asw42i222yOGqQO0",
       "name": "Thord",
       "path": "forge-npcs/Asw42i222yOGqQO0.json",
-      "hash": "9f98b78007e2c9285ca9ac01a8c313b50a75a7768a1fa62b38f163a6fb6cb656"
+      "hash": "f39d918e8a14bfc5aa994cb9586509baf604bcec3f1adac6c168b17f3e9c1815"
     },
     {
       "pack": "forge-npcs",
@@ -159,7 +159,7 @@
       "id": "blpjZr9XdNL9nv7R",
       "name": "Nine",
       "path": "forge-npcs/blpjZr9XdNL9nv7R.json",
-      "hash": "0b5fb771dfb28cf88af5873445176641e7d915167bf36bc10e3f0cf14db3accd"
+      "hash": "923e55720e2733f635b557fce88c7843de2fdd5d112459f7ea8f6bc195008cc4"
     },
     {
       "pack": "forge-npcs",
@@ -167,7 +167,7 @@
       "id": "HzN1NtNFb77tv5t1",
       "name": "Caelnor",
       "path": "forge-npcs/HzN1NtNFb77tv5t1.json",
-      "hash": "e706160b03ab0d97a5b0a1ecac228ee0b6ca2bd796293484d25e171e8c6f13ee"
+      "hash": "1f5f575eb6412b4627f380d3703732083ed1869a7ee6811f15546d10abc20a1f"
     },
     {
       "pack": "forge-npcs",
@@ -175,7 +175,7 @@
       "id": "J3Xr1lP5d9VrBHhH",
       "name": "Cave Gnoll",
       "path": "forge-npcs/J3Xr1lP5d9VrBHhH.json",
-      "hash": "64ee3cfa35c5e1f7ac0e77d7723631fb7d5f080959b8bb8b8968c2fef942286a"
+      "hash": "3e8938427eb5c44f57a7c3f461bea44c4735cd7c34088ea6e6c6c8d272876787"
     },
     {
       "pack": "forge-npcs",
@@ -183,7 +183,7 @@
       "id": "ksqaCqEI4okQYqok",
       "name": "Unchained Thrall",
       "path": "forge-npcs/ksqaCqEI4okQYqok.json",
-      "hash": "0d90d9b75bd4039374e4a7f4aa0c3e07310c47ca96cca5d8a9325cba59aab773"
+      "hash": "4276498b79c40b655d3bd25b256a1e66183b85e0805e324abf30533a6dffbf63"
     },
     {
       "pack": "forge-npcs",
@@ -191,7 +191,7 @@
       "id": "retaliatornpc001",
       "name": "Test Retaliator",
       "path": "forge-npcs/retaliatornpc001.json",
-      "hash": "0fc1b1486867155b9ced77b211cf31b0418cb02b8ef321f58e3e1035433b4a3e"
+      "hash": "8cdf57d306f72eccd6b3a0ce6de11a356dea839592ed571b865fb01fb920f8ef"
     },
     {
       "pack": "forge-npcs",
@@ -199,7 +199,7 @@
       "id": "SuWaO8cocawq2EcO",
       "name": "Test Stitchwretch",
       "path": "forge-npcs/SuWaO8cocawq2EcO.json",
-      "hash": "49deb4ba2771cc24de87de91e53183c0afe2e648adbeda66c7044a2868aa3eff"
+      "hash": "52f459778af81bf63506a1d3d3fd6bd0ae62b3e317142a9352220627a2ad14c5"
     },
     {
       "pack": "forge-npcs",
@@ -207,7 +207,7 @@
       "id": "testbruiser00001",
       "name": "Test Bruiser",
       "path": "forge-npcs/testbruiser00001.json",
-      "hash": "d7b5ee0b2cfce892e61dc7a7b95a1fefc8ec1856fdba7fab5a21d762c2aea5be"
+      "hash": "0e718634fec409c9d8bca6980112841dc5f5bbce7124aebc0cdfa2b1a34e1a2a"
     },
     {
       "pack": "forge-npcs",
@@ -215,7 +215,7 @@
       "id": "testgoblin000001",
       "name": "Test Goblin",
       "path": "forge-npcs/testgoblin000001.json",
-      "hash": "d5a2aa6efd7a81962726b8768ab02add644cf32518b8ae31f971ca2fc0173b5f"
+      "hash": "1e2a23a9d03c64a3acf38de23c47a3f9c64e8d66683e73d3132710bc7a5a9c3d"
     },
     {
       "pack": "forge-npcs",
@@ -223,7 +223,7 @@
       "id": "testogre00000001",
       "name": "Test Ogre",
       "path": "forge-npcs/testogre00000001.json",
-      "hash": "ba8c9eb77921f89345776e2e30ecf7cb2fd19f09b81b9d3a51abdbbf44413d7a"
+      "hash": "1bc613c91cfe2ff5aa1beae1c9d096ec2523b4c1276ff62b933e324e9ea33364"
     }
   ],
   "assets": [

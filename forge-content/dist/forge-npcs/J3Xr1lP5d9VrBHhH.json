@@ -31,7 +31,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 15
       }
     },
@@ -50,7 +50,7 @@
       "_id": "2UYyO02wEwKImWwA",
       "system": {
         "description": {
-          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "value": "<p>Snapping jaws tear at the target. Melee weapon attack: <strong>8 piercing</strong> on a hit.</p>",
           "chat": ""
         },
         "activities": {
@@ -87,7 +87,7 @@
               "parts": [
                 {
                   "types": [
-                    "slashing"
+                    "piercing"
                   ],
                   "custom": {
                     "enabled": true,
@@ -122,7 +122,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "64ee3cfa35c5e1f7ac0e77d7723631fb7d5f080959b8bb8b8968c2fef942286a"
+      "srcHash": "3e8938427eb5c44f57a7c3f461bea44c4735cd7c34088ea6e6c6c8d272876787"
     }
   },
   "folder": null

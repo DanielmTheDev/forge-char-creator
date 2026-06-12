@@ -42,7 +42,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 12
       }
     },
@@ -61,7 +61,7 @@
       "_id": "5DJ9Pb1FtvtXpthD",
       "system": {
         "description": {
-          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "value": "<p>Sweeps its broken shackle-chain in an arc. Melee weapon attack: <strong>7 bludgeoning</strong> on a hit.</p>",
           "chat": ""
         },
         "activities": {
@@ -98,7 +98,7 @@
               "parts": [
                 {
                   "types": [
-                    "slashing"
+                    "bludgeoning"
                   ],
                   "custom": {
                     "enabled": true,
@@ -136,7 +136,7 @@
       "_id": "C8eS4OKyAe4e4GGK",
       "system": {
         "description": {
-          "value": "<p>You hurl a mote of fire at a creature within range, dealing 10 fire damage.</p>",
+          "value": "<p>Hurls a glowing brand of forge-fire at a creature within <strong>60 ft</strong>, dealing <strong>9 fire damage</strong>.</p>",
           "chat": ""
         },
         "activities": {
@@ -196,7 +196,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "0d90d9b75bd4039374e4a7f4aa0c3e07310c47ca96cca5d8a9325cba59aab773"
+      "srcHash": "4276498b79c40b655d3bd25b256a1e66183b85e0805e324abf30533a6dffbf63"
     }
   },
   "folder": null

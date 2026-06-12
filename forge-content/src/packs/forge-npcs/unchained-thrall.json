@@ -18,14 +18,14 @@
     },
     "attributes": {
       "hp": { "value": 26, "max": 26, "formula": "" },
-      "ac": { "calc": "flat", "flat": 12 }
+      "ac": { "calc": "natural", "flat": 12 }
     },
     "details": { "cr": 1, "type": { "value": "undead" } }
   },
   "items": [],
   "abilities": [
-    { "ability": "example-strike", "name": "Chain Lash", "img": "icons/tools/fasteners/chain-brass-yellow.webp", "set": { "dmg": "7" } },
-    { "ability": "searing-bolt", "name": "Brand of the Forge", "img": "icons/magic/fire/flame-burning-embers-orange.webp", "set": { "dmg": "9", "range": 60 } }
+    { "ability": "example-strike", "name": "Chain Lash", "img": "icons/tools/fasteners/chain-brass-yellow.webp", "desc": "<p>Sweeps its broken shackle-chain in an arc. Melee weapon attack: <strong>7 bludgeoning</strong> on a hit.</p>", "set": { "dmg": "7", "dmgType": "bludgeoning" } },
+    { "ability": "searing-bolt", "name": "Brand of the Forge", "img": "icons/magic/fire/flame-burning-embers-orange.webp", "desc": "<p>Hurls a glowing brand of forge-fire at a creature within <strong>60 ft</strong>, dealing <strong>9 fire damage</strong>.</p>", "set": { "dmg": "9", "range": 60 } }
   ],
   "effects": [],
   "flags": {},

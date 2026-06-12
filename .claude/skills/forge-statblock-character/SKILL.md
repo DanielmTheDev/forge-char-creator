@@ -36,7 +36,7 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
 
    | Archetype | Exemplar | Notes |
    |---|---|---|
-   | attack + damage | `example-strike.json` | reskin via actor ref knobs when only dmg/range differ — no new file |
+   | attack + damage | `example-strike.json` | reskin via actor ref knobs when only dmg/range/type differ — no new file |
    | attack + condition on hit | `writhing-lash.json` | effect with `statuses:[...]`, no duration = until removed |
    | save + damage + condition | `emberlight.json`, `drop-the-prop.json` | `damage.onSave: none/half`; effect ref `{_id, onSave:false}` |
    | multi-target save | `drop-the-prop.json` | `target.count: "N"` + explicit targets — NEVER template AoE |
@@ -66,6 +66,10 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    riders and manual triggers stated IN the description; verified core icon
    (`FoundryVTT-Linux-13.351/resources/app/public/icons/`); NO recharge-roll
    mechanics for new content (vault skill bans them; use at-will / X-day).
+   **Every reskin (ref with `name` or `set`) MUST carry `desc`** — write it from
+   the vault note's ability bullet, numbers matching the knobs. Without it the
+   exemplar's "Reference ability…" text (and its BASE dice/range) leaks into the
+   game; the gate/validator hard-fails the omission.
 
 4. **Write `.expect.json` per new ability** — copy the exemplar's expect.
    Forces vocab: `{attack: "hit"|"miss"}`, `{save: "fail"|"success"}`,
@@ -76,8 +80,9 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
 
 5. **Gate gotchas (every one cost a debug cycle once — don't repeat):**
    - True `self` target type SKIPS midi effect application → ally shape.
-   - Gate actor spec with `ac:` = flat calc → `ac.bonus` invisible; OMIT `ac`
-     on the actor whose `acDelta` you assert (forced hits ignore AC anyway).
+   - GATE DUMMY actor spec with `ac:` = flat calc → `ac.bonus` invisible; OMIT
+     `ac` on the gate-spawned actor whose `acDelta` you assert (forced hits
+     ignore AC anyway). AUTHORED actors are different: always `calc:"natural"`.
    - Template AoEs abort headless; explicit `targets:[...]` + `expectTargets`.
    - `critical.threshold` is settable but NOT gate-assertable — note in STUBS.
    - Resist-all works: effect change `system.traits.dr.all` mode 0 value "1";
@@ -102,9 +107,12 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    No image at all → fitting core icon, ring off.
 
 8. **Actor JSON** (`forge-content/src/packs/forge-npcs/<slug>.json`): schema
-   per `forge-content/docs/statblock-schema.md`; ability refs = identifiers or
-   `{ability, name, img, set:{dmg|dc|range}}` (VALUE knobs only — anything
-   shape-different is a new ability file); ring block
+   per `forge-content/docs/statblock-schema.md`; AC ALWAYS
+   `{"calc":"natural","flat":<printed AC>}` — `flat` calc skips all bonuses so
+   +AC effects no-op (validator rejects it); ability refs = identifiers or
+   `{ability, name, img, desc, set:{dmg|dc|range|dmgType}}` (VALUE knobs only —
+   anything shape-different is a new ability file; `desc` REQUIRED with
+   name/set); ring block
    `{enabled:true, subject:{scale:0.75}}` (1.0/0.85 hide the rim);
    biography carries ALL manual riders. Then:
    - `<slug>.STUBS.md` — what is NOT automated + user decisions + invented stats.
@@ -124,6 +132,8 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
 |---|---|
 | Deciding rider handling yourself | Step 2 ask is mandatory (user rule 2026-06-11) |
 | New ability when only numbers differ | Use a knobbed `example-strike`/exemplar ref |
+| `ac.calc:"flat"` on an authored actor | +AC buffs silently no-op — always `"natural"` (same printed AC, bonuses apply) |
+| Reskin without `desc` | Exemplar's "Reference ability…" text + base numbers leak in-game — desc from the vault bullet, validator enforces |
 | `uses` without `consumption` | Recharge/X-day silently no-ops — gate with `usesSpent` |
 | Asserting exact hpDelta on dice formulas | `hpDeltaMin/Max`, crit-tolerant |
 | Opaque square token art | tokenize.mjs masks it; scale 0.75 — else ring invisible |

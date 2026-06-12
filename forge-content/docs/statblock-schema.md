@@ -21,12 +21,12 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
     },
     "attributes": {
       "hp": { "value": 21, "max": 21, "formula": "" },
-      "ac": { "calc": "flat", "flat": 17 }
+      "ac": { "calc": "natural", "flat": 17 }
     },
     "details": { "cr": 1, "type": { "value": "humanoid" } }
   },
   "items": [],
-  "abilities": ["searing-bolt", { "ability": "searing-bolt", "name": "Scorch", "set": { "dmg": "12", "range": 60 } }],
+  "abilities": ["searing-bolt", { "ability": "searing-bolt", "name": "Scorch", "desc": "<p>A jet of flame scorches a creature within <strong>60 ft</strong>: <strong>12 fire damage</strong>.</p>", "set": { "dmg": "12", "range": 60 } }],
   "effects": [],
   "flags": {},
   "folder": null
@@ -45,19 +45,20 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
 | `prototypeToken.ring` | Enable the Dynamic Token Ring for a creature-image token: `{ "enabled": true, "subject": { "scale": 0.75 } }`. Foundry uses (square, circular-masked) `texture.src` as the ring subject; **scale 0.75** — at 1.0 the subject covers the ring entirely, ≥0.85 still hides it (verified 2026-06-11). Leave off for square core icons. |
 | `system.abilities.{str,dex,con,int,wis,cha}.value` | Integer **3–20**. Read off the statblock's ability scores (the score, NOT the modifier). |
 | `system.attributes.hp.{value,max}` | Equal integers (authored NPC = full HP). `formula: ""`. |
-| `system.attributes.ac` | `{ "calc": "flat", "flat": <int> }`. Use the statblock's printed AC. |
+| `system.attributes.ac` | `{ "calc": "natural", "flat": <int> }`. Use the statblock's printed AC as the base. NEVER `"flat"` — flat calc skips ALL bonuses, so +AC effects (buffs, items) silently no-op; natural keeps the same value (no dex added) but lets `ac.bonus` apply. |
 | `system.details.cr` | Number (0–30; fractions like `0.5` allowed). |
 | `system.details.type.value` | Non-empty creature type string (`"humanoid"`, `"giant"`, `"undead"`, …). |
-| `abilities` | Array of refs. Each is a `string` identifier OR `{ ability, name?, set }`. **Every `ability` MUST be an existing identifier in `forge-abilities/_CATALOG.json`.** |
+| `abilities` | Array of refs. Each is a `string` identifier OR `{ ability, name?, img?, desc?, set }`. **Every `ability` MUST be an existing identifier in `forge-abilities/_CATALOG.json`.** |
 | `items`, `effects`, `flags`, `folder` | Always `[]`, `[]`, `{}`, `null`. The build inlines `abilities` refs into `items`. |
 
 ## Ability refs
 
 - **String** — `"searing-bolt"`: inline the catalog ability as-is.
-- **Object** — `{ "ability": "<id>", "name": "<display>", "img": "<icon>", "set": { "dmg": "12", "dc": "15", "range": 60 } }`:
+- **Object** — `{ "ability": "<id>", "name": "<display>", "img": "<icon>", "desc": "<p>…</p>", "set": { "dmg": "12", "dc": "15", "range": 60, "dmgType": "piercing" } }`:
   - `name` — rename the inlined item.
   - `img` — override the inlined ability's icon (item-level, like name). Give a shared base ability a creature-specific icon. Core-icon path; must exist. NOT under `set`.
-  - `set` knobs — **VALUE overrides only**, broadcast to all activities: `dmg` (damage formula, string), `dc` (save DC, string), `range` (ft, number). No other keys.
+  - `desc` — override the inlined item's `system.description.value` (item-level, like name/img; HTML). **MANDATORY whenever `name` or `set` is present** — exemplar bases say "Reference ability…" and state the BASE dice/range; a reskin must ship its own text with numbers matching the knobs. `img`-only overrides don't need it.
+  - `set` knobs — **VALUE overrides only**, broadcast to all activities: `dmg` (damage formula, string), `dc` (save DC, string), `range` (ft, number), `dmgType` (5e damage type id, replaces each damage part's type). No other keys.
 - Match statblock attacks/actions to the closest catalog identifier by name + description; set knobs from the statblock's numbers where they differ from the base.
 
 ## Hard rules (security — non-negotiable, Iter 1)

@@ -195,11 +195,26 @@ test('dc + dmg knobs broadcast on a save ability', () => {
   assert.equal(act.damage.parts[0].custom.formula, '5d6');
 });
 
+test('dmgType knob replaces the damage type without mutating the base', () => {
+  const src = searingBolt();
+  const out = resolveActorAbilities(actorDoc([{ ability: 'searing-bolt', set: { dmgType: 'bludgeoning' } }]), new Map([['searing-bolt', src]]));
+  assert.deepEqual(firstAct(out.items[0]).damage.parts[0].types, ['bludgeoning']);
+  assert.deepEqual(src.system.activities.dmgfire000000001.damage.parts[0].types, ['fire']);
+});
+
 test('name knob renames the inlined item without mutating the base', () => {
   const src = searingBolt();
   const out = resolveActorAbilities(actorDoc([{ ability: 'searing-bolt', name: 'Greater Searing Bolt' }]), new Map([['searing-bolt', src]]));
   assert.equal(out.items[0].name, 'Greater Searing Bolt');
   assert.equal(src.name, 'Searing Bolt');
+});
+
+test('desc override replaces the inlined item description without mutating the base', () => {
+  const src = searingBolt();
+  const out = resolveActorAbilities(actorDoc([{ ability: 'searing-bolt', name: 'Greater Bolt', desc: '<p>20 fire damage.</p>', set: { dmg: '20' } }]), new Map([['searing-bolt', src]]));
+  assert.equal(out.items[0].system.description.value, '<p>20 fire damage.</p>');
+  assert.equal(out.items[0].system.description.chat, '');
+  assert.equal(src.system.description.value, '<p>10 fire damage.</p>');
 });
 
 test('img knob overrides the inlined item icon without mutating the base', () => {

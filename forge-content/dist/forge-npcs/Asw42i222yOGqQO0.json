@@ -42,7 +42,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 15
       },
       "movement": {
@@ -196,7 +196,7 @@
       "_id": "xvJp73vLRzvr3xZL",
       "system": {
         "description": {
-          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "value": "<p>The pick's head snapped down to a jagged spike. Melee weapon attack: <strong>1d8+3 piercing</strong> on a hit.</p>",
           "chat": ""
         },
         "activities": {
@@ -233,7 +233,7 @@
               "parts": [
                 {
                   "types": [
-                    "slashing"
+                    "piercing"
                   ],
                   "custom": {
                     "enabled": true,
@@ -268,7 +268,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "9f98b78007e2c9285ca9ac01a8c313b50a75a7768a1fa62b38f163a6fb6cb656"
+      "srcHash": "f39d918e8a14bfc5aa994cb9586509baf604bcec3f1adac6c168b17f3e9c1815"
     }
   },
   "folder": null

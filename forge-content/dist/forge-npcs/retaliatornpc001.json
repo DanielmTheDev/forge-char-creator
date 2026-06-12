@@ -31,7 +31,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 1
       }
     },
@@ -121,7 +121,7 @@
       "onUseMacroName": "[isDamaged]ItemMacro.Example Retaliate"
     },
     "forge-content": {
-      "srcHash": "0fc1b1486867155b9ced77b211cf31b0418cb02b8ef321f58e3e1035433b4a3e"
+      "srcHash": "8cdf57d306f72eccd6b3a0ce6de11a356dea839592ed571b865fb01fb920f8ef"
     }
   },
   "folder": null

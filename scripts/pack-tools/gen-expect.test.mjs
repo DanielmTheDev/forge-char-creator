@@ -8,7 +8,7 @@ const resolved = () => ({
   name: 'Goblin Boss',
   system: {
     abilities: { str: { value: 10 }, dex: { value: 14 }, con: { value: 10 }, int: { value: 10 }, wis: { value: 8 }, cha: { value: 10 } },
-    attributes: { hp: { value: 21, max: 21, formula: '' }, ac: { calc: 'flat', flat: 17 } },
+    attributes: { hp: { value: 21, max: 21, formula: '' }, ac: { calc: 'natural', flat: 17 } },
     details: { cr: 1, type: { value: 'humanoid' } },
   },
   items: [
@@ -21,7 +21,7 @@ test('t2ExpectFor derives hpMax/ac/abilities/hasItems', () => {
   const e = t2ExpectFor(resolved());
   assert.equal(e.tier, 'T2');
   assert.equal(e.assert.hpMax, 21);
-  assert.equal(e.assert.ac, 17);            // flat AC -> derived AC === flat
+  assert.equal(e.assert.ac, 17);            // natural AC -> derived AC === flat base (no gear/bonuses)
   assert.equal(e.assert.abilities.str, 10);
   assert.equal(e.assert.abilities.dex, 14);
   assert.deepEqual(e.assert.hasItems, ['Searing Bolt', 'Cleave']);

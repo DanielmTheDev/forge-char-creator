@@ -18,7 +18,7 @@
     },
     "attributes": {
       "hp": { "value": 30, "max": 30, "formula": "" },
-      "ac": { "calc": "flat", "flat": 15 },
+      "ac": { "calc": "natural", "flat": 15 },
       "movement": { "walk": 25 },
       "senses": { "darkvision": 60 }
     },
@@ -40,7 +40,7 @@
   "items": [],
   "abilities": [
     "cave-in",
-    { "ability": "example-strike", "name": "Broken Miner's Pick", "img": "icons/tools/hand/pickaxe-simple-stone.webp", "set": { "dmg": "1d8+3" } }
+    { "ability": "example-strike", "name": "Broken Miner's Pick", "img": "icons/tools/hand/pickaxe-simple-stone.webp", "desc": "<p>The pick's head snapped down to a jagged spike. Melee weapon attack: <strong>1d8+3 piercing</strong> on a hit.</p>", "set": { "dmg": "1d8+3", "dmgType": "piercing" } }
   ],
   "effects": [],
   "flags": {},

@@ -31,7 +31,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 13
       }
     },
@@ -110,7 +110,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "d5a2aa6efd7a81962726b8768ab02add644cf32518b8ae31f971ca2fc0173b5f"
+      "srcHash": "1e2a23a9d03c64a3acf38de23c47a3f9c64e8d66683e73d3132710bc7a5a9c3d"
     }
   },
   "folder": null

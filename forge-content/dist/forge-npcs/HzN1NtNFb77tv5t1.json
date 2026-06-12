@@ -42,7 +42,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 14
       },
       "senses": {
@@ -76,7 +76,7 @@
       "_id": "RXNTLjjlTVtBXV7X",
       "system": {
         "description": {
-          "value": "<p>The last spark of the sun-gift flares. One creature within 15 ft makes a <strong>DC 13 Constitution save</strong> or is <strong>blinded for 1 round</strong> and takes <strong>1d6 radiant damage</strong> (nothing on a success). The flash also lights the area for a round. <strong>2/day</strong>.</p>",
+          "value": "<p>The last spark of the sun-gift flares. One creature within <strong>30 ft</strong> makes a <strong>DC 13 Constitution save</strong> or is <strong>blinded for 1 round</strong> and takes <strong>2d6 radiant damage</strong> (nothing on a success). The flash also lights the area for a round. <strong>2/day</strong>.</p>",
           "chat": ""
         },
         "uses": {
@@ -106,7 +106,7 @@
               ]
             },
             "range": {
-              "value": 15,
+              "value": 30,
               "units": "ft"
             },
             "target": {
@@ -281,7 +281,7 @@
       "_id": "0s2mmGeSEcMGOsqU",
       "system": {
         "description": {
-          "value": "<p>Reference ability: a DEX-based melee weapon attack against one creature dealing <strong>10 piercing</strong> on a hit. Base for finesse/improvised-blade reskins (knob the damage per character).</p>",
+          "value": "<p>A splintered ore-marker honed to a point. Melee weapon attack: <strong>1d6+3 piercing</strong> on a hit.</p>",
           "chat": ""
         },
         "activities": {
@@ -1026,7 +1026,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "e706160b03ab0d97a5b0a1ecac228ee0b6ca2bd796293484d25e171e8c6f13ee"
+      "srcHash": "1f5f575eb6412b4627f380d3703732083ed1869a7ee6811f15546d10abc20a1f"
     }
   },
   "folder": null

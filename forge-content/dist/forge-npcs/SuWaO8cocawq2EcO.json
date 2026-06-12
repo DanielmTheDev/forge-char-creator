@@ -43,7 +43,7 @@
         "formula": ""
       },
       "ac": {
-        "calc": "flat",
+        "calc": "natural",
         "flat": 15
       }
     },
@@ -62,7 +62,7 @@
       "_id": "U4osQaAUwWkWUw44",
       "system": {
         "description": {
-          "value": "<p>Reference ability proving attack-roll + damage resolution. Makes a melee weapon attack against one creature; on a hit, deals 10 slashing damage. Pattern reused by future to-hit abilities.</p>",
+          "value": "<p>A grafted tentacle whips out. Melee weapon attack, reach <strong>10 ft</strong>: <strong>13 bludgeoning</strong> on a hit.</p>",
           "chat": ""
         },
         "activities": {
@@ -99,7 +99,7 @@
               "parts": [
                 {
                   "types": [
-                    "slashing"
+                    "bludgeoning"
                   ],
                   "custom": {
                     "enabled": true,
@@ -134,7 +134,7 @@
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "49deb4ba2771cc24de87de91e53183c0afe2e648adbeda66c7044a2868aa3eff"
+      "srcHash": "52f459778af81bf63506a1d3d3fd6bd0ae62b3e317142a9352220627a2ad14c5"
     }
   },
   "folder": null

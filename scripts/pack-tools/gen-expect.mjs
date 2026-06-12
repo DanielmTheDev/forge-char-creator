@@ -30,7 +30,8 @@ export function loadAbilityMap(srcPacks) {
   return map;
 }
 
-// PURE: T2 expect from a resolved actor. ac flat -> derived ac === flat.
+// PURE: T2 expect from a resolved actor. ac natural -> derived ac === flat base
+// (no equipment/bonuses on authored NPCs; natural adds no dex).
 export function t2ExpectFor(resolved) {
   const abilities = {};
   for (const s of ABILITY_SCORES) {

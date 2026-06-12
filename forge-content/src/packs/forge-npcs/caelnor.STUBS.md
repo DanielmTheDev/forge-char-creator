@@ -1,7 +1,7 @@
 # Caelnor — what is NOT automated
 
-Automated + gate-proven: Last Light (emberlight reskin at 2d6 — Con save DC 13,
-blind 1 round, 2/day), Sunbrand (new: mark → attacks vs target get advantage
+Automated + gate-proven: Last Light (emberlight reskin at 2d6 / 30 ft — Con save
+DC 13, blind 1 round, 2/day), Sunbrand (new: mark → attacks vs target get advantage
 until start of your next turn, 1/day), Sharpened Tally-Stake (finesse-strike
 reskin, DEX-based, 1d6+3), darkvision.
 

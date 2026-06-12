@@ -62,9 +62,10 @@ export function validateStatblock(doc, catalogIds, imgExists, slug, spellNames =
   if (hp.value !== hp.max) errs.push(`${who}: hp.value (${hp.value}) must equal hp.max (${hp.max})`);
   if (hp.formula !== "") errs.push(`${who}: hp.formula must be "" (got ${JSON.stringify(hp.formula)})`);
 
-  // AC flat
+  // AC natural — flat calc would skip ALL bonuses (+AC effects no-op); natural
+  // uses ac.flat as base and still applies shield/bonus/cover. No dex added.
   const ac = sys.attributes?.ac ?? {};
-  if (ac.calc !== "flat") errs.push(`${who}: ac.calc must be "flat" (got ${JSON.stringify(ac.calc)})`);
+  if (ac.calc !== "natural") errs.push(`${who}: ac.calc must be "natural" (got ${JSON.stringify(ac.calc)}) — flat ignores +AC effects`);
   if (!Number.isInteger(ac.flat) || ac.flat <= 0) errs.push(`${who}: ac.flat must be a positive integer (got ${ac.flat})`);
 
   // Details
