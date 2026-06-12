@@ -47,7 +47,8 @@
       },
       "senses": {
         "darkvision": 60
-      }
+      },
+      "spellcasting": "cha"
     },
     "details": {
       "cr": 2,
@@ -55,7 +56,15 @@
         "value": "humanoid"
       },
       "biography": {
-        "value": "<p>CAELNOR — level 3 PC pregen, Aelrathil sun-elf lightweaver, slave escapee. Light-starved by captivity; one flare of the sun-gift left.</p><p><strong>Drag from compendium (2024 PHB / SRD spells):</strong> Sacred Flame, Light, Guiding Bolt (2× 1st-level slots), Healing Word.</p><p><strong>Manual:</strong> Fey Ancestry — advantage on saves vs. being charmed, magic can't put him to sleep.</p>"
+        "value": "<p>CAELNOR — level 3 PC pregen, Aelrathil sun-elf lightweaver, slave escapee. Light-starved by captivity; one flare of the sun-gift left.</p><p><strong>Spellcasting (CHA, caster level 3, 2× 1st-level slots):</strong> Sacred Flame, Light, Guiding Bolt, Healing Word — attached and automated.</p><p><strong>Manual:</strong> Fey Ancestry — advantage on saves vs. being charmed, magic can't put him to sleep.</p>"
+      },
+      "spellLevel": 3
+    },
+    "spells": {
+      "spell1": {
+        "value": 2,
+        "max": 2,
+        "override": 2
       }
     }
   },
@@ -339,12 +348,685 @@
       },
       "effects": [],
       "flags": {}
+    },
+    {
+      "name": "Sacred Flame",
+      "system": {
+        "description": {
+          "value": "<p>Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take 1d8 Radiant damage. The target gains no benefit from Half Cover or Three-Quarters Cover for this save.</p><p><strong>Cantrip Upgrade.</strong> The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).</p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "rules": "2024",
+          "license": "CC-BY-4.0",
+          "book": ""
+        },
+        "activation": {
+          "type": "action",
+          "condition": "",
+          "value": null
+        },
+        "duration": {
+          "value": "",
+          "units": "inst"
+        },
+        "target": {
+          "affects": {
+            "choice": false,
+            "count": "1",
+            "type": "creature",
+            "special": ""
+          },
+          "template": {
+            "units": "",
+            "contiguous": false,
+            "type": ""
+          }
+        },
+        "range": {
+          "units": "ft",
+          "special": "",
+          "value": "60"
+        },
+        "uses": {
+          "max": "",
+          "spent": 0,
+          "recovery": []
+        },
+        "level": 0,
+        "school": "evo",
+        "properties": [
+          "vocal",
+          "somatic"
+        ],
+        "materials": {
+          "value": "",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "always",
+          "prepared": false
+        },
+        "activities": {
+          "lXFp3drzppDZp17r": {
+            "type": "save",
+            "name": "",
+            "_id": "lXFp3drzppDZp17r",
+            "sort": 0,
+            "activation": {
+              "type": "action",
+              "value": null,
+              "override": false
+            },
+            "consumption": {
+              "scaling": {
+                "allowed": false
+              },
+              "spellSlot": true,
+              "targets": []
+            },
+            "description": {
+              "chatFlavor": ""
+            },
+            "duration": {
+              "units": "inst",
+              "concentration": false,
+              "override": false
+            },
+            "effects": [],
+            "range": {
+              "override": false
+            },
+            "target": {
+              "template": {
+                "contiguous": false,
+                "units": "ft"
+              },
+              "affects": {
+                "choice": false
+              },
+              "override": false,
+              "prompt": true
+            },
+            "uses": {
+              "spent": 0,
+              "recovery": [],
+              "max": ""
+            },
+            "damage": {
+              "parts": [
+                {
+                  "custom": {
+                    "enabled": false,
+                    "formula": ""
+                  },
+                  "number": 1,
+                  "denomination": "8",
+                  "bonus": "",
+                  "types": [
+                    "radiant"
+                  ],
+                  "scaling": {
+                    "mode": "whole"
+                  }
+                }
+              ],
+              "onSave": "none"
+            },
+            "save": {
+              "ability": "dex",
+              "dc": {
+                "calculation": "spellcasting",
+                "formula": ""
+              }
+            },
+            "img": "",
+            "appliedEffects": []
+          }
+        },
+        "identifier": "sacred-flame"
+      },
+      "_id": "RZHHbzNzBn33D7N7",
+      "type": "spell",
+      "img": "icons/magic/fire/projectile-embers-orange.webp",
+      "effects": [],
+      "flags": {
+        "dnd5e": {
+          "riders": {
+            "activity": [],
+            "effect": []
+          }
+        },
+        "forge-content": {
+          "spellSource": "dnd5e.spells24"
+        }
+      },
+      "_stats": {
+        "coreVersion": "13.344",
+        "systemId": "dnd5e",
+        "systemVersion": "4.4.0"
+      }
+    },
+    {
+      "name": "Light",
+      "system": {
+        "description": {
+          "value": "<p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like.</p><p>Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "rules": "2024",
+          "license": "CC-BY-4.0",
+          "book": ""
+        },
+        "activation": {
+          "type": "action",
+          "condition": "",
+          "value": null
+        },
+        "duration": {
+          "value": "1",
+          "units": "hour"
+        },
+        "target": {
+          "affects": {
+            "choice": false,
+            "count": "",
+            "type": ""
+          },
+          "template": {
+            "units": "",
+            "contiguous": false,
+            "type": ""
+          }
+        },
+        "range": {
+          "units": "touch",
+          "special": ""
+        },
+        "uses": {
+          "max": "",
+          "spent": 0,
+          "recovery": []
+        },
+        "level": 0,
+        "school": "evo",
+        "properties": [
+          "vocal",
+          "material"
+        ],
+        "materials": {
+          "value": "a firefly or phosphorescent moss",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "always",
+          "prepared": false
+        },
+        "activities": {
+          "P9l1X1NZNzVNZft3": {
+            "type": "summon",
+            "_id": "P9l1X1NZNzVNZft3",
+            "sort": 0,
+            "activation": {
+              "type": "action",
+              "value": null,
+              "override": false
+            },
+            "consumption": {
+              "scaling": {
+                "allowed": false
+              },
+              "spellSlot": true,
+              "targets": []
+            },
+            "description": {
+              "chatFlavor": ""
+            },
+            "duration": {
+              "units": "inst",
+              "concentration": false,
+              "override": false
+            },
+            "range": {
+              "override": false
+            },
+            "target": {
+              "template": {
+                "contiguous": false,
+                "units": "ft"
+              },
+              "affects": {
+                "choice": false
+              },
+              "override": false,
+              "prompt": true
+            },
+            "uses": {
+              "spent": 0,
+              "recovery": [],
+              "max": ""
+            },
+            "bonuses": {
+              "ac": "",
+              "hd": "",
+              "hp": "",
+              "attackDamage": "",
+              "saveDamage": "",
+              "healing": ""
+            },
+            "creatureSizes": [
+              "sm",
+              "med",
+              "lg",
+              "tiny"
+            ],
+            "creatureTypes": [],
+            "match": {
+              "attacks": false,
+              "proficiency": false,
+              "saves": false
+            },
+            "profiles": [
+              {
+                "count": "",
+                "name": "",
+                "_id": "QD99a4WC0JUMMDH7",
+                "uuid": "Compendium.dnd5e.actors24.Actor.phbsplLight00000",
+                "level": {
+                  "min": null,
+                  "max": null
+                }
+              }
+            ],
+            "summon": {
+              "prompt": false,
+              "mode": "",
+              "identifier": ""
+            },
+            "name": "",
+            "img": ""
+          }
+        },
+        "identifier": "light"
+      },
+      "_id": "vVTRrznTHjtvHNRR",
+      "type": "spell",
+      "img": "icons/sundries/lights/candle-pillar-lit-yellow.webp",
+      "effects": [],
+      "flags": {
+        "dnd5e": {
+          "riders": {
+            "activity": [],
+            "effect": []
+          }
+        },
+        "forge-content": {
+          "spellSource": "dnd5e.spells24"
+        }
+      },
+      "_stats": {
+        "coreVersion": "13.344",
+        "systemId": "dnd5e",
+        "systemVersion": "4.4.0"
+      }
+    },
+    {
+      "name": "Guiding Bolt",
+      "system": {
+        "description": {
+          "value": "<p>You hurl a bolt of light toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 4d6 Radiant damage, and the next attack roll made against it before the end of your next turn has Advantage.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 1.</p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "rules": "2024",
+          "license": "CC-BY-4.0",
+          "book": ""
+        },
+        "activation": {
+          "type": "action",
+          "condition": "",
+          "value": null
+        },
+        "duration": {
+          "value": "1",
+          "units": "round"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false,
+            "special": ""
+          },
+          "template": {
+            "units": "",
+            "contiguous": false,
+            "type": ""
+          }
+        },
+        "range": {
+          "value": "120",
+          "units": "ft",
+          "special": ""
+        },
+        "uses": {
+          "max": "",
+          "recovery": [],
+          "spent": 0
+        },
+        "level": 1,
+        "school": "evo",
+        "properties": [
+          "vocal",
+          "somatic"
+        ],
+        "materials": {
+          "value": "",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "prepared",
+          "prepared": true
+        },
+        "activities": {
+          "PfT5ff9NRnjDTTTt": {
+            "_id": "PfT5ff9NRnjDTTTt",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": null,
+              "override": false
+            },
+            "consumption": {
+              "targets": [],
+              "scaling": {
+                "allowed": false,
+                "max": ""
+              }
+            },
+            "description": {
+              "chatFlavor": ""
+            },
+            "duration": {
+              "units": "inst",
+              "override": false
+            },
+            "effects": [
+              {
+                "_id": "C8CYY8IqiUMMk6uQ"
+              }
+            ],
+            "range": {
+              "override": false
+            },
+            "target": {
+              "prompt": true,
+              "template": {
+                "contiguous": false,
+                "units": "ft"
+              },
+              "affects": {
+                "choice": false
+              },
+              "override": false
+            },
+            "attack": {
+              "ability": "",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "ranged",
+                "classification": "spell"
+              }
+            },
+            "damage": {
+              "critical": {
+                "bonus": ""
+              },
+              "includeBase": true,
+              "parts": [
+                {
+                  "number": 4,
+                  "denomination": 6,
+                  "bonus": "",
+                  "types": [
+                    "radiant"
+                  ],
+                  "custom": {
+                    "enabled": false,
+                    "formula": ""
+                  },
+                  "scaling": {
+                    "mode": "whole",
+                    "number": 1,
+                    "formula": ""
+                  }
+                }
+              ]
+            },
+            "uses": {
+              "spent": 0,
+              "recovery": []
+            },
+            "sort": 0
+          }
+        },
+        "identifier": "guiding-bolt"
+      },
+      "_id": "QEQyUs0qU0qKk8Sq",
+      "type": "spell",
+      "img": "icons/magic/light/projectile-flare-blue.webp",
+      "effects": [
+        {
+          "name": "Guiding Bolt",
+          "origin": "Compendium.dnd5e.spells24.Item.phbsplGuidingBol",
+          "duration": {
+            "rounds": 1,
+            "startTime": null,
+            "seconds": null,
+            "combat": null,
+            "turns": null,
+            "startRound": null,
+            "startTurn": null
+          },
+          "disabled": false,
+          "flags": {},
+          "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+          "_id": "C8CYY8IqiUMMk6uQ",
+          "type": "base",
+          "system": {},
+          "changes": [],
+          "description": "<p><span style=\"font-family:Signika, sans-serif\">The next attack roll made against the target before the end of your next turn has Advantage.</span></p>",
+          "tint": "#ffffff",
+          "transfer": false,
+          "statuses": [
+            "marked"
+          ],
+          "_stats": {
+            "compendiumSource": null,
+            "coreVersion": "13.344",
+            "systemId": "dnd5e",
+            "systemVersion": "4.0.0"
+          }
+        }
+      ],
+      "flags": {
+        "dnd5e": {
+          "riders": {
+            "activity": [],
+            "effect": []
+          }
+        },
+        "forge-content": {
+          "spellSource": "dnd5e.spells24"
+        }
+      },
+      "_stats": {
+        "coreVersion": "13.344",
+        "systemId": "dnd5e",
+        "systemVersion": "4.4.0"
+      }
+    },
+    {
+      "name": "Healing Word",
+      "system": {
+        "description": {
+          "value": "<p>A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d4 for each spell slot level above 1.</p>",
+          "chat": ""
+        },
+        "source": {
+          "custom": "",
+          "rules": "2024",
+          "license": "CC-BY-4.0",
+          "book": ""
+        },
+        "activation": {
+          "type": "bonus",
+          "condition": "",
+          "value": null
+        },
+        "duration": {
+          "value": "",
+          "units": "inst"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1",
+            "choice": false
+          },
+          "template": {
+            "units": "",
+            "contiguous": false
+          }
+        },
+        "range": {
+          "value": "60",
+          "units": "ft"
+        },
+        "uses": {
+          "max": "",
+          "recovery": [],
+          "spent": 0
+        },
+        "level": 1,
+        "school": "abj",
+        "properties": [
+          "vocal"
+        ],
+        "materials": {
+          "value": "",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "prepared",
+          "prepared": true
+        },
+        "activities": {
+          "mUCoCo2icUYMwyee": {
+            "_id": "mUCoCo2icUYMwyee",
+            "type": "heal",
+            "activation": {
+              "type": "action",
+              "value": null,
+              "override": false
+            },
+            "consumption": {
+              "targets": [],
+              "scaling": {
+                "allowed": false,
+                "max": ""
+              }
+            },
+            "description": {
+              "chatFlavor": ""
+            },
+            "duration": {
+              "units": "inst",
+              "override": false
+            },
+            "effects": [],
+            "range": {
+              "override": false
+            },
+            "target": {
+              "prompt": true,
+              "template": {
+                "contiguous": false,
+                "units": "ft"
+              },
+              "affects": {
+                "choice": false
+              },
+              "override": false
+            },
+            "healing": {
+              "number": 2,
+              "denomination": 4,
+              "bonus": "@mod",
+              "types": [
+                "healing"
+              ],
+              "custom": {
+                "enabled": false,
+                "formula": ""
+              },
+              "scaling": {
+                "mode": "whole",
+                "number": 2,
+                "formula": ""
+              }
+            },
+            "uses": {
+              "spent": 0,
+              "recovery": []
+            },
+            "sort": 0
+          }
+        },
+        "identifier": "healing-word"
+      },
+      "_id": "DB1PPzXRRFrNdJzB",
+      "type": "spell",
+      "img": "icons/magic/life/cross-beam-green.webp",
+      "effects": [],
+      "flags": {
+        "dnd5e": {
+          "riders": {
+            "activity": [],
+            "effect": []
+          }
+        },
+        "forge-content": {
+          "spellSource": "dnd5e.spells24"
+        }
+      },
+      "_stats": {
+        "coreVersion": "13.344",
+        "systemId": "dnd5e",
+        "systemVersion": "4.4.0"
+      }
     }
   ],
   "effects": [],
   "flags": {
     "forge-content": {
-      "srcHash": "3d31fe6f669d9f183b9b1ef9292f49fc47a0376395d7a57fd076379621917a41"
+      "srcHash": "e706160b03ab0d97a5b0a1ecac228ee0b6ca2bd796293484d25e171e8c6f13ee"
     }
   },
   "folder": null

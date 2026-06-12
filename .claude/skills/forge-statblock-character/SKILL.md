@@ -44,11 +44,21 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    | X/day or limited uses | `emberlight.json` | `uses{max,recovery:[{period:"day"}]}` + `consumption.targets itemUses` — without consumption uses are a NO-OP |
    | expanded crit | `vicious-pick.json` | `attack.critical.threshold: N` |
 
-   **Vanilla 5e SPELLS are NEVER modeled** (user rule 2026-06-11): they already
-   exist fully automated in Foundry's dnd5e compendiums (2024 PHB `dnd5e.spells24`
-   if the user owns it, else SRD `dnd5e.spells`). List them in the actor
-   biography as "drag from compendium: <spell list>" + STUBS. Only CUSTOM
-   abilities go through this pipeline.
+   **Vanilla 5e SPELLS are NEVER modeled as forge abilities** (user rule
+   2026-06-11) — the pipeline attaches the real dnd5e compendium spells (2024
+   PHB `dnd5e.spells24` preferred, SRD `dnd5e.spells` fallback) automatically.
+   Author them on the actor instead:
+   ```json
+   "spellcasting": { "ability": "cha", "level": 3, "slots": { "1": 2 } },
+   "spells": ["Sacred Flame", "Light", "Guiding Bolt", "Healing Word"]
+   ```
+   Exact vanilla spelling required. New names: `npm run spells:resolve` (Foundry
+   server must be STOPPED — LevelDB lock) writes the committed cache at
+   `forge-content/src/spell-cache/`; build/dist/gate resolve from the cache (CI
+   has no Foundry). `spellcasting` sets sheet ability/caster level/slots;
+   cantrips scale off caster level. Slot consumption is NOT gate-assertable —
+   note it in STUBS. A T3 actor expect can `castOwn` a spell by its dnd5e
+   identifier (e.g. `guiding-bolt`) and keep T2 stat asserts via a `load` block.
 
    Rules: every `_id` (doc + activity-map key + effect) EXACTLY 16 alnum chars;
    doc `_id = genId(slug)` (`node -e "import('./scripts/pack-tools/keys.mjs').then(m=>console.log(m.genId('<slug>')))"`);
@@ -77,7 +87,9 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
      not "fix" a red run by deactivating scenes manually.
 
 6. **Scoped gate per ability:** `npm run content:verify -- <name-substring>`
-   (~40s each). Iterate to green BEFORE building the actor.
+   (~40s each). Comma-separate to scope a SET in one run (matches ANY part,
+   case-insensitive): `npm run content:verify -- caelnor,nine,thord`. Iterate
+   to green BEFORE building the actor. Full run still required before push.
 
 7. **Token assets.** Image normally already exists next to the vault note at
    `<vault>/Generated Characters/img/<slug>.png` (vault skill generates it).

@@ -92,9 +92,14 @@ export const ACTOR_ASSERT_KEYS = ['hpMax', 'ac', 'abilities', 'hasItems'];
 // under test (`authored:true`), and every `castOwn` step names that actor + an ability it
 // actually holds (cross-check vs the SOURCE doc's `abilities` refs — validateActor runs
 // pre-resolve). Test-explosion guard: this proves the inlined item fires, not the mechanic.
-const ACTOR_T3_TOP_KEYS = ['tier', 'actors', 'steps', 'scenarios', 'assert', 'setup'];
+// Optional `load` = a T2 assert block (hpMax/ac/abilities/hasItems) run via
+// actorLoadCheck BEFORE the combat scene — a T3 actor keeps its stat coverage.
+const ACTOR_T3_TOP_KEYS = ['tier', 'actors', 'steps', 'scenarios', 'assert', 'setup', 'load'];
 
-function validateActorCombat(expectation, actorDoc, idList) {
+// `spellIdByName`: Map<lowercased vanilla spell name, dnd5e identifier> from the
+// spell cache (loadSpellCache docs). An actor's `spells:` names extend its held
+// set so castOwn can fire an inlined vanilla spell by its dnd5e identifier.
+function validateActorCombat(expectation, actorDoc, idList, spellIdByName) {
   const e = expectation;
   const errs = [];
   for (const k of Object.keys(e)) if (!ACTOR_T3_TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (actor T3 expect)`);
@@ -105,13 +110,19 @@ function validateActorCombat(expectation, actorDoc, idList) {
   const authored = Object.entries(actors).filter(([, c]) => c && c.authored === true).map(([n]) => n);
   if (authored.length !== 1) errs.push(`actor T3 expect needs exactly one actor with "authored:true" (got ${authored.length})`);
 
-  const ids = idList ?? [];
-  for (const s of e.setup ?? []) if (!ids.includes(s)) errs.push(`setup ability "${s}" not found in suite`);
+  if ('load' in e) errs.push(...validateActor({ tier: 'T2', assert: e.load }, actorDoc, idList).map(m => `load: ${m}`));
+
+  const heldSpellIds = (Array.isArray(actorDoc?.spells) ? actorDoc.spells : [])
+    .map(n => spellIdByName?.get(String(n).toLowerCase()))
+    .filter(Boolean);
+  const ids = [...(idList ?? []), ...heldSpellIds];
+  for (const s of e.setup ?? []) if (!(idList ?? []).includes(s)) errs.push(`setup ability "${s}" not found in suite`);
   errs.push(...validateStepsAndAsserts(e, roster, ids));
 
-  // castOwn must be the authored actor casting an ability it actually holds.
+  // castOwn must be the authored actor casting an ability (or vanilla spell) it
+  // actually holds.
   const refs = Array.isArray(actorDoc?.abilities) ? actorDoc.abilities : [];
-  const held = new Set(refs.map(r => (typeof r === 'string' ? r : r?.ability)));
+  const held = new Set([...refs.map(r => (typeof r === 'string' ? r : r?.ability)), ...heldSpellIds]);
   for (const s of e.steps ?? []) {
     if (!('castOwn' in s)) continue;
     if (authored.length === 1 && s.castOwn !== authored[0]) errs.push(`castOwn actor "${s.castOwn}" is not the authored actor "${authored[0]}"`);
@@ -120,9 +131,9 @@ function validateActorCombat(expectation, actorDoc, idList) {
   return errs;
 }
 
-export function validateActor(expectation, actorDoc, idList) {
+export function validateActor(expectation, actorDoc, idList, spellIdByName) {
   if (!expectation || typeof expectation !== 'object') return ['actor expectation must be a non-null object'];
-  if (expectation.tier === 'T3') return validateActorCombat(expectation, actorDoc, idList);
+  if (expectation.tier === 'T3') return validateActorCombat(expectation, actorDoc, idList, spellIdByName);
   const errs = [];
   for (const k of Object.keys(expectation)) if (!ACTOR_TOP_KEYS.includes(k)) errs.push(`unknown top-level key "${k}" (actor expect)`);
   const a = expectation.assert;

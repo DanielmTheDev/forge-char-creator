@@ -12,6 +12,7 @@
     "content:tokenize": "node scripts/pack-tools/tokenize.mjs",
     "content:portrait": "node scripts/pack-tools/portrait.mjs",
     "content:verify": "bash content-verify.sh",
+    "spells:resolve": "node scripts/pack-tools/spell-resolve.mjs",
     "content:unit": "node --test 'forge-content/verify/*.test.mjs' 'forge-content/scripts/*.test.mjs' 'scripts/pack-tools/*.test.mjs'"
   },
   "dependencies": {

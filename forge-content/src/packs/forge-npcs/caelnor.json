@@ -25,11 +25,13 @@
       "cr": 2,
       "type": { "value": "humanoid" },
       "biography": {
-        "value": "<p>CAELNOR — level 3 PC pregen, Aelrathil sun-elf lightweaver, slave escapee. Light-starved by captivity; one flare of the sun-gift left.</p><p><strong>Drag from compendium (2024 PHB / SRD spells):</strong> Sacred Flame, Light, Guiding Bolt (2× 1st-level slots), Healing Word.</p><p><strong>Manual:</strong> Fey Ancestry — advantage on saves vs. being charmed, magic can't put him to sleep.</p>"
+        "value": "<p>CAELNOR — level 3 PC pregen, Aelrathil sun-elf lightweaver, slave escapee. Light-starved by captivity; one flare of the sun-gift left.</p><p><strong>Spellcasting (CHA, caster level 3, 2× 1st-level slots):</strong> Sacred Flame, Light, Guiding Bolt, Healing Word — attached and automated.</p><p><strong>Manual:</strong> Fey Ancestry — advantage on saves vs. being charmed, magic can't put him to sleep.</p>"
       }
     }
   },
   "items": [],
+  "spellcasting": { "ability": "cha", "level": 3, "slots": { "1": 2 } },
+  "spells": ["Sacred Flame", "Light", "Guiding Bolt", "Healing Word"],
   "abilities": [
     { "ability": "emberlight", "name": "Last Light", "set": { "dmg": "2d6" } },
     "sunbrand",

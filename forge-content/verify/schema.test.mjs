@@ -262,3 +262,31 @@ test('validateActor T2 path unchanged when extra args passed', () => {
   const errs = validateActor({ tier: 'T2', assert: { hpMax: 20 } }, t3Doc, actorIds);
   assert.deepEqual(errs, []);
 });
+
+// --- Vanilla spells: castOwn by spell identifier + T3 `load` block ---
+const spellIdByName = new Map([['guiding bolt', 'guiding-bolt'], ['light', 'light']]);
+const spellDoc = { name: 'Caster', type: 'npc', abilities: ['searing-bolt'], spells: ['Guiding Bolt', 'Light'] };
+
+test('validateActor T3 accepts castOwn of a held vanilla spell (via spellIdByName)', () => {
+  const e = t3Expect();
+  e.actors = { caster: { authored: true }, dummy: { hp: 100 } };
+  e.steps = [{ castOwn: 'caster', ability: 'guiding-bolt', targets: ['dummy'] }, { snapshot: 'hit' }];
+  assert.deepEqual(validateActor(e, spellDoc, actorIds, spellIdByName), []);
+});
+
+test('validateActor T3 rejects castOwn of a spell the actor does not list', () => {
+  const e = t3Expect();
+  e.actors = { caster: { authored: true }, dummy: { hp: 100 } };
+  e.steps = [{ castOwn: 'caster', ability: 'fireball', targets: ['dummy'] }, { snapshot: 'hit' }];
+  const errs = validateActor(e, spellDoc, actorIds, spellIdByName).join();
+  assert.match(errs, /castOwn ability "fireball" not held by actor/);
+});
+
+test('validateActor T3 accepts a load block and validates its keys', () => {
+  const ok = t3Expect();
+  ok.load = { hpMax: 22, ac: 14, hasItems: ['Guiding Bolt'] };
+  assert.deepEqual(validateActor(ok, t3Doc, actorIds), []);
+  const bad = t3Expect();
+  bad.load = { hpMax: 22, bogus: 1 };
+  assert.match(validateActor(bad, t3Doc, actorIds).join(), /load: unknown actor assert key "bogus"/);
+});

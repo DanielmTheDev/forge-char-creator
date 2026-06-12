@@ -1,6 +1,6 @@
 {
-  "tier": "T2",
-  "assert": {
+  "tier": "T3",
+  "load": {
     "hpMax": 22,
     "ac": 14,
     "abilities": {
@@ -14,7 +14,22 @@
     "hasItems": [
       "Last Light",
       "Sunbrand",
-      "Sharpened Tally-Stake"
+      "Sharpened Tally-Stake",
+      "Sacred Flame",
+      "Light",
+      "Guiding Bolt",
+      "Healing Word"
     ]
-  }
+  },
+  "actors": {
+    "caelnor": { "authored": true, "disposition": 1, "pos": [100, 100] },
+    "dummy": { "hp": 100, "disposition": -1, "pos": [200, 100], "forces": { "attack": "hit" } }
+  },
+  "steps": [
+    { "castOwn": "caelnor", "ability": "guiding-bolt", "targets": ["dummy"] },
+    { "snapshot": "hit" }
+  ],
+  "assert": [
+    { "at": "hit", "actor": "dummy", "hpDeltaMin": -24, "hpDeltaMax": -4 }
+  ]
 }

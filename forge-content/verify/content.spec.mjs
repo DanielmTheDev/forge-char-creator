@@ -11,6 +11,7 @@ import { assertSnapshot } from './assert.mjs';
 import { validate, validateActor, validateActorRefs, KNOWN_KEYS } from './schema.mjs';
 import { COLLECTIONS } from '../../scripts/pack-tools/modules.mjs';
 import { resolveActorAbilities } from '../../scripts/pack-tools/resolve-abilities.mjs';
+import { resolveActorSpells, loadSpellCache } from '../../scripts/pack-tools/resolve-spells.mjs';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'packs');
 
@@ -32,10 +33,14 @@ function gather() {
   return out;
 }
 
-// FC_ONLY=<substring> limits the RUN to matching ability names (dev iteration).
-// ALL is kept unfiltered so `setup` cross-references still resolve under FC_ONLY.
+// FC_ONLY=<substring>[,<substring>...] limits the RUN to docs whose name matches
+// ANY comma-separated part (case-insensitive substring) — scope a fresh batch in
+// one run: `npm run content:verify -- caelnor,nine,thord`. Full run still
+// REQUIRED before push. ALL is kept unfiltered so `setup` cross-references still
+// resolve under FC_ONLY.
 const ALL = gather();
-const match = (i) => !process.env.FC_ONLY || i.doc.name.toLowerCase().includes(process.env.FC_ONLY.toLowerCase());
+const FC_PARTS = (process.env.FC_ONLY ?? '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+const match = (i) => !FC_PARTS.length || FC_PARTS.some(p => i.doc.name.toLowerCase().includes(p));
 const ITEMS  = ALL.filter(i => i.coll === 'items').filter(match);
 const ACTORS = ALL.filter(i => i.coll === 'actors').filter(match);
 
@@ -60,15 +65,21 @@ test.describe('forge-content verify', () => {
     // Actor packs (Iter 1): load + derived-stat checks. Distinct expect shape.
     const actorUntested = ACTORS.filter(a => !a.expectation).map(a => a.doc.name);
     expect(actorUntested, `Actors missing <name>.expect.json: ${actorUntested.join(', ')}`).toEqual([]);
-    const actorErrors = ACTORS.flatMap(a => validateActor(a.expectation, a.doc, idList).map(e => `${a.doc.name}: ${e}`));
+    // Vanilla spell cache (committed; `npm run spells:resolve`). Name -> dnd5e
+    // identifier map lets actor T3 castOwn steps reference an inlined spell.
+    const spellMap = loadSpellCache();
+    const spellIdByName = new Map([...spellMap.values()].map(d => [d.name.toLowerCase(), d.system?.identifier ?? d.name]));
+    const actorErrors = ACTORS.flatMap(a => validateActor(a.expectation, a.doc, idList, spellIdByName).map(e => `${a.doc.name}: ${e}`));
     expect(actorErrors, `actor expect.json validation errors:\n${actorErrors.join('\n')}`).toEqual([]);
     // Iter 2: actor source carries `abilities: [<identifier>]` refs. Validate them
     // pre-boot, then resolve+inline (re-keyed embedded items) so actorLoadCheck —
     // which reads SOURCE json, not the built pack — sees the items. byId is the
     // ability map (identifier -> doc). Resolve mutates a copy; ALL stays raw.
+    // Vanilla `spells`/`spellcasting` resolve through the same path (resolver
+    // throws on a cache miss — same trio as build.mjs / export-dist.mjs).
     const actorRefErrors = ACTORS.flatMap(a => validateActorRefs(a.doc, idList));
     expect(actorRefErrors, `actor ability-ref errors:\n${actorRefErrors.join('\n')}`).toEqual([]);
-    for (const a of ACTORS) a.doc = resolveActorAbilities(a.doc, byId);
+    for (const a of ACTORS) a.doc = resolveActorSpells(resolveActorAbilities(a.doc, byId), spellMap);
 
     await bootFoundry(page);
 
@@ -134,8 +145,13 @@ test.describe('forge-content verify', () => {
       let r;
       if (exp.tier === 'T3') {
         // Iter 4: authored NPC fights in real combat with its own inlined abilities.
+        // Optional `load` block keeps T2 stat coverage on a T3 actor (runs first).
         const setupDocs = (exp.setup ?? []).map(s => byId.get(s));
         r = await page.evaluate(actorCombatCheck, { doc: actorItem.doc, expectation: exp, setupDocs, knownKeys: KNOWN_KEYS });
+        if (exp.load) {
+          const lr = await page.evaluate((arg) => globalThis.__fcGate.actorLoadCheck(arg), { doc: actorItem.doc, expectation: { assert: exp.load } });
+          r = { ok: r.ok && lr.ok, fails: [...lr.fails.map(f => `load: ${f}`), ...r.fails] };
+        }
       } else {
         r = await page.evaluate((arg) => globalThis.__fcGate.actorLoadCheck(arg), { doc: actorItem.doc, expectation: exp });
       }

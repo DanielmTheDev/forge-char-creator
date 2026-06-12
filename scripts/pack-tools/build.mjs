@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { MODULES, COLLECTIONS } from "./modules.mjs";
 import { injectKeys } from "./keys.mjs";
 import { resolveActorAbilities } from "./resolve-abilities.mjs";
+import { resolveActorSpells, loadSpellCache } from "./resolve-spells.mjs";
 import { writeCatalogs } from "./catalog.mjs";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -44,6 +45,7 @@ function buildModule(mod) {
 
   const packs = readdirSync(src, { withFileTypes: true }).filter(d => d.isDirectory());
   const abilityMap = loadAbilityMap(src, packs);
+  const spellMap = loadSpellCache();
   for (const pack of packs) {
     const coll = COLLECTIONS[pack.name] ?? "items";
     const srcDir = join(src, pack.name);
@@ -69,8 +71,9 @@ function buildModule(mod) {
     const files = readdirSync(srcDir).filter(f => f.endsWith(".json") && !f.endsWith(".expect.json") && !f.startsWith("_"));
     for (const f of files) {
       let doc = JSON.parse(readFileSync(join(srcDir, f), "utf8"));
-      // Actors: expand `abilities` refs into re-keyed embedded items before keying.
-      if (coll === "actors") doc = resolveActorAbilities(doc, abilityMap);
+      // Actors: expand `abilities` refs + vanilla `spells` into re-keyed embedded
+      // items before keying.
+      if (coll === "actors") doc = resolveActorSpells(resolveActorAbilities(doc, abilityMap), spellMap);
       doc = injectKeys(doc, coll, f);
       const serialized = JSON.stringify(doc, null, 2);
       // Guard: a literal "[object Object]" means an object was coerced to string

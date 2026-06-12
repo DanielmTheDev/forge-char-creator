@@ -57,7 +57,9 @@ function applyKnobs(item, ref) {
 }
 
 // Inline one ability source as a re-keyed embedded item for `actorId`.
-function inlineAbility(ability, actorId, ref, index) {
+// Exported for reuse: resolve-spells.mjs inlines cached vanilla spells through the
+// exact same re-key path (ref = { ability: <seed-label> }, no knobs).
+export function inlineAbility(ability, actorId, ref, index) {
   const item = structuredClone(ability);
   applyKnobs(item, ref);
   const seed = `${actorId}:${ref.ability}:${index}`;

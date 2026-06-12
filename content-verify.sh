@@ -1,8 +1,10 @@
 #!/bin/bash
 # Boot local Foundry, run the forge-content functional gate, kill server.
 # Run before pushing content. Non-zero exit = do not publish.
-# Optional arg: doc-name filter -> only matching docs run (fast iteration):
+# Optional arg: doc-name filter -> only matching docs run (fast iteration).
+# Comma-separate to scope a SET (matches ANY part, case-insensitive substring):
 #   npm run content:verify -- emberlight
+#   npm run content:verify -- caelnor,nine,thord
 # FULL run (no arg) stays the pre-push discipline — cross-doc state leaks are
 # real (active-scene bug, stale-combat leak) and only the full sweep finds them.
 if [ -n "$1" ]; then export FC_ONLY="$1"; echo "Scoped gate: FC_ONLY=$1"; fi

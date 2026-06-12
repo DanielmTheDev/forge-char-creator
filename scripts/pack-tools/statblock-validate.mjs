@@ -12,6 +12,7 @@ import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { genId } from "./keys.mjs";
 import { resolveActorAbilities } from "./resolve-abilities.mjs";
+import { resolveActorSpells, loadSpellCache, validateActorSpells } from "./resolve-spells.mjs";
 import { loadAbilityMap } from "./gen-expect.mjs";
 import { validateActorRefs } from "../../forge-content/verify/schema.mjs";
 
@@ -20,7 +21,7 @@ const ABILITY_SCORES = ["str", "dex", "con", "int", "wis", "cha"];
 // `imgExists(path) -> boolean` is injected so the core fn stays fs-free + testable.
 // It resolves BOTH Foundry core icons (`icons/...`) and module assets
 // (`modules/forge-content/...`) — see main() for the concrete resolver.
-export function validateStatblock(doc, catalogIds, imgExists, slug) {
+export function validateStatblock(doc, catalogIds, imgExists, slug, spellNames = []) {
   const errs = [];
   const who = `actor "${doc?.name ?? "?"}"`;
   if (!doc || typeof doc !== "object") return ["statblock is not an object"];
@@ -80,6 +81,10 @@ export function validateStatblock(doc, catalogIds, imgExists, slug) {
   if (!Array.isArray(doc.abilities) || !doc.abilities.length) errs.push(`${who}: "abilities" must be a non-empty array of catalog refs`);
   errs.push(...validateActorRefs(doc, catalogIds));
 
+  // Vanilla spellcasting (delegated): spells must exist in the committed
+  // spell-cache; spellcasting block shape checked there too.
+  errs.push(...validateActorSpells(doc, spellNames));
+
   return errs;
 }
 
@@ -114,11 +119,12 @@ function main() {
 
   const doc = JSON.parse(readFileSync(file, "utf8"));
   const slug = basename(file).replace(/\.json$/, "");
-  const errs = validateStatblock(doc, catalogIds, imgExists, slug);
-  // Also check inlined-ability icons (resolve refs the same way build does).
+  const spellMap = loadSpellCache();
+  const errs = validateStatblock(doc, catalogIds, imgExists, slug, [...spellMap.values()].map(d => d.name));
+  // Also check inlined-ability + inlined-spell icons (resolve the same way build does).
   try {
     const abilityMap = loadAbilityMap(join(repoRoot, "forge-content", "src", "packs"));
-    const resolved = resolveActorAbilities(doc, abilityMap);
+    const resolved = resolveActorSpells(resolveActorAbilities(doc, abilityMap), spellMap);
     errs.push(...validateInlinedIcons(resolved.items, imgExists));
   } catch (e) {
     errs.push(`could not resolve abilities for icon check: ${e.message}`);

@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { COLLECTIONS } from "./modules.mjs";
 import { resolveActorAbilities } from "./resolve-abilities.mjs";
+import { resolveActorSpells, loadSpellCache } from "./resolve-spells.mjs";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const MODULE_DIR = join(REPO_ROOT, "forge-content");
@@ -65,11 +66,12 @@ export function exportDist() {
     }
   }
 
+  const spellMap = loadSpellCache();
   const packs = packDirs.map(pack => {
     const collection = COLLECTIONS[pack.name] ?? "items";
     const docs = docFiles(join(src, pack.name)).map(f => {
       let doc = JSON.parse(readFileSync(join(src, pack.name, f), "utf8"));
-      if (collection === "actors") doc = resolveActorAbilities(doc, abilityMap);
+      if (collection === "actors") doc = resolveActorSpells(resolveActorAbilities(doc, abilityMap), spellMap);
       return doc;
     });
     return { name: pack.name, collection, docs };

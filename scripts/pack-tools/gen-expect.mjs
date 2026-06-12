@@ -11,6 +11,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { COLLECTIONS } from "./modules.mjs";
 import { resolveActorAbilities } from "./resolve-abilities.mjs";
+import { resolveActorSpells, loadSpellCache } from "./resolve-spells.mjs";
 
 const ABILITY_SCORES = ["str", "dex", "con", "int", "wis", "cha"];
 
@@ -81,7 +82,8 @@ function main() {
   if (!existsSync(actorFile)) { console.error(`no actor source at ${actorFile}`); process.exit(2); }
 
   const actorDoc = JSON.parse(readFileSync(actorFile, "utf8"));
-  const resolved = resolveActorAbilities(actorDoc, loadAbilityMap(srcPacks));
+  // Same resolution as build: abilities + vanilla spells — spell names join hasItems.
+  const resolved = resolveActorSpells(resolveActorAbilities(actorDoc, loadAbilityMap(srcPacks)), loadSpellCache());
 
   const t2Path = join(npcDir, `${slug}.expect.json`);
   if (existsSync(t2Path)) {
