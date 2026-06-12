@@ -20,6 +20,14 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "B1bPhP3TBNVR99JV",
+      "name": "Animate Shackles",
+      "path": "forge-abilities/B1bPhP3TBNVR99JV.json",
+      "hash": "9bd6dec16fbf8af44849b692bbac1e4b5a8f81ed70d4f954233a147860211e75"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "camKkgIqSeOkY2S0",
       "name": "Drop the Prop",
       "path": "forge-abilities/camKkgIqSeOkY2S0.json",
@@ -84,6 +92,14 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "jtXB5rfZVhtFpxP3",
+      "name": "Ranged Shot",
+      "path": "forge-abilities/jtXB5rfZVhtFpxP3.json",
+      "hash": "3c9e879d36f1493d83a13d4115100d81127f8378bf1e25cf46b44db51f277db2"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "OeYOAokAWOAQC88u",
       "name": "Cave-In",
       "path": "forge-abilities/OeYOAokAWOAQC88u.json",
@@ -120,6 +136,14 @@
       "name": "Searing Bolt",
       "path": "forge-abilities/searingbolt00001.json",
       "hash": "53732fd404aa15cd780812c14cddd1cfc4a3ae32810cdcb9fbbfa5a0030ec00d"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
+      "id": "SmA8MmciUow04KMI",
+      "name": "Pack Tactics",
+      "path": "forge-abilities/SmA8MmciUow04KMI.json",
+      "hash": "cb05300562554163bd9e0c61f48e3895f0f532d1609ef24726c677725db0f73e"
     },
     {
       "pack": "forge-abilities",
@@ -188,6 +212,22 @@
     {
       "pack": "forge-npcs",
       "collection": "actors",
+      "id": "pvhH5tj5rFP5VrPd",
+      "name": "Korrun Slagledger",
+      "path": "forge-npcs/pvhH5tj5rFP5VrPd.json",
+      "hash": "6dae7ecff17dfc4717fe24d8291bc297b2d8135969fd15ae7e9f084a97e93e17"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "QqUIwO6IsE2AkYc2",
+      "name": "Normi Conscript Guard",
+      "path": "forge-npcs/QqUIwO6IsE2AkYc2.json",
+      "hash": "3aaef6177d9b111f273be56d5137c2448e0822c2f5f30639427cb5f2a7e8af46"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
       "id": "retaliatornpc001",
       "name": "Test Retaliator",
       "path": "forge-npcs/retaliatornpc001.json",
@@ -236,12 +276,28 @@
       "hash": "b4f6e9d56732cd07d31c7d053b6c12c8cfb62d974d9ef7a124db07b1c3e9a92b"
     },
     {
+      "path": "tokens/korrun-slagledger-token.png",
+      "hash": "e67d0cc22dd9076eb939a07d5d33bc6cb6fdbd3b783c34acfa80d7165dc45078"
+    },
+    {
+      "path": "tokens/korrun-slagledger.png",
+      "hash": "d7e4574d593f36144f2a92a1199e8316b60de83279c3a711a1f083ab2f2115e5"
+    },
+    {
       "path": "tokens/nine-token.png",
       "hash": "76d84fca697750e80fa6372f683c3983d79680235ce63ba6d0ded02e546b7594"
     },
     {
       "path": "tokens/nine.png",
       "hash": "c29c6b8e81a0a6c06c237e11b51d6a6571c1cdd156fb3539ba623ee76e458ae0"
+    },
+    {
+      "path": "tokens/normi-conscript-guard-token.png",
+      "hash": "0ef25d133d6d09331d40fc762219a7df4c3a13f45a336bc01d48cfbe30b5615c"
+    },
+    {
+      "path": "tokens/normi-conscript-guard.png",
+      "hash": "ed8911e9924e8776edb079403d9821975284c58b4e4e3765530b82f8330a177a"
     },
     {
       "path": "tokens/test-stitchwretch-token.png",

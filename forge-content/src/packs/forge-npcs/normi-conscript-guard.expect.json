@@ -1,0 +1,32 @@
+{
+  "tier": "T3",
+  "load": {
+    "hpMax": 13,
+    "ac": 13,
+    "abilities": {
+      "str": 12,
+      "dex": 12,
+      "con": 12,
+      "int": 9,
+      "wis": 10,
+      "cha": 9
+    },
+    "hasItems": [
+      "Pack Tactics",
+      "Spear",
+      "Light Crossbow"
+    ]
+  },
+  "actors": {
+    "normi": { "authored": true, "disposition": 1, "pos": [100, 100] },
+    "dummy": { "hp": 100, "disposition": -1, "pos": [200, 100], "forces": { "attack": "hit" } }
+  },
+  "steps": [
+    { "castOwn": "normi", "ability": "example-strike", "targets": ["dummy"] },
+    { "snapshot": "stab" }
+  ],
+  "assert": [
+    { "at": "stab", "actor": "dummy", "hpDeltaMin": -14, "hpDeltaMax": -2 },
+    { "at": "stab", "actor": "normi", "lastWorkflow.hit": true, "lastWorkflow.advantage": true }
+  ]
+}

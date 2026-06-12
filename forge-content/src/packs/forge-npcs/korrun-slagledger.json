@@ -1,0 +1,45 @@
+{
+  "_id": "pvhH5tj5rFP5VrPd",
+  "name": "Korrun Slagledger",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/korrun-slagledger.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/korrun-slagledger-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 18 },
+      "dex": { "value": 10 },
+      "con": { "value": 16 },
+      "int": { "value": 13 },
+      "wis": { "value": 12 },
+      "cha": { "value": 10 }
+    },
+    "attributes": {
+      "hp": { "value": 67, "max": 67, "formula": "" },
+      "ac": { "calc": "natural", "flat": 16 },
+      "movement": { "walk": 25 },
+      "senses": { "darkvision": 60 }
+    },
+    "traits": {
+      "dr": { "value": ["acid", "poison"], "bypasses": [], "custom": "" }
+    },
+    "details": {
+      "cr": 3,
+      "type": { "value": "humanoid" },
+      "biography": {
+        "value": "<p>KORRUN SLAGLEDGER — CR 3 mini-boss. Scalewoven dwarf overseer (\"the warden\") of the staging mine near Dhul Maldur. Cold bureaucrat: slaves are quota &amp; ledger, clinical impersonal cruelty. Chain dominion — scaleweaving warps iron.</p><p><strong>Manual — Multiattack:</strong> one Overseer's Maul + one Chain Lash each turn (use both items).</p><p><strong>Manual — Chain Lash pull:</strong> on a hit the target makes a DC 14 Strength save or is pulled 10 ft toward Korrun.</p><p><strong>Manual — Dwarven Resilience:</strong> advantage on saves vs. poison (poison resistance is on the sheet).</p><p><strong>Manual — Tactics/Flee:</strong> uses normi conscript guards as shields, never risks himself. At bloodied (≤33 HP) or when his guards fall: Disengage, retreat into the mine via the chains, sound the alarm. He does NOT die here — recurs at the Dhul Maldur assault.</p>"
+      }
+    }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "example-strike", "name": "Overseer's Maul", "img": "icons/weapons/hammers/hammer-double-simple-worn.webp", "desc": "<p>Melee weapon attack: <strong>2d6+4 bludgeoning</strong> on a hit.</p>", "set": { "dmg": "2d6+4", "dmgType": "bludgeoning" } },
+    { "ability": "example-strike", "name": "Chain Lash", "img": "icons/skills/melee/strike-chain-whip-blue.webp", "desc": "<p>Melee weapon attack, reach <strong>15 ft</strong>: <strong>1d8+4 bludgeoning</strong> on a hit. <strong>Manual:</strong> on a hit the target makes a DC 14 Strength save or is pulled 10 ft toward Korrun.</p>", "set": { "dmg": "1d8+4", "dmgType": "bludgeoning", "range": 15 } },
+    "animate-shackles"
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

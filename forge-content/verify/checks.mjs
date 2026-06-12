@@ -147,7 +147,9 @@ export function installGateHelpers() {
           acDelta: a.system.attributes.ac.value - baseAc[n],
           abilityDelta,
           statuses: [...a.effects].flatMap(ef => [...(ef.statuses ?? [])]),
-          effects: [...a.effects].map(ef => ef.name),
+          // union own effects + appliedEffects: modern (non-legacy) transferral keeps
+          // transfer:true effects on the ITEM; they only surface via appliedEffects.
+          effects: [...new Set([...a.effects, ...(a.appliedEffects ?? [])].map(ef => ef.name))],
           flags: foundry.utils.deepClone(a.flags ?? {}),
           ticks: tickCount[n] ?? 0,
           usesSpent: lastItem[n]?.system?.uses?.spent ?? null,

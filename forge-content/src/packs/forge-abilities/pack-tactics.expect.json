@@ -1,0 +1,14 @@
+{
+  "tier": "T2",
+  "combat": false,
+  "actors": {
+    "dummy": { "hp": 100 }
+  },
+  "steps": [
+    { "cast": "dummy", "ability": "main" },
+    { "snapshot": "applied" }
+  ],
+  "assert": [
+    { "at": "applied", "actor": "dummy", "effectApplied": "Pack Tactics" }
+  ]
+}

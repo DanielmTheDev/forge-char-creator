@@ -1,0 +1,271 @@
+{
+  "_id": "QqUIwO6IsE2AkYc2",
+  "name": "Normi Conscript Guard",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/normi-conscript-guard.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/normi-conscript-guard-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 0.75
+      }
+    }
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 12
+      },
+      "dex": {
+        "value": 12
+      },
+      "con": {
+        "value": 12
+      },
+      "int": {
+        "value": 9
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 9
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 13,
+        "max": 13,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "natural",
+        "flat": 13
+      },
+      "movement": {
+        "walk": 30
+      }
+    },
+    "details": {
+      "cr": 0.25,
+      "type": {
+        "value": "humanoid"
+      },
+      "biography": {
+        "value": "<p>NORMI CONSCRIPT GUARD — CR 1/4 mook (run several). Normi conscript guarding the staging mine near Dhul Maldur; Korrun Slagledger's shields. No scaleweaving, expendable, knows it.</p><p><strong>Manual — Pack Tactics:</strong> toggle the Pack Tactics effect OFF when no ally is within 5 ft of the target (on by default).</p><p><strong>Manual — Conscript's Divide (morale/RP switch):</strong> overseer watching → fights dutifully, afraid of him. Overseer flees / an ally drops / shown mercy / cornered → morale breaks: roll or RP — may FLEE, SURRENDER, or LOOK AWAY (let a PC slip past). Some are quietly decent.</p><p><strong>Manual:</strong> spear can be thrown (range 20/60).</p>"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Pack Tactics",
+      "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+      "type": "feat",
+      "_id": "jtd5Zvf9VDvZRpRV",
+      "system": {
+        "description": {
+          "value": "<p>Advantage on attack rolls against a creature if at least one ally is within 5 ft of it. <strong>Manual:</strong> toggle the Pack Tactics effect OFF on the token when no ally is adjacent to the target (on by default).</p>",
+          "chat": ""
+        },
+        "activities": {},
+        "uses": {
+          "spent": 0,
+          "recovery": []
+        },
+        "identifier": "pack-tactics",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [
+        {
+          "name": "Pack Tactics",
+          "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+          "type": "base",
+          "_id": "OCYi44AmwuiECAEK",
+          "transfer": true,
+          "disabled": false,
+          "duration": {},
+          "changes": [
+            {
+              "key": "flags.midi-qol.advantage.attack.all",
+              "mode": 5,
+              "value": "1",
+              "priority": 20
+            }
+          ],
+          "statuses": [],
+          "flags": {}
+        }
+      ],
+      "flags": {}
+    },
+    {
+      "name": "Spear",
+      "img": "icons/weapons/polearms/spear-flared-gray.webp",
+      "type": "feat",
+      "_id": "Kg4SQuS04w42I6IS",
+      "system": {
+        "description": {
+          "value": "<p>Melee weapon attack: <strong>1d6+1 piercing</strong> on a hit. <strong>Manual:</strong> can be thrown (range 20/60).</p>",
+          "chat": ""
+        },
+        "activities": {
+          "xBBxD7JXBNVnbZbd": {
+            "_id": "xBBxD7JXBNVnbZbd",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "piercing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d6+1"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    },
+    {
+      "name": "Light Crossbow",
+      "img": "icons/weapons/crossbows/crossbow-simple-black.webp",
+      "type": "feat",
+      "_id": "kYmY628k2cekUgGC",
+      "system": {
+        "description": {
+          "value": "<p>Ranged weapon attack, range <strong>80 ft</strong>: <strong>1d8+1 piercing</strong> on a hit.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "UIM4iAysUS4yA0qY": {
+            "_id": "UIM4iAysUS4yA0qY",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 80,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "dex",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "ranged",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "piercing"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d8+1"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "ranged-shot",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "3aaef6177d9b111f273be56d5137c2448e0822c2f5f30639427cb5f2a7e8af46"
+    }
+  },
+  "folder": null
+}

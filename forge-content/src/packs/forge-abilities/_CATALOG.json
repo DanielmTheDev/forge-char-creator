@@ -1,5 +1,12 @@
 [
   {
+    "identifier": "animate-shackles",
+    "name": "Animate Shackles",
+    "tier": "T3",
+    "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
+    "description": "Scaleweaving warps the mine's iron — chains erupt from wall and floor. One creature within 30 ft makes a DC 14 Dexterity save or takes 2d6 bludgeoning damage and is restrained. Nothing on a success. Manual: the target can repeat the escape attempt (DC 14 Athletics or Acrobatics) at the end of each of its turns — remove the effect on a success. 3/day."
+  },
+  {
     "identifier": "bracers-of-defense",
     "name": "Bracers of Defense",
     "tier": "T2",
@@ -70,11 +77,25 @@
     "description": "Reference ability: a DEX-based melee weapon attack against one creature dealing 10 piercing on a hit. Base for finesse/improvised-blade reskins (knob the damage per character)."
   },
   {
+    "identifier": "pack-tactics",
+    "name": "Pack Tactics",
+    "tier": "T2",
+    "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+    "description": "Advantage on attack rolls against a creature if at least one ally is within 5 ft of it. Manual: toggle the Pack Tactics effect OFF on the token when no ally is adjacent to the target (on by default)."
+  },
+  {
     "identifier": "radiant-rebuke",
     "name": "Radiant Rebuke",
     "tier": "T3",
     "img": "icons/magic/light/explosion-star-large-blue-yellow.webp",
     "description": "Derek calls down a flash of judgment light. One creature within 30 ft makes a DC 14 Dexterity save, taking 12 radiant damage, or half as much on a success. Recharge 5–6."
+  },
+  {
+    "identifier": "ranged-shot",
+    "name": "Ranged Shot",
+    "tier": "T3",
+    "img": "icons/weapons/crossbows/crossbow-simple-brown.webp",
+    "description": "Reference ability: a DEX-based ranged weapon attack against one creature within 80 ft, dealing 10 piercing damage on a hit. Base for bow/crossbow/thrown reskins."
   },
   {
     "identifier": "rending-pounce",

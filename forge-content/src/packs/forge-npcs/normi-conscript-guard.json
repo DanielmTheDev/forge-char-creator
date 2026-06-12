@@ -1,0 +1,41 @@
+{
+  "_id": "QqUIwO6IsE2AkYc2",
+  "name": "Normi Conscript Guard",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/normi-conscript-guard.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/normi-conscript-guard-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 12 },
+      "dex": { "value": 12 },
+      "con": { "value": 12 },
+      "int": { "value": 9 },
+      "wis": { "value": 10 },
+      "cha": { "value": 9 }
+    },
+    "attributes": {
+      "hp": { "value": 13, "max": 13, "formula": "" },
+      "ac": { "calc": "natural", "flat": 13 },
+      "movement": { "walk": 30 }
+    },
+    "details": {
+      "cr": 0.25,
+      "type": { "value": "humanoid" },
+      "biography": {
+        "value": "<p>NORMI CONSCRIPT GUARD — CR 1/4 mook (run several). Normi conscript guarding the staging mine near Dhul Maldur; Korrun Slagledger's shields. No scaleweaving, expendable, knows it.</p><p><strong>Manual — Pack Tactics:</strong> toggle the Pack Tactics effect OFF when no ally is within 5 ft of the target (on by default).</p><p><strong>Manual — Conscript's Divide (morale/RP switch):</strong> overseer watching → fights dutifully, afraid of him. Overseer flees / an ally drops / shown mercy / cornered → morale breaks: roll or RP — may FLEE, SURRENDER, or LOOK AWAY (let a PC slip past). Some are quietly decent.</p><p><strong>Manual:</strong> spear can be thrown (range 20/60).</p>"
+      }
+    }
+  },
+  "items": [],
+  "abilities": [
+    "pack-tactics",
+    { "ability": "example-strike", "name": "Spear", "img": "icons/weapons/polearms/spear-flared-gray.webp", "desc": "<p>Melee weapon attack: <strong>1d6+1 piercing</strong> on a hit. <strong>Manual:</strong> can be thrown (range 20/60).</p>", "set": { "dmg": "1d6+1", "dmgType": "piercing" } },
+    { "ability": "ranged-shot", "name": "Light Crossbow", "img": "icons/weapons/crossbows/crossbow-simple-black.webp", "desc": "<p>Ranged weapon attack, range <strong>80 ft</strong>: <strong>1d8+1 piercing</strong> on a hit.</p>", "set": { "dmg": "1d8+1" } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

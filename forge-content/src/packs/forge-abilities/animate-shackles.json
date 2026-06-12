@@ -1,0 +1,51 @@
+{
+  "name": "Animate Shackles",
+  "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
+  "type": "feat",
+  "_id": "B1bPhP3TBNVR99JV",
+  "system": {
+    "description": {
+      "value": "<p>Scaleweaving warps the mine's iron — chains erupt from wall and floor. One creature within <strong>30 ft</strong> makes a <strong>DC 14 Dexterity save</strong> or takes <strong>2d6 bludgeoning damage</strong> and is <strong>restrained</strong>. Nothing on a success. <strong>Manual:</strong> the target can repeat the escape attempt (DC 14 Athletics or Acrobatics) at the end of each of its turns — remove the effect on a success. <strong>3/day</strong>.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "3",
+      "recovery": [{ "period": "day" }]
+    },
+    "activities": {
+      "shacklesave00001": {
+        "_id": "shacklesave00001",
+        "type": "save",
+        "activation": { "type": "action", "value": 1 },
+        "consumption": { "targets": [{ "type": "itemUses", "target": "", "value": "1" }] },
+        "range": { "value": 30, "units": "ft" },
+        "target": { "affects": { "type": "creature", "count": "1" } },
+        "save": { "ability": ["dex"], "dc": { "calculation": "custom", "formula": "14" } },
+        "damage": { "onSave": "none", "parts": [{ "types": ["bludgeoning"], "custom": { "enabled": true, "formula": "2d6" } }] },
+        "effects": [{ "_id": "shackleresteff01", "onSave": false }]
+      }
+    },
+    "identifier": "animate-shackles",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [
+    {
+      "name": "Restrained (Animate Shackles)",
+      "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
+      "type": "base",
+      "_id": "shackleresteff01",
+      "transfer": false,
+      "disabled": false,
+      "duration": {},
+      "changes": [],
+      "statuses": ["restrained"],
+      "flags": {}
+    }
+  ],
+  "flags": {},
+  "folder": null
+}

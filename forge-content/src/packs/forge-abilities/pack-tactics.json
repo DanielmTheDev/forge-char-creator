@@ -1,0 +1,37 @@
+{
+  "name": "Pack Tactics",
+  "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+  "type": "feat",
+  "_id": "SmA8MmciUow04KMI",
+  "system": {
+    "description": {
+      "value": "<p>Advantage on attack rolls against a creature if at least one ally is within 5 ft of it. <strong>Manual:</strong> toggle the Pack Tactics effect OFF on the token when no ally is adjacent to the target (on by default).</p>",
+      "chat": ""
+    },
+    "activities": {},
+    "uses": { "spent": 0, "recovery": [] },
+    "identifier": "pack-tactics",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [
+    {
+      "name": "Pack Tactics",
+      "img": "icons/creatures/abilities/wolf-heads-swirl-purple.webp",
+      "type": "base",
+      "_id": "packtacticseff01",
+      "transfer": true,
+      "disabled": false,
+      "duration": {},
+      "changes": [
+        { "key": "flags.midi-qol.advantage.attack.all", "mode": 5, "value": "1", "priority": 20 }
+      ],
+      "statuses": [],
+      "flags": {}
+    }
+  ],
+  "flags": {},
+  "folder": null
+}

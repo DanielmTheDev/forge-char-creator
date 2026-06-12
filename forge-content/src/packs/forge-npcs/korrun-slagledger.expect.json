@@ -1,0 +1,33 @@
+{
+  "tier": "T3",
+  "load": {
+    "hpMax": 67,
+    "ac": 16,
+    "abilities": {
+      "str": 18,
+      "dex": 10,
+      "con": 16,
+      "int": 13,
+      "wis": 12,
+      "cha": 10
+    },
+    "hasItems": [
+      "Overseer's Maul",
+      "Chain Lash",
+      "Animate Shackles"
+    ]
+  },
+  "actors": {
+    "korrun": { "authored": true, "disposition": 1, "pos": [100, 100] },
+    "dummy": { "hp": 100, "disposition": -1, "pos": [200, 100], "forces": { "save": "fail" } }
+  },
+  "steps": [
+    { "castOwn": "korrun", "ability": "animate-shackles", "targets": ["dummy"] },
+    { "snapshot": "chained" }
+  ],
+  "assert": [
+    { "at": "chained", "actor": "dummy", "hpDeltaMin": -12, "hpDeltaMax": -2 },
+    { "at": "chained", "actor": "dummy", "conditionApplied": "restrained" },
+    { "at": "chained", "actor": "korrun", "usesSpent": 1 }
+  ]
+}
