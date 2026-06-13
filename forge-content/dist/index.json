@@ -264,6 +264,14 @@
       "name": "Test Ogre",
       "path": "forge-npcs/testogre00000001.json",
       "hash": "1bc613c91cfe2ff5aa1beae1c9d096ec2523b4c1276ff62b933e324e9ea33364"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "wymS6KEeiGYkkeWO",
+      "name": "Wretched Prisoner",
+      "path": "forge-npcs/wymS6KEeiGYkkeWO.json",
+      "hash": "c988b0f014e95d6a6eba6c19e43bb0dd1becda54ae8b917ae35155e0369f026a"
     }
   ],
   "assets": [
@@ -322,6 +330,14 @@
     {
       "path": "tokens/unchained-thrall.png",
       "hash": "aee6053923350c8944f8af3fcdaabba9cca67966403eea9cecb3414759e1aa22"
+    },
+    {
+      "path": "tokens/wretched-prisoner-token.png",
+      "hash": "389130f0a79a1e2237a41b61387fd0a4d3ad37ea4d140cbf6e81683bf8da0570"
+    },
+    {
+      "path": "tokens/wretched-prisoner.png",
+      "hash": "a9351bd9a8815f2614b349e4cb54948b0fe409019d207490c5932f8f5f46eab6"
     }
   ]
 }

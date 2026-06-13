@@ -1,0 +1,18 @@
+{
+  "tier": "T2",
+  "assert": {
+    "hpMax": 4,
+    "ac": 9,
+    "abilities": {
+      "str": 8,
+      "dex": 9,
+      "con": 8,
+      "int": 10,
+      "wis": 10,
+      "cha": 8
+    },
+    "hasItems": [
+      "Feeble Blow"
+    ]
+  }
+}

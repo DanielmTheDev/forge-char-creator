@@ -1,0 +1,39 @@
+{
+  "_id": "wymS6KEeiGYkkeWO",
+  "name": "Wretched Prisoner",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/wretched-prisoner.png",
+  "prototypeToken": {
+    "texture": { "src": "modules/forge-content/assets/tokens/wretched-prisoner-token.png" },
+    "ring": { "enabled": true, "subject": { "scale": 0.75 } }
+  },
+  "system": {
+    "abilities": {
+      "str": { "value": 8 },
+      "dex": { "value": 9 },
+      "con": { "value": 8 },
+      "int": { "value": 10 },
+      "wis": { "value": 10 },
+      "cha": { "value": 8 }
+    },
+    "attributes": {
+      "hp": { "value": 4, "max": 4, "formula": "" },
+      "ac": { "calc": "natural", "flat": 9 },
+      "movement": { "walk": 25 }
+    },
+    "details": {
+      "cr": 0,
+      "type": { "value": "humanoid" },
+      "biography": {
+        "value": "<p>WRETCHED PRISONER — CR 0 rescue NPC (run several, generic). A starved, beaten slave in the staging mine near Dhul Maldur; freed or extracted during the mine breakout. Escort liability — the cost of saving them.</p><p><strong>Manual — Wretched:</strong> starved, beaten, exhausted — disadvantage on STR &amp; CON checks and saves; can't Dash two rounds running.</p><p><strong>Manual — Won't fight (RP):</strong> cowers, flees, or clings to rescuers; acts only if cornered. Needs escort/protecting through the breakout.</p><p><strong>Manual — Desperate Surge (1/day):</strong> when freed, or when a rescuer takes a hit for them, adrenaline grants one extra move OR a Help action this turn.</p>"
+      }
+    }
+  },
+  "items": [],
+  "abilities": [
+    { "ability": "example-strike", "name": "Feeble Blow", "img": "icons/skills/wounds/bone-broken-marrow-yellow.webp", "desc": "<p>Melee attack with a fist or a scrap of debris: <strong>1d4-1 bludgeoning</strong> (minimum 1) on a hit.</p>", "set": { "dmg": "1d4-1", "dmgType": "bludgeoning" } }
+  ],
+  "effects": [],
+  "flags": {},
+  "folder": null
+}
