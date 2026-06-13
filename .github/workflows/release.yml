@@ -5,6 +5,15 @@ on:
     branches:
       - main
 
+# Serialize release runs. Step 5 bumps versions + pushes a commit back to main
+# with a bare `git push` (no rebase). Two overlapping runs both checkout the
+# same sha, both bump to the same version, and the loser's push is rejected
+# (`cannot lock ref 'refs/heads/main'`) -> exit 1 -> build/publish skipped.
+# Queue instead of cancel so every push still produces a release build.
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
