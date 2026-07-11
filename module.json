@@ -5,12 +5,15 @@
   "version": "1.3.28",
   "authors": [
     {
-      "name": "Forge Char Creator Developer"
+      "name": "Daniel Muckelbauer",
+      "url": "https://github.com/DanielmTheDev"
     }
   ],
+  "license": "MIT",
+  "readme": "https://github.com/DanielmTheDev/forge-char-creator/blob/main/README.md",
   "compatibility": {
     "minimum": "13",
-    "verified": "13",
+    "verified": "13.351",
     "maximum": "13"
   },
   "url": "https://github.com/DanielmTheDev/forge-char-creator",
@@ -28,6 +31,36 @@
       "type": "system"
     }
   ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system"
+      }
+    ],
+    "recommends": [
+      {
+        "id": "midi-qol",
+        "type": "module",
+        "reason": "Effect Creator emits Midi-QOL flags (OverTime, grants, advantage/disadvantage) that only apply with Midi-QOL active."
+      },
+      {
+        "id": "dae",
+        "type": "module",
+        "reason": "Effect Creator writes DAE flags (icon display, stacking) that require Dynamic Active Effects."
+      },
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "reason": "Runtime prerequisite of Midi-QOL and DAE."
+      },
+      {
+        "id": "socketlib",
+        "type": "module",
+        "reason": "Runtime prerequisite of Midi-QOL."
+      }
+    ]
+  },
   "packs": [
     {
       "name": "forge-effects",

@@ -70,8 +70,15 @@ jobs:
             -x "test-results/*" \
             -x "scripts/tests/*" \
             -x "scripts/pack-tools/*" \
+            -x "scripts/bump-version.mjs" \
             -x "src/*" \
-            -x "README.md" \
+            -x "tests/*" \
+            -x "test.sh" \
+            -x "docs/*" \
+            -x "agents.md" \
+            -x "package.json" \
+            -x "package-lock.json" \
+            -x "build.sh" \
             -x "DEPLOYMENT.md" \
             -x "workflows/*" \
             -x ".gitignore" \

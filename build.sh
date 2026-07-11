@@ -25,16 +25,25 @@ zip -ry dist/forge-char-creator.zip ./* \
   -x ".DS_Store" \
   -x "scripts/tests/*" \
   -x "scripts/pack-tools/*" \
+  -x "scripts/bump-version.mjs" \
   -x "src/*" \
+  -x "tests/*" \
+  -x "test.sh" \
+  -x "docs/*" \
+  -x "agents.md" \
+  -x "package.json" \
+  -x "package-lock.json" \
+  -x "build.sh" \
   -x "FoundryData/*" \
   -x "Data/*" \
   -x "world-export/*" \
   -x "FoundryVTT-Linux-13.351/*" \
   -x "test-results/*" \
-  -x "README.md" \
   -x "DEPLOYMENT.md" \
   -x "workflows/*" \
+  -x ".github/*" \
   -x ".gitignore" \
+  -x "forge-content/*" \
   -x "CLAUDE.md" \
   -x "TODO.md" \
   -x "content-verify.sh" \
