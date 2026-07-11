@@ -65,7 +65,7 @@ function main() {
   console.log(`✓ ${portrait}`);
   console.log(`✓ ${token} (${side}x${side}+${x}+${y}, circle-masked)`);
   console.log(`  visual check: ${thumb}`);
-  console.log(`  actor JSON: "prototypeToken": { "texture": { "src": "modules/forge-content/assets/tokens/${slug}-token.png" }, "ring": { "enabled": true, "subject": { "scale": 0.75 } } }`);
+  console.log(`  actor JSON: "prototypeToken": { "texture": { "src": "modules/forge-content/assets/tokens/${slug}-token.png" }, "ring": { "enabled": true, "subject": { "scale": 0.75 } }, "sight": { "enabled": true, "range": 60 } }`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();

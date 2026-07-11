@@ -114,6 +114,28 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
    anything shape-different is a new ability file; `desc` REQUIRED with
    name/set); ring block
    `{enabled:true, subject:{scale:0.75}}` (1.0/0.85 hide the rim);
+   `prototypeToken.sight` ALWAYS `{enabled:true, range:60}` (token vision on,
+   60 ft, by default — user pref 2026-06-13); **`prototypeToken.actorLink`** —
+   read `actorLink: true|false` from the note frontmatter (the vault
+   `creating-characters` skill asks + records it). MISSING from the note → ASK
+   the user (AskUserQuestion): Linked = token edits sync to one shared base
+   actor (unique NPCs/bosses); Unlinked = each dropped token independent
+   (mooks). No silent default.
+   **`prototypeToken.disposition`** — read the `disposition` field from the note
+   frontmatter and MAP to the Foundry numeric: `friendly`→`1`, `neutral`→`0`,
+   `hostile`→`-1`, `secret`→`-2` (accept a raw number too). Set
+   `prototypeToken.disposition` to it — DO NOT rely on Foundry's NPC default
+   (hostile) for allies/pregens. MISSING from the note → ASK (AskUserQuestion):
+   Friendly (party/allies, pregen PCs) / Neutral / Hostile (enemies) / Secret
+   (GM-only). No silent default.
+   **Compendium folder — ALWAYS ASK (user rule).** Before writing the actor
+   JSON, ask the user (AskUserQuestion) which folder inside the `forge-npcs`
+   compendium the character goes in — offer the existing `_folders.json` entries
+   plus a "new folder" option. Set the actor's `folder` to the chosen folder
+   `_id` and add/keep the matching `_folders.json` entry (`[{_id,name,...}]`,
+   build.mjs packs it). ASK EVERY build — no frontmatter fallback, no silent
+   default, even if a folder was used last time. (Build/validator wiring to
+   honor a non-null NPC `folder` is tracked separately.)
    biography carries ALL manual riders. Then:
    - `<slug>.STUBS.md` — what is NOT automated + user decisions + invented stats.
    - `npm run content:gen-expect -- <slug>` (T2).
@@ -131,6 +153,9 @@ in a code block + 🖼️ portrait prompt). Vault path: see memory `campaign-vau
 | Mistake | Fix |
 |---|---|
 | Deciding rider handling yourself | Step 2 ask is mandatory (user rule 2026-06-11) |
+| Skipping the actorLink ask | Read `actorLink` from note frontmatter; ask only if missing (user rule 2026-06-13) — no silent default |
+| Ignoring token disposition | Read `disposition` from note frontmatter, map word→numeric (friendly 1/neutral 0/hostile -1/secret -2); ask only if missing — Foundry's NPC default (hostile) is wrong for allies/pregens |
+| Not asking the compendium folder | ALWAYS ask which `forge-npcs` folder (AskUserQuestion) before writing the actor — every build, no default |
 | New ability when only numbers differ | Use a knobbed `example-strike`/exemplar ref |
 | `ac.calc:"flat"` on an authored actor | +AC buffs silently no-op — always `"natural"` (same printed AC, bonuses apply) |
 | Reskin without `desc` | Exemplar's "Reference ability…" text + base numbers leak in-game — desc from the vault bullet, validator enforces |

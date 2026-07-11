@@ -8,7 +8,9 @@
 // Google One subscription does NOT include API access).
 import { readFileSync, writeFileSync } from "node:fs";
 
-const MODEL = "gemini-2.5-flash-image";
+// Default = fast/cheap flash (1K only). Override with IMAGE_MODEL=gemini-3-pro-image
+// (Nano Banana Pro) for native 2K/4K via IMAGE_SIZE — flash silently ignores imageSize.
+const MODEL = process.env.IMAGE_MODEL || "gemini-2.5-flash-image";
 
 function apiKey() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
@@ -25,10 +27,19 @@ async function main() {
   }
   const prompt = promptSrc === "-" ? readFileSync(0, "utf8") : readFileSync(promptSrc, "utf8");
 
+  // Optional native size / shape control (Gemini imageConfig). Unset → API default (1K square).
+  //   IMAGE_SIZE   = 512 | 1K | 2K | 4K
+  //   ASPECT_RATIO = 1:1 | 16:9 | 21:9 | 4:3 | 3:4 | 9:16 | ...
+  const imageConfig = {};
+  if (process.env.IMAGE_SIZE) imageConfig.imageSize = process.env.IMAGE_SIZE.trim();
+  if (process.env.ASPECT_RATIO) imageConfig.aspectRatio = process.env.ASPECT_RATIO.trim();
+  const body = { contents: [{ parts: [{ text: prompt }] }] };
+  if (Object.keys(imageConfig).length) body.generationConfig = { imageConfig };
+
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey() },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     console.error(`Gemini API ${res.status}: ${(await res.text()).slice(0, 500)}`);

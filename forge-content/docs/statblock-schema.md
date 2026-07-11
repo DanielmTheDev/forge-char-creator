@@ -25,6 +25,7 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
     },
     "details": { "cr": 1, "type": { "value": "humanoid" } }
   },
+  "prototypeToken": { "sight": { "enabled": true, "range": 60 } },
   "items": [],
   "abilities": ["searing-bolt", { "ability": "searing-bolt", "name": "Scorch", "desc": "<p>A jet of flame scorches a creature within <strong>60 ft</strong>: <strong>12 fire damage</strong>.</p>", "set": { "dmg": "12", "range": 60 } }],
   "effects": [],
@@ -43,6 +44,8 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
 | `img` | Portrait. Either a Foundry **core** icon (`icons/...`, must exist in the install) OR a committed module asset (`modules/forge-content/assets/tokens/<slug>.png`, must exist in repo). When the source image is the creature itself, save it as a module asset and use it here. |
 | `prototypeToken.texture.src` | Optional. Token art. Same path rules as `img`. MUST be a **square, circular-masked** image — the Dynamic Token Ring stretches a rectangular subject, and an opaque square covers the ring entirely (subject art needs transparent corners, like dnd5e's own subject tokens). Square-crop, then apply a circle alpha mask (see the skill's `convert` one-liner); the full portrait stays on `img`. |
 | `prototypeToken.ring` | Enable the Dynamic Token Ring for a creature-image token: `{ "enabled": true, "subject": { "scale": 0.75 } }`. Foundry uses (square, circular-masked) `texture.src` as the ring subject; **scale 0.75** — at 1.0 the subject covers the ring entirely, ≥0.85 still hides it (verified 2026-06-11). Leave off for square core icons. |
+| `prototypeToken.sight` | ALWAYS `{ "enabled": true, "range": 60 }` — token vision on, 60 ft, by default (user pref 2026-06-13). Set on every authored actor regardless of token art. |
+| `prototypeToken.actorLink` | Boolean, set per the build skill's mandatory ask. `true` = token edits sync to the base actor (one shared data block — unique NPCs/bosses); `false` = each dropped token is independent (mooks). |
 | `system.abilities.{str,dex,con,int,wis,cha}.value` | Integer **3–20**. Read off the statblock's ability scores (the score, NOT the modifier). |
 | `system.attributes.hp.{value,max}` | Equal integers (authored NPC = full HP). `formula: ""`. |
 | `system.attributes.ac` | `{ "calc": "natural", "flat": <int> }`. Use the statblock's printed AC as the base. NEVER `"flat"` — flat calc skips ALL bonuses, so +AC effects (buffs, items) silently no-op; natural keeps the same value (no dex added) but lets `ac.bonus` apply. |
