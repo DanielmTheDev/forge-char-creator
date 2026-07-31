@@ -77,6 +77,13 @@
     "description": "Reference ability: a DEX-based melee weapon attack against one creature dealing 10 piercing on a hit. Base for finesse/improvised-blade reskins (knob the damage per character)."
   },
   {
+    "identifier": "haulers-heave",
+    "name": "Hauler's Heave",
+    "tier": "T2",
+    "img": "icons/skills/melee/unarmed-punch-fist.webp",
+    "description": "Years shoving ore carts and bodies. At-will, one creature within 10 ft, no save: it is pushed 10 ft directly away from him. No damage.Manual: no roll and no automation — the GM moves the target's token 10 ft away."
+  },
+  {
     "identifier": "pack-tactics",
     "name": "Pack Tactics",
     "tier": "T2",

@@ -76,6 +76,14 @@
     {
       "pack": "forge-abilities",
       "collection": "items",
+      "id": "haulersheave0001",
+      "name": "Hauler's Heave",
+      "path": "forge-abilities/haulersheave0001.json",
+      "hash": "15df343c25895e54d50061a7cbf0fd556e28bd5aef4e65820aef1003e8282986"
+    },
+    {
+      "pack": "forge-abilities",
+      "collection": "items",
       "id": "iO8oEoQuI0ECoA4k",
       "name": "Sunbrand",
       "path": "forge-abilities/iO8oEoQuI0ECoA4k.json",
@@ -272,6 +280,14 @@
       "name": "Wretched Prisoner",
       "path": "forge-npcs/wymS6KEeiGYkkeWO.json",
       "hash": "c988b0f014e95d6a6eba6c19e43bb0dd1becda54ae8b917ae35155e0369f026a"
+    },
+    {
+      "pack": "forge-npcs",
+      "collection": "actors",
+      "id": "XbxdxtlZhRFXtnvD",
+      "name": "Eglath Ashlung",
+      "path": "forge-npcs/XbxdxtlZhRFXtnvD.json",
+      "hash": "b7368eb65ca754c029cdbaa95539ae6b50418952544b9ce7dc901f7023af92f4"
     }
   ],
   "assets": [
@@ -282,6 +298,14 @@
     {
       "path": "tokens/caelnor.png",
       "hash": "b4f6e9d56732cd07d31c7d053b6c12c8cfb62d974d9ef7a124db07b1c3e9a92b"
+    },
+    {
+      "path": "tokens/eglath-ashlung-token.png",
+      "hash": "1f0bb8af30372de0f1f855eb70cbe06119c62d4484844a85f48d76648da21f5d"
+    },
+    {
+      "path": "tokens/eglath-ashlung.png",
+      "hash": "7d1076df635e8cbc32e6170a448463ce687cc3ddd3fafdda5825f1f74b0e9032"
     },
     {
       "path": "tokens/korrun-slagledger-token.png",

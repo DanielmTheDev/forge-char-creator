@@ -1,0 +1,30 @@
+{
+  "tier": "T3",
+  "load": {
+    "hpMax": 22,
+    "ac": 12,
+    "abilities": {
+      "str": 14,
+      "dex": 10,
+      "con": 14,
+      "int": 9,
+      "wis": 11,
+      "cha": 8
+    },
+    "hasItems": [
+      "Snapped Haul-Chain",
+      "Hauler's Heave"
+    ]
+  },
+  "actors": {
+    "eglath": { "authored": true, "disposition": 1, "pos": [100, 100] },
+    "dummy": { "hp": 100, "disposition": -1, "pos": [200, 100], "forces": { "attack": "hit" } }
+  },
+  "steps": [
+    { "castOwn": "eglath", "ability": "example-strike", "targets": ["dummy"] },
+    { "snapshot": "chained" }
+  ],
+  "assert": [
+    { "at": "chained", "actor": "dummy", "hpDeltaMin": -14, "hpDeltaMax": -3 }
+  ]
+}

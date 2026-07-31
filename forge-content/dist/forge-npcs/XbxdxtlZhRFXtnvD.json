@@ -1,0 +1,178 @@
+{
+  "_id": "XbxdxtlZhRFXtnvD",
+  "name": "Eglath Ashlung",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/eglath-ashlung.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/eglath-ashlung-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 0.75
+      }
+    },
+    "sight": {
+      "enabled": true,
+      "range": 60
+    },
+    "actorLink": true,
+    "disposition": 1
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 14
+      },
+      "dex": {
+        "value": 10
+      },
+      "con": {
+        "value": 14
+      },
+      "int": {
+        "value": 9
+      },
+      "wis": {
+        "value": 11
+      },
+      "cha": {
+        "value": 8
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 22,
+        "max": 22,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "natural",
+        "flat": 12
+      },
+      "movement": {
+        "walk": 30
+      }
+    },
+    "details": {
+      "cr": 0.125,
+      "type": {
+        "value": "humanoid"
+      },
+      "biography": {
+        "value": "<p>EGLATH ASHLUNG — CR 1/8 goliath escaped mine-slave, <strong>near-noncombatant</strong>. Hauled the dead out of the shafts for Dhul Maldur. He is the one who wanted everyone freed; the column died for it and he lived. Guilt-eaten, begs the party to go back. Replaces Faelan Mirith as the Ashlands runner.</p><p><strong>Rescue hook:</strong> he knows the holding pen — the rest of the column is at the staging mine near Dhul Maldur.</p><p><strong>Manual — Powerful Build:</strong> counts as one size larger for carrying capacity.</p><p><strong>Manual — Exhausted &amp; starved:</strong> disadvantage on STR &amp; CON checks and saves.</p><p><strong>Manual — Won't fight (RP):</strong> runs, shoves, refuses to fight if he can run at all. Acts only if cornered or if someone else is about to die.</p><p><strong>Manual — Hauler's Heave:</strong> the 10-ft push has no roll and no automation — move the target's token yourself.</p>"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Snapped Haul-Chain",
+      "img": "icons/tools/fasteners/chain-steel-grey.webp",
+      "type": "feat",
+      "_id": "S4cyow4Y0yGGmEYY",
+      "system": {
+        "description": {
+          "value": "<p>A length of mine chain still bolted to his wrist. Melee attack: <strong>1d6+2 bludgeoning</strong> on a hit.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "L9ZVlhl3HLBf5VDH": {
+            "_id": "L9ZVlhl3HLBf5VDH",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "bludgeoning"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d6+2"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    },
+    {
+      "name": "Hauler's Heave",
+      "img": "icons/skills/melee/unarmed-punch-fist.webp",
+      "type": "feat",
+      "_id": "Isk6wyyUGYoIm0U4",
+      "system": {
+        "description": {
+          "value": "<p>Years shoving ore carts and bodies. <strong>At-will</strong>, one creature within <strong>10 ft</strong>, no save: it is <strong>pushed 10 ft</strong> directly away from him. <strong>No damage.</strong></p><p><strong>Manual:</strong> no roll and no automation — the GM moves the target's token 10 ft away.</p>",
+          "chat": ""
+        },
+        "activities": {},
+        "identifier": "haulers-heave",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "b7368eb65ca754c029cdbaa95539ae6b50418952544b9ce7dc901f7023af92f4"
+    }
+  },
+  "folder": "folderdhulmaldur"
+}

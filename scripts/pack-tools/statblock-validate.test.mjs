@@ -90,9 +90,26 @@ test('empty abilities array fails', () => {
   assert.ok(v(d).some(e => /"abilities" must be a non-empty array/.test(e)));
 });
 
-test('folder must be null', () => {
+test('folder must be null when the pack declares no folders', () => {
   const d = good(); d.folder = 'somefolder000001';
   assert.ok(v(d).some(e => /"folder" must be null/.test(e)));
+});
+
+test('folder id declared in _folders.json is accepted', () => {
+  const d = good(); d.folder = 'folderdhulmaldur';
+  assert.deepEqual(validateStatblock(d, CATALOG, ALWAYS, SLUG, [], ['folderdhulmaldur']), []);
+});
+
+test('folder id not in _folders.json is rejected', () => {
+  const d = good(); d.folder = 'folderunknown001';
+  const errs = validateStatblock(d, CATALOG, ALWAYS, SLUG, [], ['folderdhulmaldur']);
+  assert.ok(errs.some(e => /must be null or a 16-alnum id from _folders\.json/.test(e)));
+});
+
+test('malformed folder id is rejected even with folders declared', () => {
+  const d = good(); d.folder = 'nope';
+  const errs = validateStatblock(d, CATALOG, ALWAYS, SLUG, [], ['nope']);
+  assert.ok(errs.some(e => /must be null or a 16-alnum id/.test(e)));
 });
 
 test('img ref override is accepted', () => {

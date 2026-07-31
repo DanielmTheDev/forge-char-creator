@@ -1,0 +1,16 @@
+{
+  "tier": "T2",
+  "combat": false,
+  "actors": {
+    "dummy": { "hp": 100 }
+  },
+  "steps": [
+    { "cast": "dummy", "ability": "main" },
+    { "snapshot": "held" }
+  ],
+  "assert": [
+    { "at": "held", "actor": "dummy", "effectAbsent": "Hauler's Heave" },
+    { "at": "held", "actor": "dummy", "hpDelta": 0 },
+    { "at": "held", "actor": "dummy", "acDelta": 0 }
+  ]
+}

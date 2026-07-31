@@ -52,7 +52,8 @@ consumes it unchanged — D is only a front-end onto existing actor authoring.
 | `system.details.cr` | Number (0–30; fractions like `0.5` allowed). |
 | `system.details.type.value` | Non-empty creature type string (`"humanoid"`, `"giant"`, `"undead"`, …). |
 | `abilities` | Array of refs. Each is a `string` identifier OR `{ ability, name?, img?, desc?, set }`. **Every `ability` MUST be an existing identifier in `forge-abilities/_CATALOG.json`.** |
-| `items`, `effects`, `flags`, `folder` | Always `[]`, `[]`, `{}`, `null`. The build inlines `abilities` refs into `items`. |
+| `items`, `effects`, `flags` | Always `[]`, `[]`, `{}`. The build inlines `abilities` refs into `items`. |
+| `folder` | `null` (pack root) **or** a 16-alnum `_id` declared in the pack's `_folders.json` (`forge-npcs/_folders.json`; `build.mjs` packs it as a compendium folder). Any other value is a hard error. |
 
 ## Ability refs
 

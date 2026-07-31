@@ -1,0 +1,21 @@
+{
+  "name": "Hauler's Heave",
+  "img": "icons/skills/melee/unarmed-punch-fist.webp",
+  "type": "feat",
+  "_id": "haulersheave0001",
+  "system": {
+    "description": {
+      "value": "<p>Years shoving ore carts and bodies. <strong>At-will</strong>, one creature within <strong>10 ft</strong>, no save: it is <strong>pushed 10 ft</strong> directly away from him. <strong>No damage.</strong></p><p><strong>Manual:</strong> no roll and no automation — the GM moves the target's token 10 ft away.</p>",
+      "chat": ""
+    },
+    "activities": {},
+    "identifier": "haulers-heave",
+    "source": { "revision": 1, "rules": "2024" },
+    "properties": [],
+    "requirements": "",
+    "type": { "value": "", "subtype": "" }
+  },
+  "effects": [],
+  "flags": {},
+  "folder": null
+}

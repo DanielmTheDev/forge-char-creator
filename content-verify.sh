@@ -22,8 +22,19 @@ elif [ -z "$FC_FULL" ]; then
   fi
   echo "Stale docs:"; echo "$STALE"
 fi
-echo "Starting Foundry VTT Server..."
-node FoundryVTT-Linux-13.351/resources/app/main.js --dataPath=$PWD/FoundryData > /tmp/foundry-content-verify.log 2>&1 &
+# Port 30000 is Foundry's default but not always free — a running JetBrains IDE's
+# cef_server grabs it too, and Foundry then dies with EADDRINUSE. Override with
+# FOUNDRY_PORT=NNNN (boot.mjs reads the same var for the Playwright URL).
+FOUNDRY_PORT="${FOUNDRY_PORT:-30000}"
+export FOUNDRY_PORT
+if ss -ltn 2>/dev/null | grep -q ":${FOUNDRY_PORT} "; then
+  echo "ERROR: port ${FOUNDRY_PORT} is already in use — free it or run with FOUNDRY_PORT=<other port>" >&2
+  ss -ltnp 2>/dev/null | grep ":${FOUNDRY_PORT} " >&2
+  exit 1
+fi
+
+echo "Starting Foundry VTT Server on port ${FOUNDRY_PORT}..."
+node FoundryVTT-Linux-13.351/resources/app/main.js --dataPath=$PWD/FoundryData --port=$FOUNDRY_PORT > /tmp/foundry-content-verify.log 2>&1 &
 SERVER_PID=$!
 cleanup() { echo "Stopping Foundry (PID $SERVER_PID)..."; kill $SERVER_PID 2>/dev/null || true; }
 trap cleanup EXIT

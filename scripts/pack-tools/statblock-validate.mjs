@@ -21,7 +21,9 @@ const ABILITY_SCORES = ["str", "dex", "con", "int", "wis", "cha"];
 // `imgExists(path) -> boolean` is injected so the core fn stays fs-free + testable.
 // It resolves BOTH Foundry core icons (`icons/...`) and module assets
 // (`modules/forge-content/...`) — see main() for the concrete resolver.
-export function validateStatblock(doc, catalogIds, imgExists, slug, spellNames = []) {
+// `folderIds` = the ids declared in the pack's sibling `_folders.json` (empty when
+// the pack has none). A non-null `folder` is only legal when it names one of them.
+export function validateStatblock(doc, catalogIds, imgExists, slug, spellNames = [], folderIds = []) {
   const errs = [];
   const who = `actor "${doc?.name ?? "?"}"`;
   if (!doc || typeof doc !== "object") return ["statblock is not an object"];
@@ -76,7 +78,11 @@ export function validateStatblock(doc, catalogIds, imgExists, slug, spellNames =
   // Inert containers
   if (!Array.isArray(doc.items) || doc.items.length) errs.push(`${who}: "items" must be [] (build inlines abilities)`);
   if (!Array.isArray(doc.effects) || doc.effects.length) errs.push(`${who}: "effects" must be []`);
-  if (doc.folder !== null) errs.push(`${who}: "folder" must be null`);
+  if (doc.folder !== null) {
+    if (!folderIds.length) errs.push(`${who}: "folder" must be null — this pack declares no _folders.json`);
+    else if (!/^[A-Za-z0-9]{16}$/.test(doc.folder ?? "") || !folderIds.includes(doc.folder))
+      errs.push(`${who}: "folder" ${JSON.stringify(doc.folder)} must be null or a 16-alnum id from _folders.json (${folderIds.join(", ")})`);
+  }
 
   // Refs + knobs (delegated) — and the security guard: every ref ∈ catalog.
   if (!Array.isArray(doc.abilities) || !doc.abilities.length) errs.push(`${who}: "abilities" must be a non-empty array of catalog refs`);
@@ -121,7 +127,10 @@ function main() {
   const doc = JSON.parse(readFileSync(file, "utf8"));
   const slug = basename(file).replace(/\.json$/, "");
   const spellMap = loadSpellCache();
-  const errs = validateStatblock(doc, catalogIds, imgExists, slug, [...spellMap.values()].map(d => d.name));
+  // Compendium folders the pack declares (build.mjs packs the same file).
+  const foldersFile = join(dirname(file), "_folders.json");
+  const folderIds = existsSync(foldersFile) ? JSON.parse(readFileSync(foldersFile, "utf8")).map(f => f._id) : [];
+  const errs = validateStatblock(doc, catalogIds, imgExists, slug, [...spellMap.values()].map(d => d.name), folderIds);
   // Also check inlined-ability + inlined-spell icons (resolve the same way build does).
   try {
     const abilityMap = loadAbilityMap(join(repoRoot, "forge-content", "src", "packs"));
