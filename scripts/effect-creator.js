@@ -63,7 +63,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   static PARTS = {
     form: {
       template: "./modules/forge-char-creator/templates/effect-creator.hbs",
-      scrollable: [".forge-effect-creator-content"]
+      scrollable: [".forge-form-body"]
     }
   };
 

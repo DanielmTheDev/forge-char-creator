@@ -98,7 +98,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static PARTS = {
     form: {
       template: "./modules/forge-char-creator/templates/char-creator.hbs",
-      scrollable: [".forge-char-creator-content"]
+      scrollable: [".forge-form-body"]
     }
   };
 

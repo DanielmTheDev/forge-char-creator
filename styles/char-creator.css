@@ -1,3 +1,35 @@
+/* ── Window scrolling ──────────────────────────────────────────────────────
+   Core `.window-content` is `overflow: hidden` and `.application` is capped by
+   `max-height`, so a tall part root just gets clipped. The part root must be a
+   shrinkable flex child (min-height: 0) with a scrolling body and a pinned footer.
+   Note: `PARTS[].scrollable` only saves/restores scrollTop — it adds no overflow.
+   `flex-basis: auto` is required: with `flex: 1` (basis 0%) plus `min-height: 0`
+   the element collapses to zero height in an auto-height window. */
+.forge-char-creator .forge-char-creator-content,
+.forge-effect-creator .forge-effect-creator-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.forge-char-creator .forge-form-body,
+.forge-effect-creator .forge-form-body,
+.forge-hub-app .forge-hub-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.forge-char-creator .form-footer,
+.forge-effect-creator .form-footer {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-light-tertiary);
+}
+
 /* ── Tab Navigation ─────────────────────────────────────────────────────── */
 .forge-char-creator .forge-tabs {
   display: flex;
@@ -257,7 +289,6 @@
 
 /* ── Effect Creator Dialog ───────────────────────────────────────────────── */
 .forge-effect-creator .forge-effect-creator-content {
-  overflow-y: auto;
   gap: 6px;
 }
 

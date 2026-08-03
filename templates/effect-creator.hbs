@@ -1,4 +1,5 @@
 <form class="forge-effect-creator-content standard-form flexcol">
+  <div class="forge-form-body scrollable">
 
   <!-- ── Identity ─────────────────────────────────────────────────────── -->
   <fieldset>
@@ -280,13 +281,14 @@
     <summary style="cursor:pointer; font-size:0.85em; color:var(--color-text-light-5);">🔧 Raw Effect Preview</summary>
     <pre id="efRawPreview" style="font-size:0.72em; background:rgba(0,0,0,0.3); border-radius:4px; padding:6px; margin-top:4px; white-space:pre-wrap; word-break:break-all; max-height:160px; overflow-y:auto;"></pre>
   </details>
+  </div>
 
   <!-- ── Create Button ─────────────────────────────────────────────────── -->
-  <div style="margin-top:auto; padding-top:8px;">
+  <footer class="form-footer">
     <button type="button" data-action="createEffect" style="width:100%; padding:6px; font-size:1rem; font-weight:bold;">
       <i class="fas fa-sparkles"></i>
       {{#if s.wrapInFeature}}Create Feature{{else}}Create Effect{{/if}}
     </button>
-  </div>
+  </footer>
 
 </form>
