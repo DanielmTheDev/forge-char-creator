@@ -104,6 +104,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   // ── State ──────────────────────────────────────────────────────────────────
   selectedItems = new Map();   // UUID → { name, img }
+  #descCache = new Map();      // UUID → plain-text description preview ("" if none)
+  #descTimer = null;           // hover debounce handle
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
@@ -260,6 +262,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           items.forEach(li => li.classList.remove("active"));
           items[next].classList.add("active");
           items[next].scrollIntoView({ block: "nearest" });
+          this.#queueDescription(items[next]);
         } else if (e.key === "Enter") {
           e.preventDefault();
           if (activeIndex >= 0) this.#selectSearchResult(items[activeIndex], searchResults, selectedBin, searchInput);
@@ -279,6 +282,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           const itemDoc = await fromUuid(dragData.uuid);
           if (!itemDoc) return;
           this.selectedItems.set(dragData.uuid, { name: itemDoc.name, img: itemDoc.img || "icons/svg/item-bag.svg" });
+          await this.#loadDescription(dragData.uuid);
           this.#renderSelectedItems(selectedBin);
         } catch(err) { console.warn("Forge Creator | drag drop error", err); }
       });
@@ -295,10 +299,10 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const itemPacks = game.packs.filter(p => p.documentName === "Item");
     let matches = [];
     for (const pack of itemPacks) {
-      const index = await pack.getIndex({ fields: ["name", "img"] });
+      const index = await pack.getIndex({ fields: ["name", "img", "type"] });
       for (const entry of index) {
         if (entry.name.toLowerCase().includes(query)) {
-          matches.push({ uuid: `Compendium.${pack.metadata.id}.${entry._id}`, name: entry.name, img: entry.img || "icons/svg/item-bag.svg", packTitle: pack.title });
+          matches.push({ uuid: `Compendium.${pack.metadata.id}.Item.${entry._id}`, name: entry.name, img: entry.img || "icons/svg/item-bag.svg", type: entry.type || "", packTitle: pack.title });
         }
       }
     }
@@ -311,18 +315,85 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       resultsList.innerHTML = matches.map(m => `
         <li data-uuid="${m.uuid}" data-name="${m.name}" data-img="${m.img}" data-pack="${m.packTitle}">
           <img src="${m.img}" alt="${m.name}">
-          <span class="item-name">${m.name}</span>
-          <span class="compendium-name">(${m.packTitle})</span>
+          <div class="item-body">
+            <div class="item-head">
+              <span class="item-name">${m.name}</span>
+              ${m.type ? `<span class="item-type">${m.type}</span>` : ""}
+              <span class="compendium-name">(${m.packTitle})</span>
+            </div>
+            <div class="item-desc" data-loaded="0"></div>
+          </div>
         </li>`).join("");
       resultsList.querySelectorAll("li[data-uuid]").forEach(li => {
         li.addEventListener("click", () => this.#selectSearchResult(li, resultsList, selectedBin, searchInput));
+        // Descriptions are NOT in the compendium index — load the full document
+        // lazily on hover/focus, debounced, and cache it for the session.
+        const queue = () => this.#queueDescription(li);
+        li.addEventListener("mouseenter", queue);
+        li.addEventListener("focus", queue);
       });
+      // Fill the first few rows without waiting for a hover, so the list is
+      // informative on sight. Search itself is 300ms-debounced, so this is bounded.
+      for (const li of Array.from(resultsList.querySelectorAll("li[data-uuid]")).slice(0, 5)) {
+        this.#fillDescription(li);
+      }
     }
     resultsList.style.display = "block";
   }
 
+  /**
+   * Debounced trigger for #fillDescription so sweeping the mouse down the list
+   * does not load every matched document.
+   */
+  #queueDescription(li) {
+    if (!li) return;
+    const target = li.querySelector(".item-desc");
+    if (!target || target.dataset.loaded === "1") return;
+    if (this.#descTimer) clearTimeout(this.#descTimer);
+    this.#descTimer = setTimeout(() => this.#fillDescription(li), 150);
+  }
+
+  async #fillDescription(li) {
+    const target = li?.querySelector(".item-desc");
+    if (!target || target.dataset.loaded === "1") return;
+    const uuid = li.dataset.uuid;
+    target.dataset.loaded = "1";
+    if (!this.#descCache.has(uuid)) target.textContent = "Loading…";
+    const text = await this.#loadDescription(uuid);
+    // The list may have been re-rendered while we awaited.
+    if (!target.isConnected) return;
+    target.textContent = text;
+    target.classList.toggle("empty", !text);
+    if (!text) target.textContent = "(no description)";
+  }
+
+  /**
+   * Full document load — descriptions are not carried by the compendium index,
+   * so there is no `fields` list that can avoid this. Cached per wizard session.
+   * @returns {Promise<string>} plain-text preview, "" when the item has none
+   */
+  async #loadDescription(uuid) {
+    if (this.#descCache.has(uuid)) return this.#descCache.get(uuid);
+    let text = "";
+    try {
+      const doc = await fromUuid(uuid);
+      const raw = doc?.system?.description?.value ?? "";
+      if (raw) {
+        const enricher = foundry.applications?.ux?.TextEditor?.implementation ?? TextEditor;
+        const html = await enricher.enrichHTML(raw, { async: true });
+        text = new DOMParser().parseFromString(html, "text/html").body.textContent
+          .replace(/\s+/g, " ").trim();
+      }
+    } catch (err) {
+      console.warn("Forge Creator | description load failed", uuid, err);
+    }
+    this.#descCache.set(uuid, text);
+    return text;
+  }
+
   #selectSearchResult(li, resultsList, selectedBin, searchInput) {
     this.selectedItems.set(li.dataset.uuid, { name: li.dataset.name, img: li.dataset.img });
+    this.#loadDescription(li.dataset.uuid).then(() => this.#renderSelectedItems(selectedBin));
     this.#renderSelectedItems(selectedBin);
     resultsList.style.display = "none";
     searchInput.value = "";
@@ -335,7 +406,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
     container.innerHTML = Array.from(this.selectedItems.entries()).map(([uuid, data]) => `
-      <div class="item-pill">
+      <div class="item-pill" title="${(this.#descCache.get(uuid) || "").replace(/"/g, "&quot;")}">
         <img src="${data.img}" alt="${data.name}">
         <span>${data.name}</span>
         <span class="remove-btn" data-uuid="${uuid}">×</span>
