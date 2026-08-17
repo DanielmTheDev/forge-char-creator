@@ -513,6 +513,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       prototypeToken: {
         name: actorName, texture: { src: tokenPath },
         disposition: parseInt(data.disposition) || CONST.TOKEN_DISPOSITIONS.HOSTILE,
+        actorLink: data.linkActorData === "on",
         flags: {}
       },
       system: {

@@ -707,7 +707,8 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el.querySelector("[name='size'][value='huge']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("#spellcasting"), "int");
         ForgeTestingSuite.#simulateChange(el.querySelector("#spellLevel"), "5");
-        
+        ForgeTestingSuite.#simulateChange(el.querySelector("#linkActorData"), true);
+
         // Instead of mocking, fetch a REAL spell from the internal DND5e compendium to guarantee 100% native injection schema validity
         const pack = game.packs.get("dnd5e.spells");
         if (!pack) throw new Error("dnd5e.spells compendium missing from environment");
@@ -725,7 +726,8 @@ class ForgeTestingSuite {
             if (actor.system.attributes.ac.flat !== 14) throw new Error(`AC mismatch, got ${actor.system.attributes.ac.flat}`);
             if (actor.system.traits.size !== "huge") throw new Error(`Size mismatch, got ${actor.system.traits.size}`);
             if (actor.prototypeToken.disposition !== 1) throw new Error(`Disposition mismatch, got ${actor.prototypeToken.disposition}`);
-            
+            if (actor.prototypeToken.actorLink !== true) throw new Error(`actorLink not set from checkbox, got ${actor.prototypeToken.actorLink}`);
+
             // Wait an extra tick for embedded documents to finish executing
             await ForgeTestingSuite.#delay(500); // Increased delay for createEmbeddedDocuments to finish
             const embedded = actor.items;
