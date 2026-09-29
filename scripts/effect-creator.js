@@ -1,14 +1,14 @@
 /**
- * Forge Effect Creator Wizard
+ * Forge Feature Builder (formerly Effect Creator)
  *
- * A standalone ApplicationV2 that builds Active Effects (with optional
- * Midi-QOL OverTime reroll logic) and saves them into the module's compendiums.
- * If "Wrap in Feature" is checked, a dnd5e Feature Item is created instead,
- * with the AE embedded inside it.
+ * One ApplicationV2 for everything a creature can do: attacks (with an optional
+ * on-hit saving throw), saves, buffs/temp HP, passives, or a bare Active Effect.
+ * The kind picked on the Basics step decides which steps are shown. Payloads are
+ * built by the pure scripts/feature-payload.js; this file is UI only.
  */
 
 import { CONDITIONS, DAMAGE_TYPES, ABILITIES, ADV_TYPES, ADV_ROLL_CATS, SPECIAL_DURATIONS, ACTIVATION_TYPES,
-         DEFAULT_STATE, buildEffect, buildItem } from "./feature-payload.js";
+         KINDS, DEFAULT_STATE, buildEffect, buildItem, summarize } from "./feature-payload.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -49,12 +49,16 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     ctx.specialDurations = SPECIAL_DURATIONS;
     ctx.activationTypes = ACTIVATION_TYPES;
     ctx.targetTypes = CONFIG.DND5E.targetTypes;
+    ctx.kinds = KINDS;
+    ctx.rechargeOpts = ["2", "3", "4", "5", "6"];
     return ctx;
   }
 
   constructor(options = {}, initialState = {}, onComplete = null) {
     super(options);
     Object.assign(this.#state, initialState);
+    // Opened from the char wizard: the result must be a feature, never a bare effect.
+    if (this.#state.isLocked && this.#state.kind === "effect") this.#state.kind = "attack";
     this.onComplete = onComplete;
   }
 
@@ -70,8 +74,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       input.addEventListener("change", () => {
         if (type === "checkbox") this.#state[key] = input.checked;
         else this.#state[key] = input.value;
-        this.#reactiveUpdate(el);
-        this.#updateRawPreview(el);
+        this.#refresh(el);
       });
     });
 
@@ -81,7 +84,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         const s = cb.dataset.status;
         if (cb.checked) { if (!this.#state.statuses.includes(s)) this.#state.statuses.push(s); }
         else this.#state.statuses = this.#state.statuses.filter(x => x !== s);
-        this.#updateRawPreview(el);
+        this.#refresh(el);
       });
     });
 
@@ -106,9 +109,24 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       this.#renderAbilityRows(el);
     });
 
-    this.#reactiveUpdate(el);
+    // Damage rows (on hit / on failed save)
+    el.querySelectorAll("[data-add-row]").forEach(btn => btn.addEventListener("click", () => {
+      const list = btn.dataset.addRow;
+      this.#state[list].push({ formula: "", type: list === "damageRows" ? "slashing" : "fire" });
+      this.#renderDamageRows(el, list);
+      el.querySelector(`.dmg-formula[data-list='${list}'][data-idx='${this.#state[list].length - 1}']`)?.focus();
+      this.#refresh(el);
+    }));
+
     this.#renderAdvRows(el);
     this.#renderAbilityRows(el);
+    this.#renderDamageRows(el, "damageRows");
+    this.#renderDamageRows(el, "saveDamageRows");
+    this.#refresh(el);
+  }
+
+  #refresh(el) {
+    this.#reactiveUpdate(el);
     this.#updateRawPreview(el);
   }
 
@@ -128,24 +146,41 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     show("otSaveSection",       s.durationType === "overtime" && s.otSave);
     show("otRollTypeSection",   s.durationType === "overtime" && !!s.otDamage);
     show("otDamageTypeSection", s.durationType === "overtime" && !!s.otDamage && s.otRollType === "damage");
-    show("activationModeRow",   s.appMode === "activation");
 
-    // Output Wrapper logic
+    const k = s.kind;
     const isArea = s.wrapTargetArea in (CONFIG.DND5E?.areaTargetTypes ?? {});
-    show("wrapFeatureOptions", s.wrapInFeature);
-    show("wrapCommonRow", ["apply", "attack", "save", "damage", "temphp"].includes(s.wrapType));
-    show("wrapDamageRow", ["attack", "save", "damage", "temphp"].includes(s.wrapType));
-    showFlex("wrapDamageTypeSection", ["attack", "save", "damage"].includes(s.wrapType));
-    show("wrapSaveRow", s.wrapType === "save");
+    const stepOn = { basics: true, attack: k === "attack", save: k === "save" || (k === "attack" && s.onHitSave),
+                     effects: true, review: true };
+    el.querySelectorAll(".fc-step").forEach(sec => { sec.hidden = !stepOn[sec.dataset.step]; });
+    show("deliveryBasics", k !== "effect");
+    showFlex("targetRow", ["attack", "save", "buff"].includes(k) && !(k === "buff" && s.activationTarget === "wearer"));
+    showFlex("buffRow", k === "buff");
+    showFlex("tempHpBox", k === "buff" && s.buffMode === "temphp");
+    showFlex("usesMaxBox", s.usesMode === "perRest");
+    showFlex("rechargeBox", s.usesMode === "recharge");
+    showFlex("toHitFlatBox", s.toHitMode === "flat");
+    showFlex("toHitDerivedBox", s.toHitMode === "derived");
+    showFlex("saveModeRow", k === "save");
+    showFlex("saveParams", !(k === "save" && s.saveMode === "none"));
+    show("appModeFieldset", k === "effect");
+    show("applyToRow", k === "buff" || (k === "effect" && s.appMode === "activation"));
     showFlex("wrapTargetCountBox", !isArea);
     showFlex("wrapAreaSizeBox", isArea);
 
-    // The formula field is shared between damage and temp HP — relabel it.
-    const isTemp = s.wrapType === "temphp";
-    const fLabel = el.querySelector("#wrapDamageLabel");
-    if (fLabel) fLabel.textContent = isTemp ? "Temp HP:" : "Damage:";
-    const fInput = el.querySelector("[data-ef='wrapDamageFormula']");
-    if (fInput) fInput.placeholder = isTemp ? "2d4+2" : "1d8+3";
+    const noSave = k === "save" && s.saveMode === "none";
+    const legend = el.querySelector("#saveDamageLegend");
+    if (legend) legend.textContent = noSave ? "Damage" : "Damage on failure";
+    const hint = {
+      attack: s.onHitSave ? "Applied to the target when it FAILS the on-hit save." : "Applied to the target on a HIT.",
+      save: noSave ? "Applied to every target." : "Applied to targets that FAIL the save.",
+      buff: "Applied on use.",
+      passive: "Always active on the creature that has this feature.",
+      effect: "The effect itself."
+    }[k];
+    const h = el.querySelector("#effectsHint");
+    if (h) h.textContent = hint ?? "";
+    const lbl = el.querySelector("#fcCreateLabel");
+    if (lbl) lbl.textContent = k === "effect" ? "Create Effect" : "Create Feature";
 
     // Force ApplicationV2 to dynamically recalculate interior bounding box heights
     // This perfectly prevents the window from clipping un-hidden elements with standard scrollbars.
@@ -241,17 +276,48 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     }));
   }
 
+  // ── Damage rows ───────────────────────────────────────────────────────────
+  #renderDamageRows(el, list) {
+    const container = el.querySelector(`#${list}`);
+    if (!container) return;
+    const rows = this.#state[list];
+    container.innerHTML = rows.length ? rows.map((r, idx) => `
+      <div class="dmg-row flexrow">
+        <input type="text" class="dmg-formula" data-list="${list}" data-idx="${idx}" value="${r.formula}"
+               placeholder="1d8+3" data-tooltip="Dice formula, e.g. 2d6 or 1d8+3">
+        <select class="dmg-type" data-list="${list}" data-idx="${idx}" data-tooltip="Damage type">
+          ${DAMAGE_TYPES.filter(t => t !== "healing").map(t => `<option value="${t}" ${r.type === t ? "selected" : ""}>${t}</option>`).join("")}
+        </select>
+        <button type="button" class="dmg-del" data-list="${list}" data-idx="${idx}" aria-label="Remove damage">×</button>
+      </div>`).join("")
+      : `<p class="notes fc-empty">No damage.</p>`;
+
+    container.querySelectorAll(".dmg-formula").forEach(i => i.addEventListener("change", () => {
+      rows[+i.dataset.idx].formula = i.value;
+      this.#refresh(el);
+    }));
+    container.querySelectorAll(".dmg-type").forEach(i => i.addEventListener("change", () => {
+      rows[+i.dataset.idx].type = i.value;
+      this.#refresh(el);
+    }));
+    container.querySelectorAll(".dmg-del").forEach(b => b.addEventListener("click", () => {
+      rows.splice(+b.dataset.idx, 1);
+      this.#renderDamageRows(el, list);
+      this.#refresh(el);
+    }));
+  }
+
   // ── Live Raw Preview ───────────────────────────────────────────────────────
   #updateRawPreview(el) {
+    const summary = el.querySelector("#fcSummary");
+    if (summary) summary.textContent = summarize(this.#state);
     const pre = el.querySelector("#efRawPreview");
     if (!pre) return;
     try {
-      const payload = this._buildAEData();
-      pre.textContent = JSON.stringify(payload, null, 2);
+      pre.textContent = JSON.stringify(this._buildItemData(), null, 2);
     } catch { pre.textContent = "(error building preview)"; }
   }
 
-  // ── Payload Builder ────────────────────────────────────────────────────────
   // ── Payload Builder ────────────────────────────────────────────────────────
   _buildAEData() { return buildEffect(this.#state); }
 
@@ -265,11 +331,11 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   // ── Creation ───────────────────────────────────────────────────────────────
   async _doCreate() {
     const s = this.#state;
-    if (!s.name?.trim()) { ui.notifications.warn("Please enter an effect name."); return; }
+    if (!s.name?.trim()) { ui.notifications.warn("Please enter a name."); return; }
     try {
       const itemData = this._buildItemData();
 
-      const targetPack = s.wrapInFeature ? "forge-features" : "forge-effects";
+      const targetPack = s.kind === "effect" ? "forge-effects" : "forge-features";
       const pack = game.packs.get(`forge-char-creator.${targetPack}`);
       if (!pack) { ui.notifications.error(`Could not find ${targetPack} compendium. Reload Foundry.`); return; }
 

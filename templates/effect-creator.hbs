@@ -1,320 +1,396 @@
 <form class="forge-effect-creator-content standard-form flexcol">
-  <div class="forge-form-body scrollable">
+  <div class="fc-layout">
+    <nav class="fc-steps-nav" aria-label="Steps"></nav>
+    <div class="forge-form-body scrollable fc-panes">
 
-  <!-- ── Identity ─────────────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Identity</legend>
-    <div class="flexrow" style="gap:8px; align-items:center; margin-bottom:6px;">
-      <input type="text" data-ef="name" placeholder="Effect Name" value="{{s.name}}"
-             style="flex:1; height:2rem;">
-      <div style="display:flex; align-items:center; gap:4px; flex:1.5;">
-        <input type="text" data-ef="img" placeholder="Icon path" value="{{s.img}}"
-               style="flex:1; height:2rem; font-size:0.8em;">
-        <img id="efImgPreview" src="{{s.img}}" alt="Icon" width="32" height="32"
-             style="border:none; border-radius:4px; flex-shrink:0;">
-      </div>
-    </div>
-    <textarea data-ef="description" placeholder="Description (optional)"
-              style="width:100%; height:3.5rem; resize:vertical; font-size:0.9em;">{{s.description}}</textarea>
-  </fieldset>
-
-  <!-- ── Application Mode ──────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Application Mode</legend>
-    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
-      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-        <input type="radio" data-ef="appMode" name="appMode" value="passive"
-               {{#if (eq s.appMode "passive")}}checked{{/if}}>
-        <strong>Passive</strong> — always active on item holder
-      </label>
-      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-        <input type="radio" data-ef="appMode" name="appMode" value="activation"
-               {{#if (eq s.appMode "activation")}}checked{{/if}}>
-        <strong>On Activation</strong>
-      </label>
-    </div>
-    <!-- Sub-row for activation target (shown/hidden by JS) -->
-    <div id="activationModeRow" style="margin-top:8px; padding-left:8px; border-left:2px solid var(--color-border-light-tertiary);">
-      <span style="font-size:0.9em;">Apply to:</span>
-      <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
-        <input type="radio" data-ef="activationTarget" name="activationTarget" value="wearer"
-               {{#if (eq s.activationTarget "wearer")}}checked{{/if}}>
-        Wearer / Self
-      </label>
-      <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
-        <input type="radio" data-ef="activationTarget" name="activationTarget" value="targets"
-               {{#if (eq s.activationTarget "targets")}}checked{{/if}}>
-        Target(s)
-      </label>
-    </div>
-  </fieldset>
-
-  <!-- ── Duration / Reroll Logic ───────────────────────────────────────── -->
-  <fieldset>
-    <legend>Duration</legend>
-    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
-      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-        <input type="radio" data-ef="durationType" name="durationType" value="fixed"
-               {{#if (eq s.durationType "fixed")}}checked{{/if}}>
-        Fixed (rounds)
-      </label>
-      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-        <input type="radio" data-ef="durationType" name="durationType" value="overtime"
-               {{#if (eq s.durationType "overtime")}}checked{{/if}}>
-        Reroll / Over Time
-      </label>
-    </div>
-
-    <!-- Fixed -->
-    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-      <label style="font-size:0.9em;">Rounds (0 = indefinite):</label>
-      <input type="number" data-ef="rounds" value="{{s.rounds}}" min="0"
-             style="width:4rem; height:1.8rem; text-align:center;">
-    </div>
-
-    <!-- Special duration (DAE / Times-Up) -->
-    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-      <label style="font-size:0.9em;">Expires:</label>
-      <select data-ef="specialDuration" style="height:1.8rem; max-width:16rem;">
-        {{#each specialDurations as |sd|}}
-        <option value="{{sd.id}}" {{#if (eq ../s.specialDuration sd.id)}}selected{{/if}}>{{sd.label}}</option>
-        {{/each}}
-      </select>
-      <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Needs the Times-Up module to expire.</span>
-    </div>
-
-    <!-- OverTime sub-section (shown by JS) -->
-    <div id="otSection" style="border-top:1px solid var(--color-border-light-tertiary); margin-top:6px; padding-top:6px; display:none;">
-      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
-        <label style="font-size:0.9em;">Trigger:
-          <select data-ef="otTrigger" style="height:1.8rem; margin-left:4px;">
-            <option value="end" {{#if (eq s.otTrigger "end")}}selected{{/if}}>End of Turn</option>
-            <option value="start" {{#if (eq s.otTrigger "start")}}selected{{/if}}>Start of Turn</option>
-          </select>
-        </label>
-        <label style="font-size:0.9em;">Whose turn:
-          <select data-ef="otWhose" style="height:1.8rem; margin-left:4px;">
-            <option value="target" {{#if (eq s.otWhose "target")}}selected{{/if}}>Target's</option>
-            <option value="source" {{#if (eq s.otWhose "source")}}selected{{/if}}>Source's</option>
-          </select>
-        </label>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
-        <label style="font-size:0.9em;">Damage/Healing Roll:
-          <input type="text" data-ef="otDamage" placeholder="e.g. 1d6, @con.mod, healing"
-                 value="{{s.otDamage}}" style="width:10rem; height:1.8rem; margin-left:4px;">
-        </label>
-        
-        <!-- Roll Type (Damage or Healing) shown only if roll is populated -->
-        <div id="otRollTypeSection" style="display:none; align-items:center; gap:6px; margin-left:8px;">
-          <label style="cursor:pointer; font-size:0.9em;">
-            <input type="radio" data-ef="otRollType" name="otRollType" value="damage" {{#if (eq s.otRollType "damage")}}checked{{/if}}> Damage
+    <!-- ── Step: Basics ──────────────────────────────────────────────────── -->
+    <section class="fc-step" data-step="basics" data-title="Basics">
+      <fieldset>
+        <legend>What is it?</legend>
+        <div class="fc-kinds">
+          {{#each kinds as |k|}}
+          <label class="fc-kind" data-tooltip="{{k.hint}}">
+            <input type="radio" name="kind" data-ef="kind" value="{{k.id}}"
+                   {{#if (eq ../s.kind k.id)}}checked{{/if}}
+                   {{#if ../s.isLocked}}{{#if (eq k.id "effect")}}disabled{{/if}}{{/if}}>
+            <span>{{k.label}}</span>
           </label>
-          <label style="cursor:pointer; font-size:0.9em;">
-            <input type="radio" data-ef="otRollType" name="otRollType" value="healing" {{#if (eq s.otRollType "healing")}}checked{{/if}}> Healing
-          </label>
+          {{/each}}
         </div>
+      </fieldset>
 
-        <label id="otDamageTypeSection" style="font-size:0.9em; display:none;">Type:
-          <select data-ef="otDamageType" style="height:1.8rem; margin-left:4px;">
-            {{#each damageTypes as |dt|}}
-            <option value="{{dt}}" {{#if (eq ../s.otDamageType dt)}}selected{{/if}}>{{dt}}</option>
-            {{/each}}
-          </select>
-        </label>
-      </div>
-      <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; cursor:pointer; margin-bottom:4px;">
-        <input type="checkbox" data-ef="otSave" {{#if s.otSave}}checked{{/if}}>
-        Saving Throw
-      </label>
-      <div id="otSaveSection" style="padding-left:12px; border-left:2px solid var(--color-border-light-tertiary); display:none;">
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
-          <label style="font-size:0.9em;">Ability:
-            <select data-ef="otSaveAbility" style="height:1.8rem; margin-left:4px;">
-              {{#each abilities as |ab|}}
-              <option value="{{ab.[0]}}" {{#if (eq ../s.otSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
+      <fieldset>
+        <legend>Identity</legend>
+        <div class="flexrow" style="gap:8px; align-items:center; margin-bottom:6px;">
+          <input type="text" data-ef="name" placeholder="Name" value="{{s.name}}" style="flex:1; height:2rem;"
+                 data-tooltip="Shown on the sheet and in chat.">
+          <button type="button" class="fc-icon-btn" data-action="pickIcon" data-tooltip="Choose an icon (searchable)">
+            <img id="efImgPreview" src="{{s.img}}" alt="Icon" width="36" height="36">
+          </button>
+          <input type="text" data-ef="img" value="{{s.img}}" style="flex:1; height:2rem; font-size:0.8em;"
+                 data-tooltip="Icon file path. Use the icon button to search instead of typing.">
+        </div>
+        <textarea data-ef="description" placeholder="Description — leave blank to auto-generate from your choices"
+                  style="width:100%; height:3.5rem; resize:vertical; font-size:0.9em;">{{s.description}}</textarea>
+      </fieldset>
+
+      <fieldset id="deliveryBasics">
+        <legend>Use</legend>
+        <div class="fc-row">
+          <label data-tooltip="What it costs to use in combat.">Activation
+            <select data-ef="wrapActivation">
+              {{#each activationTypes as |at|}}
+              <option value="{{at.id}}" {{#if (eq ../s.wrapActivation at.id)}}selected{{/if}}>{{at.label}}</option>
               {{/each}}
             </select>
           </label>
-          <label style="font-size:0.9em;">DC:
-            <input type="number" data-ef="otSaveDC" value="{{s.otSaveDC}}" min="5" max="30"
-                   style="width:4rem; height:1.8rem; text-align:center; margin-left:4px;">
+          <label data-tooltip="At will = unlimited. X / long rest = limited uses. Recharge = roll a d6 each turn; regains its use on N–6.">Uses
+            <select data-ef="usesMode">
+              <option value="atwill" {{#if (eq s.usesMode "atwill")}}selected{{/if}}>At will</option>
+              <option value="perRest" {{#if (eq s.usesMode "perRest")}}selected{{/if}}>X / long rest</option>
+              <option value="recharge" {{#if (eq s.usesMode "recharge")}}selected{{/if}}>Recharge</option>
+            </select>
+          </label>
+          <label id="usesMaxBox" data-tooltip="Uses per long rest.">Uses
+            <input type="number" data-ef="usesMax" value="{{s.usesMax}}" min="1" class="fc-num">
+          </label>
+          <label id="rechargeBox" data-tooltip="Recharges when the d6 shows this number or higher.">Recharge on
+            <select data-ef="rechargeOn">
+              {{#each rechargeOpts as |r|}}
+              <option value="{{r}}" {{#if (eq ../s.rechargeOn r)}}selected{{/if}}>{{r}}–6</option>
+              {{/each}}
+            </select>
           </label>
         </div>
-        <label style="font-size:0.9em;">On Save:
-          <select data-ef="otOnSave" style="height:1.8rem; margin-left:4px;">
-            <option value="nodamage"   {{#if (eq s.otOnSave "nodamage")}}selected{{/if}}>No Damage</option>
-            <option value="halfdamage" {{#if (eq s.otOnSave "halfdamage")}}selected{{/if}}>Half Damage</option>
-            <option value="fulldamage" {{#if (eq s.otOnSave "fulldamage")}}selected{{/if}}>Full Damage</option>
-          </select>
-        </label>
-        <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; margin-top:4px;">
-          Remove after
-          <input type="number" data-ef="otSuccesses" value="{{s.otSuccesses}}" min="1"
-                 style="width:3rem; height:1.8rem; text-align:center;">
-          successful save(s)
-        </label>
-      </div>
-    </div>
-  </fieldset>
-
-  <!-- ── Conditions ────────────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Conditions Applied</legend>
-    <div style="display:flex; flex-wrap:wrap; gap:4px 10px;">
-      {{#each conditions as |cond|}}
-      <label style="display:inline-flex; align-items:center; gap:4px; font-size:0.85em; cursor:pointer; text-transform:capitalize;">
-        <input type="checkbox" data-status="{{cond}}"
-               {{#if (lookup ../statusMap cond)}}checked{{/if}}>
-        {{cond}}
-      </label>
-      {{/each}}
-    </div>
-  </fieldset>
-
-  <!-- ── Roll Modifiers ────────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Advantage / Disadvantage</legend>
-    <div id="advRowsContainer" style="margin-bottom:6px;"></div>
-    <button type="button" id="addAdvRow" style="font-size:0.85em; padding:2px 8px;">
-      <i class="fas fa-plus"></i> Add Modifier
-    </button>
-  </fieldset>
-
-  <!-- ── Stat Modifiers ──────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Stat Modifiers</legend>
-    <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
-      <label style="font-size:0.9em; font-weight:bold; white-space:nowrap;">AC Bonus/Penalty:</label>
-      <input type="number" data-ef="acBonus" value="{{s.acBonus}}"
-             style="width:4rem; height:1.8rem; text-align:center;" placeholder="0">
-      <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">(positive = bonus, negative = penalty)</span>
-    </div>
-    <label style="font-size:0.9em; font-weight:bold; display:block; margin-bottom:4px;">Ability Score Modifiers:</label>
-    <div id="abilityRowsContainer" style="margin-bottom:6px;"></div>
-    <button type="button" id="addAbilityRow" style="font-size:0.85em; padding:2px 8px;">
-      <i class="fas fa-plus"></i> Add Ability Modifier
-    </button>
-  </fieldset>
-
-  <!-- ── Stacking ────────────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Effect Stacking <span class="notes" style="font-size:0.82em; font-weight:normal;">(DAE)</span></legend>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <select data-ef="stackable" style="height:1.8rem; flex:1; max-width:14rem;">
-        <option value="none" {{#if (eq s.stackable "none")}}selected{{/if}}>None (default — replaces)</option>
-        <option value="count" {{#if (eq s.stackable "count")}}selected{{/if}}>Count Stacks</option>
-        <option value="multi" {{#if (eq s.stackable "multi")}}selected{{/if}}>Full Stack (Multi)</option>
-      </select>
-      <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Controls whether multiple copies of this effect stack on a target.</span>
-    </div>
-  </fieldset>
-
-  <!-- ── Output Mode ───────────────────────────────────────────────────── -->
-  <fieldset>
-    <legend>Output</legend>
-    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.95em; margin-bottom:8px;">
-      <input type="checkbox" data-ef="wrapInFeature" {{#if s.wrapInFeature}}checked{{/if}} {{#if s.isLocked}}disabled{{/if}}>
-      <span>
-        <strong>Wrap in Feature Item</strong>
-        <span class="notes" style="font-size:0.85em;">
-          — creates a Feature item with the AE embedded (drag onto actors)
-          instead of a standalone AE (drag onto items)
-        </span>
-      </span>
-    </label>
-
-    <div id="wrapFeatureOptions" style="display:none; padding:10px; background:rgba(0,0,0,0.2); border-radius:4px; border:1px solid var(--color-border-light-tertiary);">
-      
-      <!-- Activation cost (written to the activity, not the item) -->
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
-        <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Activation:</span>
-        <select data-ef="wrapActivation" style="height:1.8rem; max-width:12rem;">
-          {{#each activationTypes as |at|}}
-          <option value="{{at.id}}" {{#if (eq ../s.wrapActivation at.id)}}selected{{/if}}>{{at.label}}</option>
-          {{/each}}
-        </select>
-      </div>
-
-      <!-- Radio buttons row -->
-      <div style="display:flex; gap:16px; margin-bottom:12px; align-items:center;">
-        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="none" {{#if (eq s.wrapType "none")}}checked{{/if}}> No Action</label>
-        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="apply" {{#if (eq s.wrapType "apply")}}checked{{/if}}> Just Apply</label>
-        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="attack" {{#if (eq s.wrapType "attack")}}checked{{/if}}> Midi Attack</label>
-        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="save" {{#if (eq s.wrapType "save")}}checked{{/if}}> Midi Save</label>
-        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="damage" {{#if (eq s.wrapType "damage")}}checked{{/if}}> Midi Damage</label>
-        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="temphp" {{#if (eq s.wrapType "temphp")}}checked{{/if}}> Temp HP</label>
-      </div>
-      
-      <!-- Common wrapper target/damage Row -->
-      <div id="wrapCommonRow" style="display:none; flex-direction:column; gap:8px; margin-bottom:8px;">
-        
-        <!-- Targets & Area -->
-        <div style="display:flex; gap:16px; align-items:center; width:100%;">
-          <div id="wrapTargetCountBox" style="display:flex; align-items:center; gap:6px;">
+        <div class="fc-row" id="targetRow">
+          <div id="wrapTargetCountBox" style="display:flex; align-items:center; gap:6px;" data-tooltip="How many creatures it can target.">
             <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Targets:</span>
-            <input type="number" data-ef="wrapTargetCount" value="{{s.wrapTargetCount}}" style="width:3.5rem; text-align:center; height:1.8rem;">
+            <input type="number" data-ef="wrapTargetCount" value="{{s.wrapTargetCount}}" min="1" class="fc-num">
           </div>
-          <div id="wrapAreaSizeBox" style="display:none; align-items:center; gap:6px;">
+          <div id="wrapAreaSizeBox" style="display:none; align-items:center; gap:6px;" data-tooltip="Size of the area in feet (radius, cone length, cube side…).">
             <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Size (ft):</span>
-            <input type="number" data-ef="wrapAreaSize" value="{{s.wrapAreaSize}}" min="0" style="width:3.5rem; text-align:center; height:1.8rem;">
+            <input type="number" data-ef="wrapAreaSize" value="{{s.wrapAreaSize}}" min="0" step="5" class="fc-num">
           </div>
-          <div style="display:flex; align-items:center; gap:6px; flex:1;">
-            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Area:</span>
+          <div style="display:flex; align-items:center; gap:6px; flex:1;" data-tooltip="Who or what it targets. Area types (radius, cone…) place a template.">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Target type:</span>
             <select data-ef="wrapTargetArea" style="height:1.8rem; flex:1;">
               {{#each targetTypes as |label id|}}
-                <option value="{{id}}" {{#if (eq ../s.wrapTargetArea id)}}selected{{/if}}>{{label}}</option>
+              <option value="{{id}}" {{#if (eq ../s.wrapTargetArea id)}}selected{{/if}}>{{label}}</option>
               {{/each}}
             </select>
           </div>
         </div>
+        <div class="fc-row" id="buffRow">
+          <label data-tooltip="Apply the effect from the Effects step."><input type="radio" name="buffMode" data-ef="buffMode" value="apply" {{#if (eq s.buffMode "apply")}}checked{{/if}}> Apply effect</label>
+          <label data-tooltip="Grant temporary hit points (a real dnd5e heal)."><input type="radio" name="buffMode" data-ef="buffMode" value="temphp" {{#if (eq s.buffMode "temphp")}}checked{{/if}}> Temp HP</label>
+          <label id="tempHpBox" data-tooltip="Dice or flat number, e.g. 2d4+2. Temp HP doesn't stack: the higher value wins.">Temp HP
+            <input type="text" data-ef="tempHpFormula" value="{{s.tempHpFormula}}" placeholder="2d4+2" class="fc-formula">
+          </label>
+        </div>
+      </fieldset>
+    </section>
 
-        <!-- Damage & Type -->
-        <div id="wrapDamageRow" style="display:flex; gap:16px; align-items:center; width:100%;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span id="wrapDamageLabel" style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Damage:</span>
-            <input type="text" data-ef="wrapDamageFormula" value="{{s.wrapDamageFormula}}" placeholder="1d8+3" style="width:6rem; height:1.8rem; text-align:center;">
-          </div>
-          <div style="display:flex; align-items:center; gap:6px; flex:1;" id="wrapDamageTypeSection">
-            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Type:</span>
-            <select data-ef="wrapDamageType" style="height:1.8rem; flex:1;">
-              {{#each damageTypes as |dt|}}<option value="{{dt}}" {{#if (eq ../s.wrapDamageType dt)}}selected{{/if}}>{{dt}}</option>{{/each}}
+    <!-- ── Step: Attack ──────────────────────────────────────────────────── -->
+    <section class="fc-step" data-step="attack" data-title="Attack">
+      <fieldset>
+        <legend>Attack roll</legend>
+        <div class="fc-row">
+          <label data-tooltip="Melee uses reach, ranged uses range.">Type
+            <select data-ef="attackType">
+              <option value="melee" {{#if (eq s.attackType "melee")}}selected{{/if}}>Melee</option>
+              <option value="ranged" {{#if (eq s.attackType "ranged")}}selected{{/if}}>Ranged</option>
             </select>
+          </label>
+          <label data-tooltip="Reach or range in feet.">Reach / range (ft)
+            <input type="number" data-ef="attackRange" value="{{s.attackRange}}" min="0" step="5" class="fc-num">
+          </label>
+        </div>
+        <div class="fc-row">
+          <label data-tooltip="Fixed: exactly the number on the statblock (e.g. +7 to hit). Doesn't change with stats.">
+            <input type="radio" name="toHitMode" data-ef="toHitMode" value="flat" {{#if (eq s.toHitMode "flat")}}checked{{/if}}> Fixed bonus
+          </label>
+          <label data-tooltip="Calculated: ability modifier + proficiency + extra bonus. Scales when the creature's stats change.">
+            <input type="radio" name="toHitMode" data-ef="toHitMode" value="derived" {{#if (eq s.toHitMode "derived")}}checked{{/if}}> Calculated
+          </label>
+          <label id="toHitFlatBox" data-tooltip="Total attack bonus, e.g. 7 for '+7 to hit'.">To hit +
+            <input type="text" data-ef="toHitFlat" value="{{s.toHitFlat}}" class="fc-num" placeholder="7">
+          </label>
+          <span id="toHitDerivedBox" class="fc-row" style="margin:0;">
+            <select data-ef="toHitAbility" data-tooltip="Ability whose modifier is added.">
+              {{#each abilities as |ab|}}
+              <option value="{{ab.[0]}}" {{#if (eq ../s.toHitAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
+              {{/each}}
+            </select>
+            + prof +
+            <input type="text" data-ef="toHitBonus" value="{{s.toHitBonus}}" class="fc-num" placeholder="0"
+                   data-tooltip="Extra bonus on top, e.g. 1 for a +1 weapon.">
+          </span>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend data-tooltip="Damage dealt on a hit. One row per damage type (e.g. 1d8+3 piercing + 2d6 poison).">Damage on hit</legend>
+        <div id="damageRows"></div>
+        <button type="button" data-add-row="damageRows"><i class="fas fa-plus"></i> Add damage</button>
+      </fieldset>
+      <label class="fc-row" data-tooltip="On a hit, the target also rolls a saving throw (e.g. 'DC 13 CON or be poisoned'). Set it up in the next step.">
+        <input type="checkbox" data-ef="onHitSave" {{#if s.onHitSave}}checked{{/if}}> On hit: target makes a saving throw
+      </label>
+    </section>
+
+    <!-- ── Step: Saving Throw ────────────────────────────────────────────── -->
+    <section class="fc-step" data-step="save" data-title="Saving Throw">
+      <fieldset>
+        <legend>Saving throw</legend>
+        <div class="fc-row" id="saveModeRow">
+          <label data-tooltip="Targets roll a save."><input type="radio" name="saveMode" data-ef="saveMode" value="save" {{#if (eq s.saveMode "save")}}checked{{/if}}> Save</label>
+          <label data-tooltip="No roll at all: damage and effects just happen."><input type="radio" name="saveMode" data-ef="saveMode" value="none" {{#if (eq s.saveMode "none")}}checked{{/if}}> No save (auto damage)</label>
+        </div>
+        <div class="fc-row" id="saveParams">
+          <label data-tooltip="Which saving throw the target rolls.">Ability
+            <select data-ef="wrapSaveAbility">
+              {{#each abilities as |ab|}}
+              <option value="{{ab.[0]}}" {{#if (eq ../s.wrapSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
+              {{/each}}
+            </select>
+          </label>
+          <label data-tooltip="A number (e.g. 13). Leave blank to use the creature's spell save DC.">DC
+            <input type="text" data-ef="wrapSaveDC" value="{{s.wrapSaveDC}}" class="fc-num" placeholder="spell">
+          </label>
+          <label id="saveOnSuccessBox" data-tooltip="What a successful save does to the damage below. Effects never apply on a success.">On success
+            <select data-ef="saveOnSuccess">
+              <option value="half" {{#if (eq s.saveOnSuccess "half")}}selected{{/if}}>Half damage</option>
+              <option value="none" {{#if (eq s.saveOnSuccess "none")}}selected{{/if}}>No damage</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend id="saveDamageLegend" data-tooltip="Damage taken on a failed save.">Damage on failure</legend>
+        <div id="saveDamageRows"></div>
+        <button type="button" data-add-row="saveDamageRows"><i class="fas fa-plus"></i> Add damage</button>
+      </fieldset>
+    </section>
+
+    <!-- ── Step: Effects ─────────────────────────────────────────────────── -->
+    <section class="fc-step" data-step="effects" data-title="Effects">
+      <p class="hint" id="effectsHint"></p>
+      <!-- ── Application Mode ──────────────────────────────────────────────── -->
+      <fieldset id="appModeFieldset">
+        <legend>Application Mode</legend>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="radio" data-ef="appMode" name="appMode" value="passive"
+                   {{#if (eq s.appMode "passive")}}checked{{/if}}
+                   data-tooltip="Always active on whatever carries this effect.">
+            <strong>Passive</strong> — always active on item holder
+          </label>
+          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="radio" data-ef="appMode" name="appMode" value="activation"
+                   {{#if (eq s.appMode "activation")}}checked{{/if}}
+                   data-tooltip="Applied only when the item is used.">
+            <strong>On Activation</strong>
+          </label>
+        </div>
+        <!-- Sub-row for activation target (shown/hidden by JS) -->
+      </fieldset>
+        <div id="applyToRow" style="margin:0 0 8px; padding-left:8px; border-left:2px solid var(--color-border-light-tertiary);" data-tooltip="Who receives the effect when the feature is used.">
+          <span style="font-size:0.9em;">Apply to:</span>
+          <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
+            <input type="radio" data-ef="activationTarget" name="activationTarget" value="wearer"
+                   {{#if (eq s.activationTarget "wearer")}}checked{{/if}}>
+            Wearer / Self
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
+            <input type="radio" data-ef="activationTarget" name="activationTarget" value="targets"
+                   {{#if (eq s.activationTarget "targets")}}checked{{/if}}>
+            Target(s)
+          </label>
+        </div>
+
+      <!-- ── Duration / Reroll Logic ───────────────────────────────────────── -->
+      <fieldset>
+        <legend>Duration</legend>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
+          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="radio" data-ef="durationType" name="durationType" value="fixed"
+                   {{#if (eq s.durationType "fixed")}}checked{{/if}}
+                   data-tooltip="Lasts a set number of rounds (0 = until removed).">
+            Fixed (rounds)
+          </label>
+          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="radio" data-ef="durationType" name="durationType" value="overtime"
+                   {{#if (eq s.durationType "overtime")}}checked{{/if}}
+                   data-tooltip="Does something every turn: damage, healing, or a save to end it.">
+            Reroll / Over Time
+          </label>
+        </div>
+
+        <!-- Fixed -->
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <label style="font-size:0.9em;">Rounds (0 = indefinite):</label>
+          <input type="number" data-ef="rounds" value="{{s.rounds}}" min="0"
+                 style="width:4rem; height:1.8rem; text-align:center;">
+        </div>
+
+        <!-- Special duration (DAE / Times-Up) -->
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+          <label style="font-size:0.9em;">Expires:</label>
+          <select data-ef="specialDuration" data-tooltip="Ends at a turn boundary instead of after N rounds. Needs the Times-Up module." style="height:1.8rem; max-width:16rem;">
+            {{#each specialDurations as |sd|}}
+            <option value="{{sd.id}}" {{#if (eq ../s.specialDuration sd.id)}}selected{{/if}}>{{sd.label}}</option>
+            {{/each}}
+          </select>
+          <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Needs the Times-Up module to expire.</span>
+        </div>
+
+        <!-- OverTime sub-section (shown by JS) -->
+        <div id="otSection" style="border-top:1px solid var(--color-border-light-tertiary); margin-top:6px; padding-top:6px; display:none;">
+          <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
+            <label style="font-size:0.9em;">Trigger:
+              <select data-ef="otTrigger" data-tooltip="When the per-turn effect fires." style="height:1.8rem; margin-left:4px;">
+                <option value="end" {{#if (eq s.otTrigger "end")}}selected{{/if}}>End of Turn</option>
+                <option value="start" {{#if (eq s.otTrigger "start")}}selected{{/if}}>Start of Turn</option>
+              </select>
+            </label>
+            <label style="font-size:0.9em;">Whose turn:
+              <select data-ef="otWhose" data-tooltip="Whose turn triggers it: the affected creature's, or the one who applied it." style="height:1.8rem; margin-left:4px;">
+                <option value="target" {{#if (eq s.otWhose "target")}}selected{{/if}}>Target's</option>
+                <option value="source" {{#if (eq s.otWhose "source")}}selected{{/if}}>Source's</option>
+              </select>
+            </label>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
+            <label style="font-size:0.9em;">Damage/Healing Roll:
+              <input type="text" data-ef="otDamage" data-tooltip="Rolled each turn, e.g. 1d6. Leave blank for a save-only effect." placeholder="e.g. 1d6, @con.mod, healing"
+                     value="{{s.otDamage}}" style="width:10rem; height:1.8rem; margin-left:4px;">
+            </label>
+        
+            <!-- Roll Type (Damage or Healing) shown only if roll is populated -->
+            <div id="otRollTypeSection" style="display:none; align-items:center; gap:6px; margin-left:8px;">
+              <label style="cursor:pointer; font-size:0.9em;">
+                <input type="radio" data-ef="otRollType" name="otRollType" value="damage" {{#if (eq s.otRollType "damage")}}checked{{/if}}> Damage
+              </label>
+              <label style="cursor:pointer; font-size:0.9em;">
+                <input type="radio" data-ef="otRollType" name="otRollType" value="healing" {{#if (eq s.otRollType "healing")}}checked{{/if}}> Healing
+              </label>
+            </div>
+
+            <label id="otDamageTypeSection" style="font-size:0.9em; display:none;">Type:
+              <select data-ef="otDamageType" style="height:1.8rem; margin-left:4px;">
+                {{#each damageTypes as |dt|}}
+                <option value="{{dt}}" {{#if (eq ../s.otDamageType dt)}}selected{{/if}}>{{dt}}</option>
+                {{/each}}
+              </select>
+            </label>
+          </div>
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; cursor:pointer; margin-bottom:4px;">
+            <input type="checkbox" data-ef="otSave" data-tooltip="The target saves each turn; enough successes end the effect." {{#if s.otSave}}checked{{/if}}>
+            Saving Throw
+          </label>
+          <div id="otSaveSection" style="padding-left:12px; border-left:2px solid var(--color-border-light-tertiary); display:none;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
+              <label style="font-size:0.9em;">Ability:
+                <select data-ef="otSaveAbility" style="height:1.8rem; margin-left:4px;">
+                  {{#each abilities as |ab|}}
+                  <option value="{{ab.[0]}}" {{#if (eq ../s.otSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
+                  {{/each}}
+                </select>
+              </label>
+              <label style="font-size:0.9em;">DC:
+                <input type="number" data-ef="otSaveDC" value="{{s.otSaveDC}}" min="5" max="30"
+                       style="width:4rem; height:1.8rem; text-align:center; margin-left:4px;">
+              </label>
+            </div>
+            <label style="font-size:0.9em;">On Save:
+              <select data-ef="otOnSave" style="height:1.8rem; margin-left:4px;">
+                <option value="nodamage"   {{#if (eq s.otOnSave "nodamage")}}selected{{/if}}>No Damage</option>
+                <option value="halfdamage" {{#if (eq s.otOnSave "halfdamage")}}selected{{/if}}>Half Damage</option>
+                <option value="fulldamage" {{#if (eq s.otOnSave "fulldamage")}}selected{{/if}}>Full Damage</option>
+              </select>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; margin-top:4px;">
+              Remove after
+              <input type="number" data-ef="otSuccesses" data-tooltip="Number of successful saves needed to end it." value="{{s.otSuccesses}}" min="1"
+                     style="width:3rem; height:1.8rem; text-align:center;">
+              successful save(s)
+            </label>
           </div>
         </div>
-      </div>
+      </fieldset>
 
-      <!-- Save Only Row -->
-      <div id="wrapSaveRow" style="display:none; flex-direction:column; gap:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1);">
-        <div style="display:flex; gap:16px; align-items:center; width:100%;">
-          <div style="display:flex; align-items:center; gap:6px; flex:1;">
-            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Save Ability:</span>
-            <select data-ef="wrapSaveAbility" style="height:1.8rem; flex:1;">
-              {{#each abilities as |ab|}}<option value="{{ab.[0]}}" {{#if (eq ../s.wrapSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>{{/each}}
-            </select>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Save DC:</span>
-            <input type="text" data-ef="wrapSaveDC" value="{{s.wrapSaveDC}}" style="width:4.5rem; height:1.8rem; text-align:center;" placeholder="e.g. 14">
-          </div>
+      <!-- ── Conditions ────────────────────────────────────────────────────── -->
+      <fieldset>
+        <legend data-tooltip="Standard conditions applied to the target while the effect lasts.">Conditions Applied</legend>
+        <div style="display:flex; flex-wrap:wrap; gap:4px 10px;">
+          {{#each conditions as |cond|}}
+          <label style="display:inline-flex; align-items:center; gap:4px; font-size:0.85em; cursor:pointer; text-transform:capitalize;">
+            <input type="checkbox" data-status="{{cond}}"
+                   {{#if (lookup ../statusMap cond)}}checked{{/if}}>
+            {{cond}}
+          </label>
+          {{/each}}
         </div>
-      </div>
+      </fieldset>
+
+      <!-- ── Roll Modifiers ────────────────────────────────────────────────── -->
+      <fieldset>
+        <legend data-tooltip="Advantage/disadvantage on rolls. 'Grants' = rolls made AGAINST this creature.">Advantage / Disadvantage</legend>
+        <div id="advRowsContainer" style="margin-bottom:6px;"></div>
+        <button type="button" id="addAdvRow" style="font-size:0.85em; padding:2px 8px;">
+          <i class="fas fa-plus"></i> Add Modifier
+        </button>
+      </fieldset>
+
+      <!-- ── Stat Modifiers ──────────────────────────────────────────────── -->
+      <fieldset>
+        <legend>Stat Modifiers</legend>
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+          <label style="font-size:0.9em; font-weight:bold; white-space:nowrap;">AC Bonus/Penalty:</label>
+          <input type="number" data-ef="acBonus" data-tooltip="Added to AC. Negative for a penalty." value="{{s.acBonus}}"
+                 style="width:4rem; height:1.8rem; text-align:center;" placeholder="0">
+          <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">(positive = bonus, negative = penalty)</span>
+        </div>
+        <label style="font-size:0.9em; font-weight:bold; display:block; margin-bottom:4px;" data-tooltip="Added to ability scores while active.">Ability Score Modifiers:</label>
+        <div id="abilityRowsContainer" style="margin-bottom:6px;"></div>
+        <button type="button" id="addAbilityRow" style="font-size:0.85em; padding:2px 8px;">
+          <i class="fas fa-plus"></i> Add Ability Modifier
+        </button>
+      </fieldset>
+
+      <!-- ── Stacking ────────────────────────────────────────────────────── -->
+      <fieldset>
+        <legend>Effect Stacking <span class="notes" style="font-size:0.82em; font-weight:normal;">(DAE)</span></legend>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <select data-ef="stackable" data-tooltip="Whether applying it again adds a second copy or replaces the first." style="height:1.8rem; flex:1; max-width:14rem;">
+            <option value="none" {{#if (eq s.stackable "none")}}selected{{/if}}>None (default — replaces)</option>
+            <option value="count" {{#if (eq s.stackable "count")}}selected{{/if}}>Count Stacks</option>
+            <option value="multi" {{#if (eq s.stackable "multi")}}selected{{/if}}>Full Stack (Multi)</option>
+          </select>
+          <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Controls whether multiple copies of this effect stack on a target.</span>
+        </div>
+      </fieldset>
+
+    </section>
+
+    <!-- ── Step: Review ──────────────────────────────────────────────────── -->
+    <section class="fc-step" data-step="review" data-title="Review">
+      <fieldset>
+        <legend>Summary</legend>
+        <p id="fcSummary" class="fc-summary"></p>
+      </fieldset>
+      <details>
+        <summary style="cursor:pointer; font-size:0.85em; color:var(--color-text-light-5);">🔧 Raw preview</summary>
+        <pre id="efRawPreview" class="fc-raw"></pre>
+      </details>
+    </section>
+
     </div>
-  </fieldset>
-
-  <!-- ── Raw Preview ───────────────────────────────────────────────────── -->
-  <details style="margin-top:4px;">
-    <summary style="cursor:pointer; font-size:0.85em; color:var(--color-text-light-5);">🔧 Raw Effect Preview</summary>
-    <pre id="efRawPreview" style="font-size:0.72em; background:rgba(0,0,0,0.3); border-radius:4px; padding:6px; margin-top:4px; white-space:pre-wrap; word-break:break-all; max-height:160px; overflow-y:auto;"></pre>
-  </details>
   </div>
 
-  <!-- ── Create Button ─────────────────────────────────────────────────── -->
   <footer class="form-footer">
-    <button type="button" data-action="createEffect" style="width:100%; padding:6px; font-size:1rem; font-weight:bold;">
-      <i class="fas fa-sparkles"></i>
-      {{#if s.wrapInFeature}}Create Feature{{else}}Create Effect{{/if}}
+    <span class="fc-keys"></span>
+    <button type="button" data-action="createEffect" style="padding:6px 14px; font-size:1rem; font-weight:bold;">
+      <i class="fas fa-sparkles"></i> <span id="fcCreateLabel">Create</span>
     </button>
   </footer>
-
 </form>

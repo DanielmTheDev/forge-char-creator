@@ -81,21 +81,14 @@ test.describe('Overtime Effect Wrapped in Feature Test', () => {
           nameInput.dispatchEvent(new Event("change", { bubbles: true }));
         }
 
-        // Enable wrap in feature
-        const wrapCheckbox = el.querySelector("[data-ef='wrapInFeature']");
-        if (wrapCheckbox) {
-          wrapCheckbox.checked = true;
-          wrapCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+        // Feature that applies the effect on use
+        const kindBuff = el.querySelector("[name='kind'][value='buff']");
+        if (kindBuff) {
+          kindBuff.checked = true;
+          kindBuff.dispatchEvent(new Event("change", { bubbles: true }));
         }
 
         await new Promise(r => setTimeout(r, 100));
-
-        // Set wrap type to apply
-        const wrapTypeApply = el.querySelector("[name='wrapType'][value='apply']");
-        if (wrapTypeApply) {
-          wrapTypeApply.checked = true;
-          wrapTypeApply.dispatchEvent(new Event("change", { bubbles: true }));
-        }
 
         // Enable overtime
         const overtimeRadio = el.querySelector("[data-ef='durationType'][value='overtime']");

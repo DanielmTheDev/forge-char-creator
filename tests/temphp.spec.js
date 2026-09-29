@@ -33,10 +33,10 @@ test('Temp HP feature built by the wizard grants temp HP to a target via a real 
       };
       set("[data-ef='name']", "Temp HP Rally E2E");
       set("[data-ef='acBonus']", "2");
-      set("[data-ef='wrapInFeature']", true);
-      set("[name='wrapType'][value='temphp']", true);
+      set("[name='kind'][value='buff']", true);
+      set("[name='buffMode'][value='temphp']", true);
       set("[data-ef='wrapActivation']", "bonus");
-      set("[data-ef='wrapDamageFormula']", "7");        // flat => deterministic
+      set("[data-ef='tempHpFormula']", "7");            // flat => deterministic
       set("[data-ef='wrapTargetCount']", "1");
       set("[data-ef='wrapTargetArea']", "creature");
       set("[data-ef='specialDuration']", "turnEndSource");

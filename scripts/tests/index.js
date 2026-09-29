@@ -42,6 +42,7 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Temp HP creates a Heal Activity with healing type temphp", this.#testEffectTempHp);
     await runTest("EffectCreatorApp: Activation cost and targeting are written to the Activity", this.#testEffectActivationAndTarget);
     await runTest("EffectCreatorApp: Special duration emits DAE specialDuration flag", this.#testEffectSpecialDuration);
+    await runTest("EffectCreatorApp: Attack with on-hit save chains to an automation-only save activity", this.#testAttackSaveChainPayload);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
     await runTest("CharCreatorApp: Create New Feature automatically adds to selected items", this.#testCharCreatorFeatureCreation);
@@ -511,8 +512,7 @@ class ForgeTestingSuite {
         
         const el = app.element;
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Targeting E2E");
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='apply']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='buff']"), true);
         // Leave wrapTargetArea at default (creature)
         
         captureHook = Hooks.on("createItem", async (item) => {
@@ -570,8 +570,7 @@ class ForgeTestingSuite {
         
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Bless E2E Apply");
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='charmed']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='apply']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='buff']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetCount']"), "3");
         
         // Verify payload structure before saving
@@ -637,9 +636,12 @@ class ForgeTestingSuite {
         const el = app.element;
         
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Test Midi Damage");
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='damage']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "2d6");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='save']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='saveMode'][value='none']"), true);
+        el.querySelector("[data-add-row='saveDamageRows']").click();
+        ForgeTestingSuite.#simulateChange(el.querySelector(".dmg-formula[data-list='saveDamageRows'][data-idx='0']"), "2d6");
+        // Something to apply, so the activity links an AE (empty ones are no longer embedded).
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='prone']"), true);
         
         // Verify payload structure before saving
         const payload = app._buildAEData();
@@ -708,17 +710,13 @@ class ForgeTestingSuite {
 
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Rally E2E TempHP");
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='acBonus']"), "2");
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='temphp']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "2d4+2");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='buff']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='buffMode'][value='temphp']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='tempHpFormula']"), "2d4+2");
 
-        // The formula field is shared with damage — it must be relabelled, and the
-        // damage-type picker hidden (temp HP is always the "temphp" healing type).
-        if (el.querySelector("#wrapDamageLabel")?.textContent !== "Temp HP:") {
-          throw new Error("Formula label was not relabelled to 'Temp HP:'.");
-        }
-        if (el.querySelector("#wrapDamageTypeSection")?.style.display !== "none") {
-          throw new Error("Damage type picker should be hidden for Temp HP.");
+        // The Temp HP formula field is only shown in Temp HP mode.
+        if (el.querySelector("#tempHpBox")?.style.display === "none") {
+          throw new Error("Temp HP formula field should be visible in Temp HP mode.");
         }
 
         const payload = app._buildAEData();
@@ -798,8 +796,7 @@ class ForgeTestingSuite {
         const el = app.element;
 
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), name);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='apply']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='buff']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapActivation']"), "bonus");
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), area);
         tweak(el);
@@ -912,6 +909,38 @@ class ForgeTestingSuite {
     });
   }
 
+  // ── Attack → on-hit save chain (payload through the UI) ──────────────────
+  static async #testAttackSaveChainPayload() {
+    const app = new EffectCreatorApp();
+    await app.render(true);
+    await ForgeTestingSuite.#delay(150);
+    const el = app.element;
+    try {
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Chain T0");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='attack']"), true);
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='toHitFlat']"), "6");
+      el.querySelector("[data-add-row='damageRows']").click();
+      ForgeTestingSuite.#simulateChange(el.querySelector(".dmg-formula[data-list='damageRows'][data-idx='0']"), "1d6");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='onHitSave']"), true);
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveDC']"), "12");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='prone']"), true);
+
+      if (el.querySelector(".fc-step[data-step='save']").hidden) throw new Error("Save step should show once the on-hit save is ticked.");
+      const item = app._buildItemData();
+      const acts = Object.values(item.system.activities);
+      if (acts.length !== 2) throw new Error(`Expected 2 activities, got ${acts.length}`);
+      const [atk, sv] = acts;
+      if (atk.type !== "attack" || sv.type !== "save") throw new Error("Expected attack + save activities.");
+      if (atk.attack.flat !== true || atk.attack.bonus !== "6") throw new Error(`Flat +6 to hit expected, got ${JSON.stringify(atk.attack)}`);
+      if (atk.otherActivityId !== sv._id) throw new Error("Attack must chain to the save via otherActivityId.");
+      if (!sv.midiProperties?.automationOnly) throw new Error("Chained save must be automation-only.");
+      if (sv.save.dc.calculation !== "" || sv.save.dc.formula !== "12") throw new Error(`Custom DC 12 expected, got ${JSON.stringify(sv.save.dc)}`);
+      if (atk.effects.length || sv.effects[0]?._id !== item.effects[0]._id) throw new Error("AE must ride the save, not the attack.");
+    } finally {
+      app.close();
+    }
+  }
+
   static async #testCharCreatorMapping() {
     return new Promise(async (resolve, reject) => {
       let captureHook = null;
@@ -998,11 +1027,13 @@ class ForgeTestingSuite {
         const el = app.element;
         
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Giant Fireball E2E");
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='save']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='save']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), "radius");
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "8d6");
-        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageType']"), "fire");
+        el.querySelector("[data-add-row='saveDamageRows']").click();
+        ForgeTestingSuite.#simulateChange(el.querySelector(".dmg-formula[data-list='saveDamageRows'][data-idx='0']"), "8d6");
+        ForgeTestingSuite.#simulateChange(el.querySelector(".dmg-type[data-list='saveDamageRows'][data-idx='0']"), "fire");
+        // Something to apply, so the activity links an AE (empty ones are no longer embedded).
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-status='prone']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveAbility']"), "dex");
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveDC']"), "16");
         
@@ -1132,15 +1163,15 @@ class ForgeTestingSuite {
         const effectEl = document.querySelector(".forge-effect-creator");
         if (!effectEl) throw new Error("Effect Creator App did not render.");
 
-        // 3. Verify it is locked and checked
-        const wrapCheckbox = effectEl.querySelector("input[data-ef='wrapInFeature']");
-        if (!wrapCheckbox) throw new Error("Wrap checkbox not found in effect creator.");
-        if (!wrapCheckbox.checked) throw new Error("Wrap in Feature was not pre-checked.");
-        if (!wrapCheckbox.disabled) throw new Error("Wrap in Feature was not read-only (disabled).");
+        // 3. Verify it is locked to features: "Effect only" disabled, Attack preselected
+        const effKind = effectEl.querySelector("[name='kind'][value='effect']");
+        if (!effKind) throw new Error("Kind picker not found in builder.");
+        if (!effKind.disabled) throw new Error("Effect-only kind must be disabled when locked.");
+        if (!effectEl.querySelector("[name='kind'][value='attack']").checked) throw new Error("Locked builder should default to Attack.");
 
         // 4. Fill details
         ForgeTestingSuite.#simulateChange(effectEl.querySelector("[data-ef='name']"), "E2E Char Feature");
-        ForgeTestingSuite.#simulateChange(effectEl.querySelector("[name='wrapType'][value='apply']"), true);
+        ForgeTestingSuite.#simulateChange(effectEl.querySelector("[name='kind'][value='buff']"), true);
 
         // 5. Intercept Item creation
         captureHook = Hooks.on("createItem", async (item) => {
@@ -1226,8 +1257,7 @@ class ForgeTestingSuite {
             const el = app.element;
             
             ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Omega Strike E2E");
-            ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
-            ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='save']"), true);
+            ForgeTestingSuite.#simulateChange(el.querySelector("[name='kind'][value='save']"), true);
             ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetCount']"), "1");
             ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), "creature");
             ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapSaveAbility']"), "dex");
