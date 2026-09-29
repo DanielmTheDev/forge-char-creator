@@ -26,7 +26,7 @@ Hooks.once("ready", () => {
   if (ui.controls) ui.controls.initialize();
   // Build the icon picker index in the background (a few hundred directory listings,
   // once per Foundry version — then it is read from localStorage).
-  if (game.user.isGM) setTimeout(() => warmIconIndex(), 15000);
+  if (game.user.isGM) setTimeout(() => warmIconIndex(), 60000);
 });
 
 // ── Global Hub UI & Omni-Search Hooks ────────────────────────────────────────

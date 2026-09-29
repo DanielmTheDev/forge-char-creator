@@ -981,8 +981,8 @@ class ForgeTestingSuite {
             if (actor.prototypeToken.disposition !== 1) throw new Error(`Disposition mismatch, got ${actor.prototypeToken.disposition}`);
             if (actor.prototypeToken.actorLink !== true) throw new Error(`actorLink not set from checkbox, got ${actor.prototypeToken.actorLink}`);
 
-            // Wait an extra tick for embedded documents to finish executing
-            await ForgeTestingSuite.#delay(500); // Increased delay for createEmbeddedDocuments to finish
+            // Embedded items are created after the actor — poll instead of a fixed sleep.
+            for (let i = 0; i < 40 && actor.items.size === 0; i++) await ForgeTestingSuite.#delay(250);
             const embedded = actor.items;
             if (embedded.size !== 1) throw new Error(`Incorrect number of items injected, expected 1, got ${embedded.size}`);
             if (embedded.contents[0].name !== realSpell.name) throw new Error("Item payload name mismatch");
@@ -1171,7 +1171,9 @@ class ForgeTestingSuite {
 
         // 4. Fill details
         ForgeTestingSuite.#simulateChange(effectEl.querySelector("[data-ef='name']"), "E2E Char Feature");
-        ForgeTestingSuite.#simulateChange(effectEl.querySelector("[name='kind'][value='buff']"), true);
+        ForgeTestingSuite.#simulateChange(effectEl.querySelector("[data-ef='toHitFlat']"), "4");
+        effectEl.querySelector("[data-add-row='damageRows']").click();
+        ForgeTestingSuite.#simulateChange(effectEl.querySelector(".dmg-formula[data-list='damageRows'][data-idx='0']"), "1d6");
 
         // 5. Intercept Item creation
         captureHook = Hooks.on("createItem", async (item) => {
@@ -1187,16 +1189,31 @@ class ForgeTestingSuite {
             if (!bin.innerHTML.includes("E2E Char Feature")) throw new Error("Feature was not automatically added to selectedItemsBin.");
             
             if (!charApp.selectedItems.has(item.uuid)) throw new Error("Feature UUID not found in charApp.selectedItems Map.");
+            if (item.system.activities.contents[0]?.type !== "attack") throw new Error("Wizard feature should be an attack.");
 
-            charApp.close();
-            await ForgeTestingSuite.#delay(150); // wait for UI animations
+            await ForgeTestingSuite.#delay(600); // wait for the builder's close animation + focus hand-back
             // The effect app should have closed itself
             const effectElAfter = document.querySelector(".forge-effect-creator");
             if (effectElAfter) {
                 effectElAfter.remove();
                 throw new Error("Effect Creator did not auto-close.");
             }
+            // Keyboard flow continues in the wizard's search box.
+            if (document.activeElement !== charEl.querySelector("#itemSearchQuery")) throw new Error("Focus should return to the item search after creating a feature.");
 
+            // 7. Create the actor: the feature must be embedded with its attack intact.
+            charEl.querySelector("#charName").value = "E2E Wizard Actor";
+            charEl.querySelector("[data-action='createNPC']").click();
+            let actor = null;
+            for (let i = 0; i < 40 && !actor; i++) { await ForgeTestingSuite.#delay(250); actor = game.actors.getName("E2E Wizard Actor"); }
+            if (!actor) throw new Error("Wizard did not create the actor.");
+            await ForgeTestingSuite.#delay(500);
+            const owned = actor.items.getName("E2E Char Feature");
+            const atk = owned?.system.activities.contents.find(a => a.type === "attack");
+            if (!atk) { await actor.delete(); throw new Error("Actor is missing the created attack feature."); }
+            if (atk.attack.bonus !== "4" || !atk.attack.flat) { await actor.delete(); throw new Error(`Embedded attack lost its +4: ${JSON.stringify(atk.attack)}`); }
+
+            await actor.delete();
             await item.delete(); // cleanup
             resolve();
           } catch(e) {

@@ -50,8 +50,9 @@ export function _resetIconIndex() { indexPromise = null; }
 /**
  * @param {(dir: string) => Promise<{dirs: string[], files: string[]}>} browse
  * @param {{get: () => string[]|null, set: (files: string[]) => void}} [cache]  persisted index (optional)
+ * @param {{concurrency?: number}} [opts]  parallel directory listings
  */
-export function loadIconIndex(browse, cache = null) {
+export function loadIconIndex(browse, cache = null, { concurrency = 16 } = {}) {
   if (indexPromise) return indexPromise;
   indexPromise = (async () => {
     try {
@@ -59,20 +60,26 @@ export function loadIconIndex(browse, cache = null) {
       if (Array.isArray(hit) && hit.length) return hit;
     } catch { /* storage unavailable: index live */ }
     const files = [], queue = ["icons"];
-    let failed = 0, ok = 0;
-    const worker = async () => {
-      while (queue.length) {
-        const dir = queue.shift();
-        try {
-          const r = await browse(dir);
-          ok++;
-          queue.push(...(r?.dirs ?? []));
-          files.push(...(r?.files ?? []).filter(f => EXT.test(f)));
-        } catch { failed++; }  // unreadable dir: skip it
-      }
-    };
-    // Workers exit when the queue is momentarily empty; loop until truly drained.
-    while (queue.length) await Promise.all(Array.from({ length: 16 }, worker));
+    let failed = 0, ok = 0, active = 0;
+    // Bounded pool: keep up to `concurrency` listings in flight; each finished one
+    // refills the pool, so subdirectories found late still run in parallel.
+    await new Promise(resolve => {
+      const pump = () => {
+        if (!queue.length && !active) return resolve();
+        while (active < concurrency && queue.length) {
+          const dir = queue.shift();
+          active++;
+          Promise.resolve().then(() => browse(dir))
+            .then(r => {
+              ok++;
+              queue.push(...(r?.dirs ?? []));
+              files.push(...(r?.files ?? []).filter(f => EXT.test(f)));
+            }, () => { failed++; })  // unreadable dir: skip it
+            .finally(() => { active--; pump(); });
+        }
+      };
+      pump();
+    });
     // Nothing readable at all: don't cache the empty result, let the next open retry.
     if (!ok && failed) indexPromise = null;
     else if (files.length) try { cache?.set(files); } catch { /* quota / blocked: fine */ }
@@ -96,9 +103,9 @@ function browsePublic(dir) {
   return foundry.applications.apps.FilePicker.implementation.browse("public", dir);
 }
 
-/** Index in the background (e.g. at ready) so the first picker open is instant. */
+/** Index in the background (e.g. after ready) so the first picker open is instant. Gentle on the server. */
 export function warmIconIndex() {
-  return loadIconIndex(browsePublic, storageCache()).catch(() => []);
+  return loadIconIndex(browsePublic, storageCache(), { concurrency: 4 }).catch(() => []);
 }
 
 const Base = globalThis.foundry?.applications?.api

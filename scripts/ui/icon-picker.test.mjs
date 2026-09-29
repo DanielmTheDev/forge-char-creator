@@ -56,3 +56,14 @@ test("loadIconIndex ignores a broken cache", async () => {
   const browse = async () => ({ dirs: [], files: ["icons/b.webp"] });
   assert.deepEqual(await loadIconIndex(browse, cache), ["icons/b.webp"]);
 });
+
+test("loadIconIndex honours a concurrency limit", async () => {
+  _resetIconIndex();
+  let inFlight = 0, peak = 0;
+  const tree = { icons: { dirs: ["icons/a", "icons/b", "icons/c", "icons/d"], files: [] } };
+  for (const d of ["a", "b", "c", "d"]) tree[`icons/${d}`] = { dirs: [], files: [`icons/${d}/x.webp`] };
+  const browse = async d => { inFlight++; peak = Math.max(peak, inFlight); await new Promise(r => setTimeout(r, 5)); inFlight--; return tree[d]; };
+  const files = await loadIconIndex(browse, null, { concurrency: 2 });
+  assert.equal(files.length, 4);
+  assert.equal(peak, 2, "uses exactly the allowed parallelism (not serial, not more)");
+});

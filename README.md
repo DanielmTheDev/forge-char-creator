@@ -21,12 +21,36 @@ effects through a guided wizard — no hand-editing flag JSON.
 - **Forge Hub** — a central launcher for the tools. Open it with **Alt+F** or the floating hammer
   button (GM only). Pick a tool to begin.
 - **Character Creator** — generate advanced NPCs with auto-scaling archetypes, pulling matching
-  items from your compendia.
-- **Effect Creator** — build Active Effects through a wizard: conditions, ability/AC changes,
-  duration, and over-time damage/saves. Emits the correct **Midi-QOL** (`OverTime`, grants,
-  advantage/disadvantage) and **DAE** flags for you, with quick presets (Burning, Poisoned, …).
-  Optionally "wrap in feature" to produce a dnd5e Feature Item with the effect embedded. Results
-  save into the module's **Forge Effects** / **Forge Features** compendia.
+  items from your compendia. **Create New** builds a custom attack/ability right inside the wizard;
+  it is added to the creature on Create.
+- **Feature Builder** (the Effect Creator) — one wizard for everything a creature can do. Pick what
+  it is, and only the relevant steps show:
+  - **Attack** — fixed `+X to hit` (statblock style) or calculated (ability + proficiency + bonus),
+    reach/range, one damage row per type, and optionally **on hit: saving throw** (ability, DC,
+    damage on a failure, half/none on a success) with conditions/effects applied on a failed save.
+  - **Saving Throw** — area or targeted save with damage + effects, or auto damage with no save.
+  - **Buff / Heal** — apply an effect to self or targets, or grant temporary HP.
+  - **Passive** — always-on effect (AC, advantage, resistances…).
+  - **Effect only** — a bare Active Effect to drag onto other items.
+
+  Uses: at will, X per long rest, or Recharge N–6. Effects: conditions, duration, repeat saves /
+  damage over time, advantage/disadvantage, AC/ability modifiers, stacking. Every field has a
+  tooltip, the Review step shows a plain-English summary, and the icon button opens a **searchable
+  icon grid** with suggestions from the feature's name. Emits the correct **Midi-QOL** and **DAE**
+  flags. Results save into the module's **Forge Effects** / **Forge Features** compendia.
+
+### Keyboard
+
+Both wizards are split into steps:
+
+| Keys | Action |
+|---|---|
+| `Alt+←` / `Alt+→` | previous / next step |
+| `Alt+1` … `Alt+9` | jump to a step |
+| `Ctrl+Enter` | create |
+| `Esc` | close the search list / icon picker |
+
+In the icon picker: type to search, `↓` into the grid, arrows to move, `Enter` to pick.
 
 ## Requirements
 
@@ -55,7 +79,7 @@ above).
 ## Usage
 
 1. As GM, press **Alt+F** or click the floating hammer button to open the Forge Hub.
-2. Choose **Character Creator** to build an NPC, or **Effect Creator** to build an active effect.
+2. Choose **Character Creator** to build an NPC, or **Effect Creator** to build a feature or effect.
 3. Effects you create are stored in the **Forge Effects** / **Forge Features** compendia — drag
    them onto actors from there.
 

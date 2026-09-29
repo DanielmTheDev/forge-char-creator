@@ -107,6 +107,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   selectedItems = new Map();   // UUID → { name, img }
   #descCache = new Map();      // UUID → plain-text description preview ("" if none)
   #descTimer = null;           // hover debounce handle
+  #stepper = null;             // step navigation (scripts/ui/stepper.js)
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
@@ -281,7 +282,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // ── Steps + keyboard (Alt+←/→, Alt+1..4, Ctrl+Enter) ────────────────────
-    attachStepper(this.element.querySelector("form"), {
+    this.#stepper = attachStepper(this.element.querySelector("form"), {
       onCreate: () => this.element.querySelector("[data-action='createNPC']")?.click()
     });
   }
@@ -416,12 +417,17 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   // ── Compendium Creation ───────────────────────────────────────────────────
   #openEffectCreator() {
     const app = new EffectCreatorApp(
-      { title: "Create Feature for NPC" }, 
-      { wrapInFeature: true, isLocked: true }, 
-      (savedItem) => {
+      { window: { title: "Create Feature for NPC" } },
+      { kind: "attack", isLocked: true },
+      async (savedItem) => {
         this.selectedItems.set(savedItem.uuid, { name: savedItem.name, img: savedItem.img });
+        this.#loadDescription(savedItem.uuid).then(() => this.#renderSelectedItems(this.element.querySelector("#selectedItemsBin")));
         this.#renderSelectedItems(this.element.querySelector("#selectedItemsBin"));
-        app.close();
+        await app.close();
+        // Keep the keyboard flow going: back to the search box for the next feature.
+        if (!this.rendered) return;
+        this.#stepper?.go("features", { focus: false });
+        this.element.querySelector("#itemSearchQuery")?.focus();
       }
     );
     app.render(true);
@@ -445,7 +451,9 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       cha: parseInt(data["abilities.cha"]) || 10
     };
 
-    const instance = foundry.applications.instances.get("forge-char-creator-app");
+    // ApplicationV2 binds actions to the app instance. The id lookup is only a fallback:
+    // with two wizard windows open it would find the wrong (or no) one.
+    const instance = this instanceof CharCreatorApp ? this : foundry.applications.instances.get("forge-char-creator-app");
 
     if (!instance) {
       ui.notifications.error("Could not find CharCreatorApp instance.");
@@ -463,7 +471,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     let portraitPath = "icons/svg/mystery-man.svg";
     let tokenPath = "icons/svg/mystery-man.svg";
 
-    const fileInput = document.getElementById("portraitUpload");
+    const fileInput = this.element?.querySelector("#portraitUpload");
     const file = fileInput?.files[0];
     if (file) {
       try {
@@ -555,7 +563,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     try {
       const npc = await Actor.create(actorData);
-      const app = foundry.applications.instances.get("forge-char-creator-app");
+      const app = this;
 
       // Inject compendium items
       if (app?.selectedItems?.size > 0) {
