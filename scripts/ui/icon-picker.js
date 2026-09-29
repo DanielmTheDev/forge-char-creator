@@ -82,7 +82,8 @@ export function loadIconIndex(browse, cache = null, { concurrency = 16 } = {}) {
     });
     // Nothing readable at all: don't cache the empty result, let the next open retry.
     if (!ok && failed) indexPromise = null;
-    else if (files.length) try { cache?.set(files); } catch { /* quota / blocked: fine */ }
+    // Only persist a complete index — a partial one would stick for the whole Foundry version.
+    else if (files.length && !failed) try { cache?.set(files); } catch { /* quota / blocked: fine */ }
     return files;
   })();
   return indexPromise;

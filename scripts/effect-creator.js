@@ -39,6 +39,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   // ── State ──────────────────────────────────────────────────────────────────
   #state = foundry.utils.deepClone(DEFAULT_STATE);
   #stepper = null;
+  #creating = false;           // guards double submit (Ctrl+Enter twice / key repeat)
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -348,6 +349,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   async _doCreate() {
     const s = this.#state;
     if (!s.name?.trim()) { ui.notifications.warn("Please enter a name."); return; }
+    if (this.#creating) return;
+    this.#creating = true;
     try {
       const itemData = this._buildItemData();
 
@@ -372,6 +375,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     } catch (err) {
       console.error("Forge Effect Creator | Error saving effect:", err);
       ui.notifications.error(`Failed to save: ${err.message}`);
+    } finally {
+      this.#creating = false;
     }
   }
 }

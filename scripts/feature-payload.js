@@ -148,7 +148,8 @@ export function buildChanges(s) {
       if (s.otOnSave !== "nodamage") parts.push(`saveDamage=${s.otOnSave}`);
       if (s.otSuccesses) parts.push(`saveCount=${s.otSuccesses}-`);
     }
-    parts.push(`label="${s.name || "Effect"}"`);
+    // midi splits OverTime on commas and quotes the label: strip both from the name.
+    parts.push(`label="${(s.name || "Effect").replace(/[",]/g, "").replace(/\s+/g, " ").trim() || "Effect"}"`);
     changes.push({
       key: `flags.midi-qol.OverTime`,
       mode: 0,
@@ -195,8 +196,9 @@ export function buildChanges(s) {
 
 const intOr = (v, d) => { const n = parseInt(v); return Number.isFinite(n) ? n : d; };
 const isNumeric = v => String(v ?? "").trim() !== "" && !isNaN(String(v).trim());
-const AREA_WORDS = { radius: "radius", sphere: "sphere", cone: "cone", cube: "cube", cylinder: "cylinder",
-                     line: "line", square: "square", wall: "wall" };
+// dnd5e 5.2.5 CONFIG.DND5E.areaTargetTypes keys.
+const AREA_WORDS = { circle: "circle", radius: "radius", sphere: "sphere", cone: "cone", cube: "cube",
+                     cylinder: "cylinder", line: "line", square: "square", wall: "wall" };
 
 export function effectHasContent(s) {
   return buildChanges(s).length > 0 || (s.statuses?.length ?? 0) > 0;
@@ -442,8 +444,8 @@ export function buildItem(s, { randomID, areaTargetTypes = {} }) {
              system: { description: { value: aeData.description } }, effects: [aeData] };
   }
 
-  // Attacks/saves with nothing to apply get no AE (else targets get a blank effect icon).
-  const withAE = effectHasContent(s) || s.kind === "buff" || s.kind === "passive";
+  // Nothing to apply → no AE (else targets get a blank effect icon that never expires).
+  const withAE = effectHasContent(s) || s.kind === "passive";
   const item = { name, img: s.img || "icons/svg/feature.svg", type: "feat",
                  system: { description: { value: aeData.description } }, effects: withAE ? [aeData] : [] };
   const uses = buildUses(s);

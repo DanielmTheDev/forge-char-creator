@@ -108,6 +108,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   #descCache = new Map();      // UUID → plain-text description preview ("" if none)
   #descTimer = null;           // hover debounce handle
   #stepper = null;             // step navigation (scripts/ui/stepper.js)
+  #creating = false;           // guards double submit (Ctrl+Enter twice / double click)
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
@@ -256,7 +257,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           items[next].classList.add("active");
           items[next].scrollIntoView({ block: "nearest" });
           this.#queueDescription(items[next]);
-        } else if (e.key === "Enter") {
+        } else if (e.key === "Enter" && !e.ctrlKey) {  // Ctrl+Enter = create (stepper), not "add item"
           e.preventDefault();
           if (activeIndex >= 0) this.#selectSearchResult(items[activeIndex], searchResults, selectedBin, searchInput);
         }
@@ -464,6 +465,12 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async _createNPC(data) {
+    if (this.#creating) return;
+    this.#creating = true;
+    try { await this.#createNPC(data); } finally { this.#creating = false; }
+  }
+
+  async #createNPC(data) {
     const folderName = "Forge Creations";
     let folder = game.folders.find(f => f.name === folderName && f.type === "Actor");
     if (!folder) folder = await Folder.create({ name: folderName, type: "Actor" });

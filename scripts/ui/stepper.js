@@ -62,7 +62,14 @@ export function attachStepper(root, { onCreate, onStepChange } = {}) {
       const s = visible()[Number(e.code.slice(5)) - 1];
       if (s) go(s.dataset.step);
     }
-    else if (e.ctrlKey && !e.altKey && e.key === "Enter") onCreate?.();
+    else if (e.ctrlKey && !e.altKey && e.key === "Enter") {
+      if (!e.repeat) {
+        // Fields bind on "change", which only fires on blur: flush the one being typed in.
+        const a = document.activeElement;
+        if (a && root.contains(a) && "value" in a) a.dispatchEvent(new Event("change", { bubbles: true }));
+        onCreate?.();
+      }
+    }
     else handled = false;
     if (handled) { e.preventDefault(); e.stopPropagation(); }
   });

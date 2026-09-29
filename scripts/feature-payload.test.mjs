@@ -104,8 +104,8 @@ test("save kind, no save → damage activity", () => {
   assert.equal(a.damage.parts[0].custom.formula, "2d6");
 });
 
-test("buff apply (always embeds AE) and self target", () => {
-  const it = buildItem(st({ kind: "buff", activationTarget: "wearer" }), cfg);
+test("buff apply embeds its AE and targets self", () => {
+  const it = buildItem(st({ kind: "buff", activationTarget: "wearer", acBonus: "1" }), cfg);
   const [a] = acts(it);
   assert.equal(a.type, "utility");
   assert.equal(it.effects.length, 1);
@@ -154,4 +154,22 @@ test("summary: attack with rider", () => {
 test("summary: temp HP keeps legacy wording", () => {
   assert.ok(summarize(st({ kind: "buff", buffMode: "temphp", tempHpFormula: "7", wrapActivation: "bonus" }))
     .startsWith("Bonus Action: grants 7 temporary hit points."));
+});
+
+test("review: circle area is described as an area, not '1 target'", () => {
+  const s = summarize(st({ kind: "save", wrapTargetArea: "circle", wrapAreaSize: "15", wrapSaveDC: "12" }));
+  assert.ok(s.startsWith("15 ft circle: DC 12"), s);
+});
+
+test("review: temp HP buff with no effect content embeds no blank AE", () => {
+  const it = buildItem(st({ kind: "buff", buffMode: "temphp", tempHpFormula: "5" }), cfg);
+  assert.equal(it.effects.length, 0);
+  assert.deepEqual(acts(it)[0].effects, []);
+});
+
+test("review: OverTime label survives quotes and commas in the name", () => {
+  const ae = buildEffect(st({ name: 'Burn, "Baby"', durationType: "overtime", otDamage: "1d6" }));
+  const v = ae.changes[0].value;
+  assert.ok(v.endsWith('label="Burn Baby"'), v);
+  assert.equal(v.split(",").length, 4, `only the 4 real key=value separators: ${v}`);
 });

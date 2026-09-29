@@ -67,3 +67,13 @@ test("loadIconIndex honours a concurrency limit", async () => {
   assert.equal(files.length, 4);
   assert.equal(peak, 2, "uses exactly the allowed parallelism (not serial, not more)");
 });
+
+test("review: a partially failed index is used but not persisted", async () => {
+  _resetIconIndex();
+  let stored = null;
+  const cache = { get: () => stored, set: v => { stored = v; } };
+  const tree = { icons: { dirs: ["icons/a", "icons/busy"], files: [] }, "icons/a": { dirs: [], files: ["icons/a/1.webp"] } };
+  const browse = async d => { if (!tree[d]) throw new Error("busy"); return tree[d]; };
+  assert.deepEqual(await loadIconIndex(browse, cache), ["icons/a/1.webp"]);
+  assert.equal(stored, null, "incomplete index must not be cached for the whole Foundry version");
+});

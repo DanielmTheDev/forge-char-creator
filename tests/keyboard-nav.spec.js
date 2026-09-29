@@ -59,25 +59,52 @@ test.describe('Keyboard navigation', () => {
     await closeForgeApps(page);
   });
 
-  test('builder: Ctrl+Enter creates', async ({ page }) => {
+  test('builder: Ctrl+Enter creates from what was just typed, once even if pressed twice', async ({ page }) => {
     await boot(page);
     const root = await openBuilder(page);
     await root.locator("[name='kind'][value='passive']").check();
-    const name = root.locator("[data-ef='name']");
-    await name.fill("KB Create E2E");
-    await name.dispatchEvent("change");
-    const created = page.evaluate(() => new Promise((res, rej) => {
-      const h = Hooks.on("createItem", i => {
-        if (i.name !== "KB Create E2E") return;
-        Hooks.off("createItem", h);
-        const uuid = i.uuid;
-        i.delete().then(() => res(uuid));
-      });
-      setTimeout(() => rej(new Error("no createItem")), 20000);
-    }));
-    await name.focus();
+    await page.evaluate(() => {
+      window.__kbCreates = [];
+      window.__kbHook = Hooks.on("createItem", i => { if (i.name === "KB Create E2E") window.__kbCreates.push(i.uuid); });
+    });
+    // Type and create straight away — no blur, so no native "change" has fired yet.
+    await root.locator("[data-ef='name']").click();
+    await page.keyboard.type("KB Create E2E");
+    await page.keyboard.down("Control");
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Enter");
+    await page.keyboard.up("Control");
+    await page.waitForTimeout(5000);
+    const uuids = await page.evaluate(async () => {
+      Hooks.off("createItem", window.__kbHook);
+      for (const u of window.__kbCreates) await (await fromUuid(u))?.delete();
+      return window.__kbCreates;
+    });
+    expect(uuids.length, "exactly one item from the typed name").toBe(1);
+    await closeForgeApps(page);
+  });
+
+  test('char wizard: Ctrl+Enter with the search list open creates, without also adding the highlighted item', async ({ page }) => {
+    await boot(page);
+    await page.evaluate(async () => {
+      const { CharCreatorApp } = await import("./modules/forge-char-creator/scripts/app.js");
+      await new CharCreatorApp().render({ force: true });
+    });
+    await page.waitForSelector("#forge-char-creator-app .fc-step.active");
+    await page.keyboard.type("KB Wizard E2E");
+    await page.keyboard.press("Alt+3");
+    await page.keyboard.type("fire");
+    await page.waitForSelector("#itemSearchResults li[data-uuid]", { timeout: 15000 });
+    await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Control+Enter");
-    expect(await created).toContain("Item.");
+    await page.waitForTimeout(4000);
+    const res = await page.evaluate(async () => {
+      const a = game.actors.getName("KB Wizard E2E");
+      const out = { created: !!a, items: a?.items.size ?? null };
+      if (a) await a.delete();
+      return out;
+    });
+    expect(res).toEqual({ created: true, items: 0 });
     await closeForgeApps(page);
   });
 
