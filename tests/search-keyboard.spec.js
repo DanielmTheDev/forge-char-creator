@@ -40,6 +40,9 @@ test.describe('Item Search Keyboard Navigation', () => {
        new CharCreatorApp().render({ force: true });
     });
     await page.waitForSelector('.forge-char-creator', { timeout: 10000 });
+    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen.
+    await page.evaluate(() => document.querySelectorAll("#notifications li").forEach(n => n.remove()));
+    await page.locator('.forge-char-creator .fc-nav-btn', { hasText: 'Features' }).click();
 
     // 6. Type a query that matches compendium items
     const searchInput = page.locator('#itemSearchQuery');

@@ -42,7 +42,7 @@ test.describe('Window scrolling', () => {
    * @param {string} module    Module file exporting it
    * @param {string} rootSel   Window root selector
    */
-  async function assertScrolls(page, appClass, module, rootSel) {
+  async function assertScrolls(page, appClass, module, rootSel, prep = null) {
     await page.evaluate(async ([appClass, module]) => {
       const mod = await import(`./modules/forge-char-creator/scripts/${module}`);
       new mod[appClass]().render({ force: true });
@@ -56,6 +56,19 @@ test.describe('Window scrolling', () => {
 
     // Footer button visible before scrolling — i.e. not clipped off the bottom
     await expect(button).toBeInViewport();
+
+    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen.
+    await page.evaluate(() => document.querySelectorAll("#notifications li").forEach(n => n.remove()));
+    if (prep) await prep();
+    // The form is split into steps; scroll-test the tallest one.
+    const navs = page.locator(`${rootSel} .fc-nav-btn`);
+    let best = -1, bestH = 0;
+    for (let i = 0; i < await navs.count(); i++) {
+      await navs.nth(i).click();
+      const h = await body.evaluate(el => el.scrollHeight);
+      if (h > bestH) { bestH = h; best = i; }
+    }
+    if (best >= 0) await navs.nth(best).click();
 
     // Body actually overflows and is scrollable
     const metrics = await body.evaluate(el => ({
@@ -79,6 +92,8 @@ test.describe('Window scrolling', () => {
   }
 
   test('Character Creator body scrolls and Create button stays visible', async ({ page }) => {
+    // Steps keep each page short; a small screen still has to scroll the body, not clip it.
+    await page.setViewportSize({ width: 1280, height: 420 });
     await assertScrolls(page, 'CharCreatorApp', 'app.js', '.forge-char-creator');
   });
 

@@ -21,6 +21,13 @@ test('Attack with on-hit save: hit damage, save fail/success, miss — via a rea
     const made = [];
     const origRandom = CONFIG.Dice.randomUniform;
     try {
+      // Sweep leftovers of an aborted earlier run (same names).
+      const ours = /^(Venom Bite E2E|Biter E2E|Weak E2E|Tough E2E|Armored E2E)$/;
+      for (const t of canvas.scene.tokens.filter(t => ours.test(t.name))) await t.delete();
+      for (const a of game.actors.filter(a => ours.test(a.name))) await a.delete();
+      const fp = game.packs.get("forge-char-creator.forge-features");
+      for (const i of (await fp.getIndex()).filter(i => ours.test(i.name))) await (await fp.getDocument(i._id)).delete();
+
       CONFIG.Dice.randomUniform = () => 0.5;
       const { EffectCreatorApp } = await import("./modules/forge-char-creator/scripts/effect-creator.js");
       const app = new EffectCreatorApp();

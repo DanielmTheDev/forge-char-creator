@@ -40,6 +40,9 @@ test.describe('Item Search Descriptions', () => {
        new CharCreatorApp().render({ force: true });
     });
     await page.waitForSelector('.forge-char-creator', { timeout: 10000 });
+    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen.
+    await page.evaluate(() => document.querySelectorAll("#notifications li").forEach(n => n.remove()));
+    await page.locator('.forge-char-creator .fc-nav-btn', { hasText: 'Features' }).click();
 
     // 6. Search for a spell that definitely has description text in the SRD packs
     const searchInput = page.locator('#itemSearchQuery');
@@ -75,7 +78,12 @@ test.describe('Item Search Descriptions', () => {
     const loads = await page.evaluate(() => {
       window.__forgeUuidLoads = 0;
       const orig = window.fromUuid;
-      window.fromUuid = async (...args) => { window.__forgeUuidLoads++; return orig(...args); };
+      // Count only our module's loads: dnd5e (spell-list registry) and DAE also call
+      // fromUuid in the background right after boot, which made this count flaky.
+      window.fromUuid = async (...args) => {
+        if (new Error().stack.includes("/modules/forge-char-creator/")) window.__forgeUuidLoads++;
+        return orig(...args);
+      };
       return true;
     });
     expect(loads).toBeTruthy();

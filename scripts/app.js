@@ -1,5 +1,6 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 import { EffectCreatorApp } from "./effect-creator.js";
+import { attachStepper } from "./ui/stepper.js";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Preset effect templates
@@ -87,7 +88,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "forge-char-creator-app",
     classes: ["forge-char-creator", "standard-form"],
     title: "Forge Character Wizard",
-    position: { width: 700, height: "auto" },
+    position: { width: 780, height: 640 },
     window: { icon: "fas fa-user-plus", resizable: true },
     actions: { 
       createNPC: CharCreatorApp.#onCreateNPC,
@@ -119,17 +120,6 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   // ── Render hooks ──────────────────────────────────────────────────────────
   _onRender(context, options) {
     super._onRender(context, options);
-
-    // ── Simple CSS tab switching ──────────────────────────────────────────────
-    const tabBtns = this.element.querySelectorAll(".forge-tab-btn");
-    const tabPanels = this.element.querySelectorAll(".forge-tab-panel");
-    tabBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.forgeTab;
-        tabBtns.forEach(b => b.classList.toggle("active", b.dataset.forgeTab === target));
-        tabPanels.forEach(p => p.classList.toggle("active", p.dataset.forgePanel === target));
-      });
-    });
 
     // ── Archetype Mathematics & Reactivity ──────────────────────────────────
     const levelSelect = this.element.querySelector("#charLevel");
@@ -249,6 +239,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       searchInput.addEventListener("keydown", (e) => {
         const items = Array.from(searchResults.querySelectorAll("li[data-uuid]"));
         if (e.key === "Escape") {
+          // An open dropdown eats Esc; otherwise Esc falls through (Foundry closes the window).
+          if (searchResults.style.display !== "none") { e.preventDefault(); e.stopPropagation(); }
           searchResults.style.display = "none";
           return;
         }
@@ -288,6 +280,10 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
+    // ── Steps + keyboard (Alt+←/→, Alt+1..4, Ctrl+Enter) ────────────────────
+    attachStepper(this.element.querySelector("form"), {
+      onCreate: () => this.element.querySelector("[data-action='createNPC']")?.click()
+    });
   }
 
   // ── Compendium Search ───────────────────────────────────────────────────────────

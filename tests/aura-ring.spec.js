@@ -55,7 +55,10 @@ test.describe('Aura Ring Configuration Test Suite', () => {
     // 6. Fill out the form
     await page.fill('#charName', 'Aura Test Bot');
 
-    // 7. Enable Aura Ring
+    // 7. Enable Aura Ring (Token step)
+    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen.
+    await page.evaluate(() => document.querySelectorAll("#notifications li").forEach(n => n.remove()));
+    await page.locator('.forge-char-creator .fc-nav-btn', { hasText: 'Token' }).click();
     const enableAuraCheckbox = await page.locator('#enableAura');
     await enableAuraCheckbox.check();
 

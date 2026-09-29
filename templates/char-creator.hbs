@@ -1,196 +1,210 @@
 <form class="forge-char-creator-content standard-form flexcol">
-  <div class="forge-form-body scrollable">
+  <div class="fc-layout">
+  <nav class="fc-steps-nav" aria-label="Steps"></nav>
+  <div class="forge-form-body scrollable fc-panes">
+  <section class="fc-step" data-step="identity" data-title="Identity">
   <p class="hint">{{message}}</p>
-
-  <div class="form-group">
-    <label for="charName">Character Name:</label>
-    <div class="form-fields">
-      <input type="text" id="charName" name="charName" placeholder="Enter name...">
-    </div>
-  </div>
-
-  <div class="form-group flexrow" style="gap: 10px; margin-bottom: 10px;">
-    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-      <label for="charLevel">Level / CR:</label>
-      <select id="charLevel" name="charLevel" style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
-        {{#each (range 1 20) as |lvl|}}
-        <option value="{{lvl}}">{{lvl}}</option>
-        {{/each}}
-      </select>
-    </div>
-    <div style="flex:2; display:flex; flex-direction:column; gap:4px;">
-      <label for="charArchetype">Archetype Template:</label>
-      <select id="charArchetype" name="charArchetype" style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
-        <option value="custom">-- Custom / blank --</option>
-        <option value="warrior">Heavy Warrior / Tank</option>
-        <option value="rogue">Agile Rogue / Skirmisher</option>
-        <option value="mage_int">Intelligence Mage</option>
-        <option value="cleric_wis">Wisdom Cleric / Druid</option>
-        <option value="mage_cha">Charisma Caster (Bard/Sorcerer)</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="form-group portrait-group flexrow" style="align-items: center; margin-bottom: 10px;">
-    <label for="portraitUpload" style="flex: 1;">Portrait Image:</label>
-    <div class="form-fields" style="flex: 2; display: flex; align-items: center; gap: 10px;">
-      <input type="file" id="portraitUpload" name="portraitUpload" accept="image/*" style="width: 100%;">
-      <img id="portraitPreview" src="icons/svg/mystery-man.svg" alt="Preview" width="48" height="48" style="border: 1px solid #000; border-radius: 4px; object-fit: cover;">
-    </div>
-  </div>
-
-  <div class="flexrow" style="gap: 10px; margin-bottom: 10px;">
-    <fieldset class="size-fieldset" style="flex: 1; margin: 0;">
-      <legend>Actor Size</legend>
-      <div class="form-fields" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 0.95rem;">
-        <label><input type="radio" name="size" value="tiny"> Tiny</label>
-        <label><input type="radio" name="size" value="sm"> Small</label>
-        <label><input type="radio" name="size" value="med" checked> Medium</label>
-        <label><input type="radio" name="size" value="lg"> Large</label>
-        <label><input type="radio" name="size" value="huge"> Huge</label>
-        <label><input type="radio" name="size" value="grg"> Gargantuan</label>
-      </div>
-    </fieldset>
-
-    <fieldset class="disposition-fieldset" style="flex: 1; margin: 0;">
-      <legend>Token Disposition</legend>
-      <div class="form-fields" style="display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem; align-items: center; justify-content: center; height: 100%;">
-        <label><input type="radio" name="disposition" value="1"> Friendly</label>
-        <label><input type="radio" name="disposition" value="0"> Neutral</label>
-        <label><input type="radio" name="disposition" value="-1" checked> Hostile</label>
-      </div>
-    </fieldset>
-  </div>
-
-  <fieldset class="combat-stats-fieldset" style="margin-bottom: 10px;">
-    <legend>Combat Attributes</legend>
-    <div class="flexrow" style="gap: 10px;">
-      <div class="form-group flexcol" style="margin: 0; align-items: center;">
-        <label for="ac" style="line-height: 1.2;">Armor Class</label>
+      <div class="form-group">
+        <label for="charName">Character Name:</label>
         <div class="form-fields">
-          <input type="number" id="ac" name="ac" value="10" step="1" required style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+          <input type="text" id="charName" name="charName" placeholder="Enter name...">
         </div>
       </div>
-      <div class="form-group flexcol" style="margin: 0; align-items: center;">
-        <label for="hp" style="line-height: 1.2;">Health (HP)</label>
-        <div class="form-fields">
-          <input type="number" id="hp" name="hp" value="10" step="1" required style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
-        </div>
-      </div>
-    </div>
-  </fieldset>
 
-  <fieldset class="spellcasting-fieldset" style="margin-bottom: 10px;">
-    <legend>Spellcasting</legend>
-    <div class="flexrow" style="gap: 10px;">
-      <div class="form-group flexcol" style="margin: 0; align-items: center; flex: 1;">
-        <label for="spellcasting" style="line-height: 1.2;">Ability</label>
-        <div class="form-fields" style="width: 100%;">
-          <select id="spellcasting" name="spellcasting" style="text-align: center; height: 2.5rem; font-size: 1.1rem; width: 100%;">
-            <option value="">None</option>
-            <option value="int">Intelligence</option>
-            <option value="wis">Wisdom</option>
-            <option value="cha">Charisma</option>
-            <option value="str">Strength</option>
-            <option value="dex">Dexterity</option>
-            <option value="con">Constitution</option>
+      <div class="form-group flexrow" style="gap: 10px; margin-bottom: 10px;">
+        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+          <label for="charLevel">Level / CR:</label>
+          <select id="charLevel" name="charLevel" data-tooltip="Level (PCs) or challenge rating (monsters). Used by the archetype template." style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
+            {{#each (range 1 20) as |lvl|}}
+            <option value="{{lvl}}">{{lvl}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div style="flex:2; display:flex; flex-direction:column; gap:4px;">
+          <label for="charArchetype">Archetype Template:</label>
+          <select id="charArchetype" name="charArchetype" data-tooltip="Fills AC, HP and ability scores with sensible values for the level. Edit freely afterwards." style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
+            <option value="custom">-- Custom / blank --</option>
+            <option value="warrior">Heavy Warrior / Tank</option>
+            <option value="rogue">Agile Rogue / Skirmisher</option>
+            <option value="mage_int">Intelligence Mage</option>
+            <option value="cleric_wis">Wisdom Cleric / Druid</option>
+            <option value="mage_cha">Charisma Caster (Bard/Sorcerer)</option>
           </select>
         </div>
       </div>
-      <div class="form-group flexcol" style="margin: 0; align-items: center;">
-        <label for="spellLevel" style="line-height: 1.2;">Level</label>
-        <div class="form-fields">
-          <input type="number" id="spellLevel" name="spellLevel" value="0" min="0" step="1" style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+
+      <div class="form-group portrait-group flexrow" style="align-items: center; margin-bottom: 10px;">
+        <label for="portraitUpload" style="flex: 1;">Portrait Image:</label>
+        <div class="form-fields" style="flex: 2; display: flex; align-items: center; gap: 10px;">
+          <input type="file" id="portraitUpload" data-tooltip="Image for the portrait. A round token with a ring is generated from it." name="portraitUpload" accept="image/*" style="width: 100%;">
+          <img id="portraitPreview" src="icons/svg/mystery-man.svg" alt="Preview" width="48" height="48" style="border: 1px solid #000; border-radius: 4px; object-fit: cover;">
         </div>
       </div>
-    </div>
-  </fieldset>
 
-  <fieldset class="compendium-search-fieldset" style="margin-bottom: 10px; position: relative;">
-    <legend>Compendium Items</legend>
-    <div class="form-group flexcol" style="margin: 0;">
-      <p class="notes" style="margin-bottom: 5px;">Search all compendiums for spells, weapons, and features to grant this NPC.</p>
-      <div class="search-container flexrow" style="position: relative; width: 100%; gap: 6px; align-items: center;">
-        <input type="text" id="itemSearchQuery" placeholder="Search items..." style="flex: 1; height: 2rem; padding: 0 0.5rem; border-radius: 4px; border: 1px solid var(--color-border-light-primary);">
-        <button type="button" data-action="createNewFeature" style="width: auto; padding: 0 8px; height: 2rem; white-space: nowrap;"><i class="fas fa-plus"></i> Create New</button>
-        <ul id="itemSearchResults" class="search-results-dropdown" style="display: none; top: 100%; left: 0; width: 100%;"></ul>
-      </div>
-    </div>
-    <div class="form-group flexcol" style="margin-top: 10px;">
-      <label>Selected Items:</label>
-      <div id="selectedItemsBin" class="selected-items-bin">
-        <span class="empty-bin-msg" style="color: var(--color-text-light-5); font-style: italic; font-size: 0.9em;">No items selected.</span>
-      </div>
-    </div>
-  </fieldset>
+      <div class="flexrow" style="gap: 10px; margin-bottom: 10px;">
+        <fieldset class="size-fieldset" style="flex: 1; margin: 0;">
+          <legend>Actor Size</legend>
+          <div class="form-fields" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 0.95rem;">
+            <label><input type="radio" name="size" value="tiny"> Tiny</label>
+            <label><input type="radio" name="size" value="sm"> Small</label>
+            <label><input type="radio" name="size" value="med" checked> Medium</label>
+            <label><input type="radio" name="size" value="lg"> Large</label>
+            <label><input type="radio" name="size" value="huge"> Huge</label>
+            <label><input type="radio" name="size" value="grg"> Gargantuan</label>
+          </div>
+        </fieldset>
 
-  <fieldset class="abilities-fieldset">
-    <legend>Ability Scores</legend>
-    <div class="flexrow" style="gap: 5px;">
-      {{#each abilities as |label key|}}
-      <div class="form-group flexcol" style="margin: 0; align-items: center;">
-        <label for="ability-{{key}}" style="line-height: 1.2;">{{label}}</label>
-        <div class="form-fields">
-          <input type="number" id="ability-{{key}}" name="abilities.{{key}}" value="10" step="1" required style="text-align: center;">
-        </div>
+        <fieldset class="disposition-fieldset" style="flex: 1; margin: 0;">
+          <legend data-tooltip="Token border color and who the creature is hostile to.">Token Disposition</legend>
+          <div class="form-fields" style="display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem; align-items: center; justify-content: center; height: 100%;">
+            <label><input type="radio" name="disposition" value="1"> Friendly</label>
+            <label><input type="radio" name="disposition" value="0"> Neutral</label>
+            <label><input type="radio" name="disposition" value="-1" checked> Hostile</label>
+          </div>
+        </fieldset>
       </div>
-      {{/each}}
-    </div>
-  </fieldset>
 
-  <fieldset class="aura-fieldset" style="margin-top: 10px; position: relative;">
-    <legend style="display: flex; align-items: center; gap: 8px;">
-      <input type="checkbox" id="enableAura" name="enableAura" style="margin: 0;"> Token Aura Ring
-    </legend>
-    <div id="auraOptions" style="display: none; flex-direction: column; gap: 10px; margin-top: 5px;">
-      <div class="flexrow" style="gap: 10px;">
-        <div class="form-group flexcol" style="margin: 0; flex: 1;">
-          <label for="auraRadius">Radius (ft)</label>
-          <div class="form-fields">
-            <input type="number" id="auraRadius" name="auraRadius" value="20" min="0" step="5">
+  </section>
+
+  <section class="fc-step" data-step="stats" data-title="Stats">
+      <fieldset class="combat-stats-fieldset" style="margin-bottom: 10px;">
+        <legend>Combat Attributes</legend>
+        <div class="flexrow" style="gap: 10px;">
+          <div class="form-group flexcol" style="margin: 0; align-items: center;">
+            <label for="ac" style="line-height: 1.2;">Armor Class</label>
+            <div class="form-fields">
+              <input type="number" id="ac" name="ac" data-tooltip="Flat armor class." value="10" step="1" required style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+            </div>
+          </div>
+          <div class="form-group flexcol" style="margin: 0; align-items: center;">
+            <label for="hp" style="line-height: 1.2;">Health (HP)</label>
+            <div class="form-fields">
+              <input type="number" id="hp" name="hp" data-tooltip="Maximum (and starting) hit points." value="10" step="1" required style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+            </div>
           </div>
         </div>
-        <div class="form-group flexcol" style="margin: 0; flex: 1;">
-          <label for="auraColor">Ring Color</label>
-          <div class="form-fields" style="display: flex; gap: 5px; align-items: center;">
-            <input type="color" id="auraColor" name="auraColor" value="#ff0000" style="width: 30px; height: 30px; padding: 0;">
-            <input type="text" id="auraColorText" name="auraColorText" value="#ff0000" style="flex: 1;" oninput="document.getElementById('auraColor').value = this.value">
-          </div>
-        </div>
-      </div>
-      <div class="flexrow" style="gap: 10px;">
-        <div class="form-group flexcol" style="margin: 0; flex: 1;">
-          <label for="auraVisibility">Visible To</label>
-          <div class="form-fields">
-            <select id="auraVisibility" name="auraVisibility">
-              <option value="PLAYER">Players & GM</option>
-              <option value="GAMEMASTER">GM Only</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group flexcol" style="margin: 0; flex: 1;">
-          <label for="auraGrid">Grid-based Shape?</label>
-          <div class="form-fields" style="display: flex; align-items: center; height: 100%;">
-            <input type="checkbox" id="auraGrid" name="auraGrid" style="margin: 0;">
-          </div>
-        </div>
-      </div>
-    </div>
-  </fieldset>
+      </fieldset>
 
-  <fieldset class="link-actor-fieldset" style="margin-top: 10px;">
-    <legend>Actor Data</legend>
-    <label style="display: flex; align-items: center; gap: 8px;">
-      <input type="checkbox" id="linkActorData" name="linkActorData" style="margin: 0;">
-      Link Actor Data
-    </label>
-    <p class="hint" style="margin: 4px 0 0;">
-      Tokens share this actor's data (HP, effects). Leave off for mooks that need independent copies.
-    </p>
-  </fieldset>
+      <fieldset class="abilities-fieldset">
+        <legend>Ability Scores</legend>
+        <div class="flexrow" style="gap: 5px;">
+          {{#each abilities as |label key|}}
+          <div class="form-group flexcol" style="margin: 0; align-items: center;">
+            <label for="ability-{{key}}" style="line-height: 1.2;">{{label}}</label>
+            <div class="form-fields">
+              <input type="number" id="ability-{{key}}" name="abilities.{{key}}" value="10" step="1" required style="text-align: center;">
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </fieldset>
+
+      <fieldset class="spellcasting-fieldset" style="margin-bottom: 10px;">
+        <legend>Spellcasting</legend>
+        <div class="flexrow" style="gap: 10px;">
+          <div class="form-group flexcol" style="margin: 0; align-items: center; flex: 1;">
+            <label for="spellcasting" style="line-height: 1.2;">Ability</label>
+            <div class="form-fields" style="width: 100%;">
+              <select id="spellcasting" name="spellcasting" data-tooltip="Ability used for spell attacks and save DCs. None for non-casters." style="text-align: center; height: 2.5rem; font-size: 1.1rem; width: 100%;">
+                <option value="">None</option>
+                <option value="int">Intelligence</option>
+                <option value="wis">Wisdom</option>
+                <option value="cha">Charisma</option>
+                <option value="str">Strength</option>
+                <option value="dex">Dexterity</option>
+                <option value="con">Constitution</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group flexcol" style="margin: 0; align-items: center;">
+            <label for="spellLevel" style="line-height: 1.2;">Level</label>
+            <div class="form-fields">
+              <input type="number" id="spellLevel" name="spellLevel" data-tooltip="Caster level: sets spell slots and cantrip scaling." value="0" min="0" step="1" style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+  </section>
+
+  <section class="fc-step" data-step="features" data-title="Features">
+      <fieldset class="compendium-search-fieldset" style="margin-bottom: 10px; position: relative;">
+        <legend>Compendium Items</legend>
+        <div class="form-group flexcol" style="margin: 0;">
+          <p class="notes" style="margin-bottom: 5px;">Search all compendiums for spells, weapons, and features to grant this NPC.</p>
+          <div class="search-container flexrow" style="position: relative; width: 100%; gap: 6px; align-items: center;">
+            <input type="text" id="itemSearchQuery" placeholder="Search items..." data-tooltip="Type to search every compendium. ↑/↓ to move, Enter to add, Esc to close." style="flex: 1; height: 2rem; padding: 0 0.5rem; border-radius: 4px; border: 1px solid var(--color-border-light-primary);">
+            <button type="button" data-action="createNewFeature" data-tooltip="Build a new attack or ability for this creature." style="width: auto; padding: 0 8px; height: 2rem; white-space: nowrap;"><i class="fas fa-plus"></i> Create New</button>
+            <ul id="itemSearchResults" class="search-results-dropdown" style="display: none; top: 100%; left: 0; width: 100%;"></ul>
+          </div>
+        </div>
+        <div class="form-group flexcol" style="margin-top: 10px;">
+          <label>Selected Items:</label>
+          <div id="selectedItemsBin" class="selected-items-bin">
+            <span class="empty-bin-msg" style="color: var(--color-text-light-5); font-style: italic; font-size: 0.9em;">No items selected.</span>
+          </div>
+        </div>
+      </fieldset>
+
+  </section>
+
+  <section class="fc-step" data-step="token" data-title="Token">
+      <fieldset class="aura-fieldset" style="margin-top: 10px; position: relative;">
+        <legend style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="enableAura" name="enableAura" data-tooltip="Draw a colored ring around the token (Token Aura Ring module)." style="margin: 0;"> Token Aura Ring
+        </legend>
+        <div id="auraOptions" style="display: none; flex-direction: column; gap: 10px; margin-top: 5px;">
+          <div class="flexrow" style="gap: 10px;">
+            <div class="form-group flexcol" style="margin: 0; flex: 1;">
+              <label for="auraRadius">Radius (ft)</label>
+              <div class="form-fields">
+                <input type="number" id="auraRadius" name="auraRadius" value="20" min="0" step="5">
+              </div>
+            </div>
+            <div class="form-group flexcol" style="margin: 0; flex: 1;">
+              <label for="auraColor">Ring Color</label>
+              <div class="form-fields" style="display: flex; gap: 5px; align-items: center;">
+                <input type="color" id="auraColor" name="auraColor" value="#ff0000" style="width: 30px; height: 30px; padding: 0;">
+                <input type="text" id="auraColorText" name="auraColorText" value="#ff0000" style="flex: 1;" oninput="document.getElementById('auraColor').value = this.value">
+              </div>
+            </div>
+          </div>
+          <div class="flexrow" style="gap: 10px;">
+            <div class="form-group flexcol" style="margin: 0; flex: 1;">
+              <label for="auraVisibility">Visible To</label>
+              <div class="form-fields">
+                <select id="auraVisibility" name="auraVisibility">
+                  <option value="PLAYER">Players & GM</option>
+                  <option value="GAMEMASTER">GM Only</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group flexcol" style="margin: 0; flex: 1;">
+              <label for="auraGrid">Grid-based Shape?</label>
+              <div class="form-fields" style="display: flex; align-items: center; height: 100%;">
+                <input type="checkbox" id="auraGrid" name="auraGrid" style="margin: 0;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="link-actor-fieldset" style="margin-top: 10px;">
+        <legend>Actor Data</legend>
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="linkActorData" name="linkActorData" data-tooltip="Linked: every token IS this actor (unique NPCs). Unlinked: each token is an independent copy (mooks)." style="margin: 0;">
+          Link Actor Data
+        </label>
+        <p class="hint" style="margin: 4px 0 0;">
+          Tokens share this actor's data (HP, effects). Leave off for mooks that need independent copies.
+        </p>
+      </fieldset>
+  </section>
+  </div>
   </div>
 
   <footer class="form-footer">
+    <span class="fc-keys"></span>
     <button type="button" class="create-btn" data-action="createNPC">
       <i class="fas fa-hammer"></i> Create
     </button>

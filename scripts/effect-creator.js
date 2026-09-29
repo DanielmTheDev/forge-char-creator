@@ -9,6 +9,7 @@
 
 import { CONDITIONS, DAMAGE_TYPES, ABILITIES, ADV_TYPES, ADV_ROLL_CATS, SPECIAL_DURATIONS, ACTIVATION_TYPES,
          KINDS, DEFAULT_STATE, buildEffect, buildItem, summarize } from "./feature-payload.js";
+import { attachStepper } from "./ui/stepper.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -19,7 +20,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     id: "forge-effect-creator-app",
     classes: ["forge-effect-creator", "standard-form"],
     title: "Forge Effect Creator",
-    position: { width: 750, height: "auto" },
+    position: { width: 820, height: 680 },
     window: { icon: "fas fa-sparkles", resizable: true },
     actions: {
       createEffect: function() { this._doCreate(); }
@@ -35,6 +36,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
   // ── State ──────────────────────────────────────────────────────────────────
   #state = foundry.utils.deepClone(DEFAULT_STATE);
+  #stepper = null;
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -123,6 +125,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this.#renderDamageRows(el, "damageRows");
     this.#renderDamageRows(el, "saveDamageRows");
     this.#refresh(el);
+    this.#stepper = attachStepper(el.querySelector("form") ?? el, { onCreate: () => this._doCreate() });
   }
 
   #refresh(el) {
@@ -182,11 +185,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const lbl = el.querySelector("#fcCreateLabel");
     if (lbl) lbl.textContent = k === "effect" ? "Create Effect" : "Create Feature";
 
-    // Force ApplicationV2 to dynamically recalculate interior bounding box heights
-    // This perfectly prevents the window from clipping un-hidden elements with standard scrollbars.
-    if (this.rendered) {
-      setTimeout(() => this.setPosition({ height: "auto" }), 10);
-    }
+    this.#stepper?.refresh();
   }
 
   // ── Advantage/Disadvantage rows ────────────────────────────────────────────

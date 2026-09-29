@@ -357,7 +357,7 @@
 
 /* ── Feature builder ─────────────────────────────────────────────── */
 .forge-effect-creator .fc-layout,
-.forge-char-creator .fc-layout { display: flex; gap: 10px; min-height: 0; flex: 1; }
+.forge-char-creator .fc-layout { display: flex; gap: 10px; min-height: 0; flex: 1 1 auto; }
 .forge-effect-creator .fc-panes,
 .forge-char-creator .fc-panes { flex: 1; min-width: 0; }
 .forge-effect-creator .fc-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -380,3 +380,14 @@
 .forge-effect-creator .fc-step[hidden] { display: none; }
 .forge-effect-creator [data-add-row] { width: auto; padding: 2px 10px; font-size: 0.85em; }
 .forge-effect-creator .fc-row label { white-space: nowrap; }
+
+/* ── Stepper ─────────────────────────────────────────────────────── */
+.fc-stepped .fc-step:not(.active) { display: none; }
+.fc-steps-nav { display: flex; flex-direction: column; gap: 4px; flex: 0 0 9.5rem; }
+.fc-steps-nav:empty { display: none; }
+.fc-nav-btn { text-align: left; white-space: nowrap; }
+.fc-nav-btn[aria-current="step"] { border-color: var(--color-border-highlight, #ff6400); background: rgba(255, 100, 0, 0.15); font-weight: bold; }
+.fc-keys { font-size: 0.8em; color: var(--color-text-light-5); margin-right: auto; align-self: center; }
+.form-footer:has(.fc-keys) { display: flex; gap: 8px; align-items: center; }
+.form-footer:has(.fc-keys) > button { flex: 0 0 auto; width: auto; }
+.fc-step { display: flex; flex-direction: column; gap: 6px; }
