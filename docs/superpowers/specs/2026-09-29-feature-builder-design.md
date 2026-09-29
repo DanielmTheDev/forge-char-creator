@@ -50,7 +50,7 @@ Locked mode (`isLocked`, from char wizard) forbids kind `effect`.
 - **Uses**: X/long rest → `uses:{max:"X", recovery:[{period:"lr", type:"recoverAll"}]}`; Recharge N → `uses:{max:"1", recovery:[{period:"recharge", formula:"N"}]}`. Primary activity gets `consumption.targets:[{type:"itemUses", target:"", value:"1"}]` (without it recharge is a no-op).
 
 ## Keyboard map (stepper)
-`Ctrl+→` / `Ctrl+←` next/prev step · `Alt+1..9` jump to step · `Ctrl+Enter` create · `Esc` closes open popup (search dropdown, icon picker) before anything else. Entering a step focuses its first field. Steps also clickable in sidebar. Footer shows hints. Hidden steps skipped by next/prev and by numbering.
+`Alt+→` / `Alt+←` next/prev step (not Ctrl+arrow: collides with word-jump in text fields) · `Alt+1..9` jump to step · `Ctrl+Enter` create · `Esc` closes open popup (search dropdown, icon picker) before anything else. Entering a step focuses its first field. Steps also clickable in sidebar. Footer shows hints. Hidden steps skipped by next/prev and by numbering.
 
 Char wizard steps: **Identity** (name, level, archetype, portrait, size, disposition) · **Stats** (AC, HP, abilities, spellcasting) · **Features** (search, Create New, selected bin) · **Token** (aura, link actor data). `Ctrl+Enter` = Create from any step.
 
