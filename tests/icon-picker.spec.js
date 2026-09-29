@@ -10,8 +10,9 @@ test('Icon picker: name-based suggestions, search, keyboard pick, cached reopen,
   await page.waitForSelector('#ui-middle', { timeout: 30000 });
   await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
   await page.waitForTimeout(2000);
-  // Headless has no GPU: Foundry pins permanent warnings over the top of the screen.
-  await page.evaluate(() => document.querySelectorAll("#notifications li").forEach(n => n.remove()));
+  // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
+  // (and may add more later) — make them click-through.
+  await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
 
   await page.evaluate(async () => {
     const { EffectCreatorApp } = await import("./modules/forge-char-creator/scripts/effect-creator.js");

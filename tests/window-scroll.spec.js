@@ -57,8 +57,9 @@ test.describe('Window scrolling', () => {
     // Footer button visible before scrolling — i.e. not clipped off the bottom
     await expect(button).toBeInViewport();
 
-    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen.
-    await page.evaluate(() => document.querySelectorAll("#notifications li").forEach(n => n.remove()));
+    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
+    // (and may add more later) — make them click-through.
+    await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
     if (prep) await prep();
     // The form is split into steps; scroll-test the tallest one.
     const navs = page.locator(`${rootSel} .fc-nav-btn`);
