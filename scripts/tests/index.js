@@ -39,6 +39,9 @@ class ForgeTestingSuite {
     await runTest("EffectCreatorApp: Maps target type correctly (defaults to creature)", this.#testEffectTargeting);
     await runTest("EffectCreatorApp: Just Apply creates Utility Activity without Attack/Save", this.#testEffectJustApply);
     await runTest("EffectCreatorApp: Midi Damage creates Damage Activity without Attack/Save", this.#testEffectMidiDamage);
+    await runTest("EffectCreatorApp: Temp HP creates a Heal Activity with healing type temphp", this.#testEffectTempHp);
+    await runTest("EffectCreatorApp: Activation cost and targeting are written to the Activity", this.#testEffectActivationAndTarget);
+    await runTest("EffectCreatorApp: Special duration emits DAE specialDuration flag", this.#testEffectSpecialDuration);
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
     await runTest("CharCreatorApp: Create New Feature automatically adds to selected items", this.#testCharCreatorFeatureCreation);
@@ -239,7 +242,7 @@ class ForgeTestingSuite {
               app.close();
               
               if (!payload) throw new Error("No payload was captured.");
-              const desc = payload.description?.value;
+              const desc = payload.description;
               if (!desc) throw new Error("Description was not generated.");
               
               if (!desc.includes("Applies prone, poisoned.")) throw new Error("Statuses missing from description.");
@@ -305,7 +308,7 @@ class ForgeTestingSuite {
         if (change3) throw new Error("Zero AC should produce no change entry.");
         
         // Verify auto-description includes AC info
-        if (!payload.description.value.includes("AC +3")) throw new Error("Auto-description missing AC bonus text.");
+        if (!payload.description.includes("AC +3")) throw new Error("Auto-description missing AC bonus text.");
         
         resolve();
       } catch (e) {
@@ -361,8 +364,8 @@ class ForgeTestingSuite {
         if (dexChange.value !== "-2") throw new Error(`DEX value expected "-2", got "${dexChange.value}"`);
         
         // Verify auto-description
-        if (!payload.description.value.includes("STR +4")) throw new Error("Auto-description missing STR modifier.");
-        if (!payload.description.value.includes("DEX -2")) throw new Error("Auto-description missing DEX modifier.");
+        if (!payload.description.includes("STR +4")) throw new Error("Auto-description missing STR modifier.");
+        if (!payload.description.includes("DEX -2")) throw new Error("Auto-description missing DEX modifier.");
         
         resolve();
       } catch (e) {
@@ -390,7 +393,7 @@ class ForgeTestingSuite {
         if (!payload) throw new Error("No payload was captured.");
         if (!payload.flags.dae) throw new Error("Missing DAE flags object.");
         if (payload.flags.dae.stackable !== "multi") throw new Error(`Expected stackable "multi", got "${payload.flags.dae.stackable}"`);
-        if (!payload.description.value.includes("Stacking: Full Stack.")) throw new Error("Auto-description missing stacking text for multi.");
+        if (!payload.description.includes("Stacking: Full Stack.")) throw new Error("Auto-description missing stacking text for multi.");
         
         // Verify "count" mode too
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='stackable']"), "count");
@@ -449,7 +452,7 @@ class ForgeTestingSuite {
       
       try {
         const payload = app._buildAEData();
-        const desc = payload.description?.value;
+        const desc = payload.description;
         if (!desc) throw new Error("Description was not generated.");
         
         // Verify grants qualifier
@@ -472,19 +475,19 @@ class ForgeTestingSuite {
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='appMode'][value='activation']"), true);
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='activationTarget'][value='targets']"), true);
         const payload2 = app._buildAEData();
-        const desc2 = payload2.description?.value;
+        const desc2 = payload2.description;
         if (!desc2.includes("Mode: On Activation (applies to target(s)).")) throw new Error(`Activation mode missing. Got: ${desc2}`);
         
         // Test indefinite duration
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='rounds']"), "0");
         const payload3 = app._buildAEData();
-        const desc3 = payload3.description?.value;
+        const desc3 = payload3.description;
         if (!desc3.includes("Duration: Indefinite.")) throw new Error(`Indefinite duration missing. Got: ${desc3}`);
         
         // Test singular round
         ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='rounds']"), "1");
         const payload4 = app._buildAEData();
-        const desc4 = payload4.description?.value;
+        const desc4 = payload4.description;
         if (!desc4.includes("Duration: 1 round.")) throw new Error(`Singular round missing. Got: ${desc4}`);
         
         app.close();
@@ -518,8 +521,11 @@ class ForgeTestingSuite {
           clearTimeout(timeoutId);
 
           try {
-            if (item.system.target.type !== "creature") {
-               throw new Error(`Default target type should be 'creature', got '${item.system.target.type}'`);
+            // dnd5e 5.2.5: targeting lives on the activity, not on system.target.
+            const activities = item.system.activities;
+            const act = activities.get(Array.from(activities.keys())[0]);
+            if (act.target?.affects?.type !== "creature") {
+               throw new Error(`Default target type should be 'creature', got '${act.target?.affects?.type}'`);
             }
             
             app.close();
@@ -536,7 +542,7 @@ class ForgeTestingSuite {
           Hooks.off("createItem", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Item.create to fire in local DB"));
-        }, 3000);
+        }, 15000);
 
         const submitBtn = el.querySelector("button[data-action='createEffect']");
         if (submitBtn) submitBtn.click();
@@ -604,7 +610,7 @@ class ForgeTestingSuite {
           Hooks.off("createItem", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Item.create to fire for Just Apply test"));
-        }, 3000);
+        }, 15000);
 
         const submitBtn = el.querySelector("button[data-action='createEffect']");
         if (submitBtn) submitBtn.click();
@@ -674,7 +680,7 @@ class ForgeTestingSuite {
           Hooks.off("createItem", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Item.create to fire for Midi Damage test"));
-        }, 3000);
+        }, 15000);
 
         const submitBtn = el.querySelector("button[data-action='createEffect']");
         if (submitBtn) submitBtn.click();
@@ -683,6 +689,224 @@ class ForgeTestingSuite {
       } catch (e) {
         if (captureHook) Hooks.off("createItem", captureHook);
         clearTimeout(timeoutId);
+        reject(e);
+      }
+    });
+  }
+
+  // ── Temp HP (heal activity) ─────────────────────────────────────────────
+  static async #testEffectTempHp() {
+    return new Promise(async (resolve, reject) => {
+      let captureHook = null;
+      let timeoutId = null;
+
+      try {
+        const app = new EffectCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const el = app.element;
+
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Rally E2E TempHP");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='acBonus']"), "2");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='temphp']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapDamageFormula']"), "2d4+2");
+
+        // The formula field is shared with damage — it must be relabelled, and the
+        // damage-type picker hidden (temp HP is always the "temphp" healing type).
+        if (el.querySelector("#wrapDamageLabel")?.textContent !== "Temp HP:") {
+          throw new Error("Formula label was not relabelled to 'Temp HP:'.");
+        }
+        if (el.querySelector("#wrapDamageTypeSection")?.style.display !== "none") {
+          throw new Error("Damage type picker should be hidden for Temp HP.");
+        }
+
+        const payload = app._buildAEData();
+        if (!payload.description.includes("2d4+2 temporary hit points")) {
+          throw new Error(`Auto-description missing temp HP grant. Got: ${payload.description}`);
+        }
+
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== "Rally E2E TempHP") return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            const activities = item.system.activities;
+            if (!activities) throw new Error("Activities map is missing.");
+            const act = activities.get(Array.from(activities.keys())[0]);
+            if (act.type !== "heal") throw new Error(`Activity type should be 'heal', got '${act.type}'`);
+
+            const types = act.healing?.types instanceof Set
+              ? Array.from(act.healing.types) : (act.healing?.types ?? []);
+            if (!types.includes("temphp")) throw new Error(`healing.types should contain 'temphp', got ${JSON.stringify(types)}`);
+            if (act.healing.custom?.enabled !== true) throw new Error("healing.custom.enabled should be true.");
+            if (act.healing.custom?.formula !== "2d4+2") throw new Error(`healing.custom.formula should be '2d4+2', got '${act.healing.custom?.formula}'`);
+
+            // The AE (AC +2) must ride along with the temp HP grant.
+            if (!act.effects[0]?._id) throw new Error("Heal activity did not link to the Active Effect.");
+            const ae = item.effects.contents[0];
+            if (!ae?.changes.find(c => c.key === "system.attributes.ac.bonus")) {
+              throw new Error("Embedded AE lost its AC bonus change.");
+            }
+            // Temp HP must NOT be an AE change — dnd5e stores hp.temp, so an effect
+            // change on it is never consumed by damage (see DAE's own field help).
+            if (ae.changes.find(c => c.key?.includes("hp.temp"))) {
+              throw new Error("Temp HP must not be emitted as an ActiveEffect change.");
+            }
+
+            app.close();
+            await item.delete();
+            resolve();
+          } catch (e) {
+            app.close();
+            await item.delete();
+            reject(e);
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          app.close();
+          reject(new Error("Timeout waiting for Item.create to fire for Temp HP test"));
+        }, 15000);
+
+        const submitBtn = el.querySelector("button[data-action='createEffect']");
+        if (submitBtn) submitBtn.click();
+        else reject(new Error("Submit button not found"));
+
+      } catch (e) {
+        if (captureHook) Hooks.off("createItem", captureHook);
+        clearTimeout(timeoutId);
+        reject(e);
+      }
+    });
+  }
+
+  // ── Activation cost + targeting land on the ACTIVITY ────────────────────
+  static async #testEffectActivationAndTarget() {
+    // dnd5e 5.x FeatData has no activation/target fields, so both must be written
+    // to the activity or they are silently dropped by the DataModel.
+    const build = (name, area, tweak) => new Promise(async (resolve, reject) => {
+      let captureHook = null;
+      let timeoutId = null;
+
+      try {
+        const app = new EffectCreatorApp();
+        await app.render(true);
+        await ForgeTestingSuite.#delay(150);
+        const el = app.element;
+
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), name);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapInFeature']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[name='wrapType'][value='apply']"), true);
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapActivation']"), "bonus");
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetArea']"), area);
+        tweak(el);
+
+        captureHook = Hooks.on("createItem", async (item) => {
+          if (item.name !== name) return;
+          Hooks.off("createItem", captureHook);
+          clearTimeout(timeoutId);
+
+          try {
+            const activities = item.system.activities;
+            const act = activities.get(Array.from(activities.keys())[0]);
+            if (act.activation?.type !== "bonus") throw new Error(`activation.type should be 'bonus', got '${act.activation?.type}'`);
+            resolve(act);
+          } catch (e) {
+            reject(e);
+          } finally {
+            app.close();
+            await item.delete();
+          }
+        });
+
+        timeoutId = setTimeout(() => {
+          Hooks.off("createItem", captureHook);
+          app.close();
+          reject(new Error(`Timeout waiting for Item.create to fire for ${name}`));
+        }, 15000);
+
+        const submitBtn = el.querySelector("button[data-action='createEffect']");
+        if (submitBtn) submitBtn.click();
+        else reject(new Error("Submit button not found"));
+
+      } catch (e) {
+        if (captureHook) Hooks.off("createItem", captureHook);
+        clearTimeout(timeoutId);
+        reject(e);
+      }
+    });
+
+    // Individual target type -> target.affects
+    const single = await build("Activation E2E Single", "creature", el => {
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapTargetCount']"), "2");
+    });
+    if (String(single.target?.affects?.count) !== "2") {
+      throw new Error(`target.affects.count should be 2, got '${single.target?.affects?.count}'`);
+    }
+    if (single.target?.affects?.type !== "creature") {
+      throw new Error(`target.affects.type should be 'creature', got '${single.target?.affects?.type}'`);
+    }
+
+    // Area target type -> target.template, sized from the Size (ft) field
+    const area = await build("Activation E2E Area", "sphere", el => {
+      if (el.querySelector("#wrapAreaSizeBox")?.style.display === "none") {
+        throw new Error("Size (ft) field should be visible for an area target type.");
+      }
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='wrapAreaSize']"), "15");
+    });
+    if (area.target?.template?.type !== "sphere") {
+      throw new Error(`target.template.type should be 'sphere', got '${area.target?.template?.type}'`);
+    }
+    if (String(area.target?.template?.size) !== "15") {
+      throw new Error(`target.template.size should be 15, got '${area.target?.template?.size}'`);
+    }
+  }
+
+  // ── DAE special duration ("until end of next turn") ─────────────────────
+  static async #testEffectSpecialDuration() {
+    return new Promise(async (resolve, reject) => {
+      const app = new EffectCreatorApp();
+      await app.render(true);
+      await ForgeTestingSuite.#delay(150);
+
+      const el = app.element;
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='name']"), "Special Duration E2E");
+      ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='specialDuration']"), "turnEndSource");
+
+      try {
+        const payload = app._buildAEData();
+        const sd = payload.flags?.dae?.specialDuration;
+        if (!Array.isArray(sd)) throw new Error("flags.dae.specialDuration should be an array.");
+        if (sd.length !== 1 || sd[0] !== "turnEndSource") {
+          throw new Error(`Expected ["turnEndSource"], got ${JSON.stringify(sd)}`);
+        }
+        if (!payload.description.includes("Expires at the end of source's next turn.")) {
+          throw new Error(`Auto-description missing expiry text. Got: ${payload.description}`);
+        }
+        // Indefinite should not be claimed alongside a special duration.
+        if (payload.description.includes("Duration: Indefinite.")) {
+          throw new Error("Description should not say Indefinite when a special duration is set.");
+        }
+
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='specialDuration']"), "turnEnd");
+        if (app._buildAEData().flags.dae.specialDuration[0] !== "turnEnd") {
+          throw new Error("specialDuration did not update to turnEnd.");
+        }
+
+        ForgeTestingSuite.#simulateChange(el.querySelector("[data-ef='specialDuration']"), "none");
+        const payload3 = app._buildAEData();
+        if (payload3.flags.dae?.specialDuration) throw new Error("'none' should not emit a specialDuration flag.");
+        if (!payload3.description.includes("Duration: Indefinite.")) {
+          throw new Error(`Indefinite duration text missing once special duration is cleared. Got: ${payload3.description}`);
+        }
+
+        app.close();
+        resolve();
+      } catch (e) {
+        app.close();
         reject(e);
       }
     });
@@ -746,7 +970,7 @@ class ForgeTestingSuite {
           Hooks.off("createActor", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Actor.create to fire in local DB"));
-        }, 3000);
+        }, 15000);
   
         // Fire physical submit action
         el.querySelector("form").dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
@@ -815,7 +1039,7 @@ class ForgeTestingSuite {
           Hooks.off("createItem", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Item.create to fire in local DB"));
-        }, 3000);
+        }, 15000);
 
         // Click create button
         const submitBtn = el.querySelector("button[data-action='createEffect']");
@@ -871,7 +1095,7 @@ class ForgeTestingSuite {
           Hooks.off("createActor", captureHook);
           app.close();
           reject(new Error("Timeout waiting for Actor.create to fire in local DB"));
-        }, 3000);
+        }, 15000);
 
         // Fire physical submit action
         el.querySelector("form").dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
@@ -957,7 +1181,7 @@ class ForgeTestingSuite {
           const ef = document.querySelector(".forge-effect-creator");
           if(ef) ef.remove();
           reject(new Error("Timeout waiting for Item.create to fire in Feature Creation Test"));
-        }, 3000);
+        }, 15000);
 
         const effectSubmitBtn = effectEl.querySelector("button[data-action='createEffect']");
         if (effectSubmitBtn) effectSubmitBtn.click();

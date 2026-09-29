@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Forge Character Creator Test Suite', () => {
-  // Give Foundry time to boot, load canvas, and run long combat sequences
-  test.setTimeout(120000); 
+  // Give Foundry time to boot, load canvas, and run long combat sequences.
+  // The native suite is ~20 tests, several of which import into a compendium and
+  // one of which runs a full midi combat, so this needs a lot of headroom.
+  test.setTimeout(300000);
 
   test('Execute Native Foundry Suite', async ({ page }) => {
     

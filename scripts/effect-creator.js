@@ -46,6 +46,71 @@ const ADV_ROLL_CATS = [
   { id: "skill.all", label: "All Skills" }
 ];
 
+// DAE special durations (expired by the Times-Up module — see CLAUDE.md).
+const SPECIAL_DURATIONS = [
+  { id: "none",            label: "None" },
+  { id: "turnEnd",         label: "End of target's next turn" },
+  { id: "turnEndSource",   label: "End of source's next turn" },
+  { id: "turnStart",       label: "Start of target's next turn" },
+  { id: "turnStartSource", label: "Start of source's next turn" }
+];
+
+// Subset of CONFIG.DND5E.activityActivationTypes worth offering here.
+const ACTIVATION_TYPES = [
+  { id: "action",   label: "Action" },
+  { id: "bonus",    label: "Bonus Action" },
+  { id: "reaction", label: "Reaction" },
+  { id: "",         label: "No Cost" }
+];
+
+// Wizard wrapType -> dnd5e activity type / default activity name.
+const ACT_TYPES = { apply: "utility", attack: "attack", save: "save", damage: "damage", temphp: "heal" };
+const ACT_NAMES = { apply: "Apply",   attack: "Attack", save: "Save", damage: "Damage", temphp: "Temp HP" };
+
+// Default wizard state. Single source of truth for the initial state AND the
+// post-create reset; deep-cloned on use so the arrays are never shared.
+const DEFAULT_STATE = {
+  name: "",
+  img: "icons/svg/aura.svg",
+  description: "",
+  durationType: "fixed",     // "fixed" | "overtime"
+  rounds: 0,
+  specialDuration: "none",   // DAE special duration id, or "none"
+  // OverTime
+  otTrigger: "end",          // "start" | "end"
+  otWhose: "target",         // "source" | "target"
+  otDamage: "",
+  otRollType: "damage",      // "damage" | "healing"
+  otDamageType: "fire",
+  otSave: false,
+  otSaveAbility: "dex",
+  otSaveDC: "14",
+  otOnSave: "nodamage",      // "nodamage" | "halfdamage" | "fulldamage"
+  otSuccesses: "1",
+  // Application mode
+  appMode: "activation",       // "passive" | "activation"
+  activationTarget: "targets", // "wearer" | "targets"
+  // Conditions
+  statuses: [],
+  // Adv/Disadv rows
+  advRows: [],
+  // Stat Modifiers
+  acBonus: 0,
+  abilityRows: [],      // [{ability: "str", value: 2}, ...]
+  stackable: "none",    // "none" | "count" | "multi"
+  // Output
+  wrapInFeature: false,
+  wrapType: "none",          // none | apply | attack | save | damage | temphp
+  wrapActivation: "action",  // activity activation.type ("" = no cost)
+  wrapTargetCount: "1",
+  wrapAreaSize: "20",        // template size in ft, used for area target types
+  wrapTargetArea: "creature",
+  wrapDamageFormula: "",     // damage formula — the Temp HP formula when wrapType is "temphp"
+  wrapDamageType: "bludgeoning",
+  wrapSaveAbility: "dex",
+  wrapSaveDC: "14"
+};
+
 // ── EffectCreatorApp ─────────────────────────────────────────────────────────
 
 export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -68,44 +133,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   };
 
   // ── State ──────────────────────────────────────────────────────────────────
-  #state = {
-    name: "",
-    img: "icons/svg/aura.svg",
-    description: "",
-    durationType: "fixed",   // "fixed" | "overtime"
-    rounds: 0,
-    // OverTime
-    otTrigger: "end",         // "start" | "end"
-    otWhose: "target",        // "source" | "target"
-    otDamage: "",
-    otRollType: "damage",     // "damage" | "healing"
-    otDamageType: "fire",
-    otSave: false,
-    otSaveAbility: "dex",
-    otSaveDC: "14",
-    otOnSave: "nodamage",     // "nodamage" | "halfdamage" | "fulldamage"
-    otSuccesses: "1",
-    // Application mode
-    appMode: "activation",       // "passive" | "activation"
-    activationTarget: "targets", // "wearer" | "targets"
-    // Conditions
-    statuses: [],
-    // Adv/Disadv rows
-    advRows: [],
-    // Stat Modifiers
-    acBonus: 0,
-    abilityRows: [],      // [{ability: "str", value: 2}, ...]
-    stackable: "none",    // "none" | "count" | "multi"
-    // Output
-    wrapInFeature: false,
-    wrapType: "none",
-    wrapTargetCount: "1",
-    wrapTargetArea: "creature",
-    wrapDamageFormula: "",
-    wrapDamageType: "bludgeoning",
-    wrapSaveAbility: "dex",
-    wrapSaveDC: "14"
-  };
+  #state = foundry.utils.deepClone(DEFAULT_STATE);
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -117,6 +145,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     ctx.conditions = DND5E_CONDITIONS;
     ctx.advTypes = ADV_TYPES;
     ctx.advCats = ADV_ROLL_CATS;
+    ctx.specialDurations = SPECIAL_DURATIONS;
+    ctx.activationTypes = ACTIVATION_TYPES;
     ctx.targetTypes = CONFIG.DND5E.targetTypes;
     return ctx;
   }
@@ -188,6 +218,11 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       const node = el.querySelector(`#${id}`);
       if (node) node.style.display = visible ? "" : "none";
     };
+    // Rows that must stay flex when shown ("" would blockify them and drop the gap).
+    const showFlex = (id, visible) => {
+      const node = el.querySelector(`#${id}`);
+      if (node) node.style.display = visible ? "flex" : "none";
+    };
     show("otSection",           s.durationType === "overtime");
     show("otSaveSection",       s.durationType === "overtime" && s.otSave);
     show("otRollTypeSection",   s.durationType === "overtime" && !!s.otDamage);
@@ -195,10 +230,21 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     show("activationModeRow",   s.appMode === "activation");
 
     // Output Wrapper logic
+    const isArea = s.wrapTargetArea in (CONFIG.DND5E?.areaTargetTypes ?? {});
     show("wrapFeatureOptions", s.wrapInFeature);
-    show("wrapCommonRow", s.wrapType === "attack" || s.wrapType === "save" || s.wrapType === "apply" || s.wrapType === "damage");
-    show("wrapDamageRow", s.wrapType === "attack" || s.wrapType === "save" || s.wrapType === "damage");
+    show("wrapCommonRow", ["apply", "attack", "save", "damage", "temphp"].includes(s.wrapType));
+    show("wrapDamageRow", ["attack", "save", "damage", "temphp"].includes(s.wrapType));
+    showFlex("wrapDamageTypeSection", ["attack", "save", "damage"].includes(s.wrapType));
     show("wrapSaveRow", s.wrapType === "save");
+    showFlex("wrapTargetCountBox", !isArea);
+    showFlex("wrapAreaSizeBox", isArea);
+
+    // The formula field is shared between damage and temp HP — relabel it.
+    const isTemp = s.wrapType === "temphp";
+    const fLabel = el.querySelector("#wrapDamageLabel");
+    if (fLabel) fLabel.textContent = isTemp ? "Temp HP:" : "Damage:";
+    const fInput = el.querySelector("[data-ef='wrapDamageFormula']");
+    if (fInput) fInput.placeholder = isTemp ? "2d4+2" : "1d8+3";
 
     // Force ApplicationV2 to dynamically recalculate interior bounding box heights
     // This perfectly prevents the window from clipping un-hidden elements with standard scrollbars.
@@ -368,6 +414,14 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     let descriptionText = s.description || "";
     if (!descriptionText.trim()) {
       const summaries = [];
+
+      // Temp HP grant leads the summary — it is the headline of the ability.
+      if (s.wrapInFeature && s.wrapType === "temphp") {
+        const cost = ACTIVATION_TYPES.find(a => a.id === (s.wrapActivation ?? "action"));
+        const grant = `Grants ${(s.wrapDamageFormula || "").trim() || "5"} temporary hit points.`;
+        summaries.push(cost?.id ? `${cost.label}: ${grant.charAt(0).toLowerCase()}${grant.slice(1)}` : grant);
+      }
+
       if (s.statuses?.length) summaries.push(`Applies ${s.statuses.join(", ")}.`);
 
       const hasDamage = s.otDamage && s.otDamage.trim();
@@ -419,8 +473,14 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       const durationRounds = parseInt(s.rounds);
       if (s.durationType === "fixed" && durationRounds > 0) {
         summaries.push(`Duration: ${durationRounds} round${durationRounds !== 1 ? "s" : ""}.`);
-      } else if (s.durationType === "fixed" && (!durationRounds || durationRounds === 0)) {
+      } else if (s.durationType === "fixed" && (!durationRounds || durationRounds === 0)
+                 && (!s.specialDuration || s.specialDuration === "none")) {
         summaries.push("Duration: Indefinite.");
+      }
+
+      if (s.specialDuration && s.specialDuration !== "none") {
+        const sd = SPECIAL_DURATIONS.find(d => d.id === s.specialDuration);
+        if (sd) summaries.push(`Expires at the ${sd.label.replace(/^(End|Start)/, m => m.toLowerCase())}.`);
       }
 
       descriptionText = summaries.join(" ") || "A custom effect.";
@@ -445,6 +505,11 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       aeData.flags.dae.stackable = s.stackable;
     }
 
+    // Special duration (DAE) — expired by Times-Up, e.g. end of the target's next turn
+    if (s.specialDuration && s.specialDuration !== "none") {
+      aeData.flags.dae.specialDuration = [s.specialDuration];
+    }
+
     return aeData;
   }
 
@@ -465,62 +530,70 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         };
 
         if (s.wrapInFeature && s.wrapType !== "none") {
-          itemData.system.activation = { type: "action", cost: 1, condition: "" };
-          const isArea = ["circle", "cone", "cube", "cylinder", "radius", "line", "sphere", "square", "wall"].includes(s.wrapTargetArea);
-          itemData.system.target = {
-            value: isArea ? 20 : (parseInt(s.wrapTargetCount) || 1),
-            type: s.wrapTargetArea
-          };
-
-          // --- DND5e V2 Legacy Payload Support ---
-          if (s.wrapDamageFormula?.trim()) {
-            itemData.system.damage = { parts: [[s.wrapDamageFormula.trim(), s.wrapDamageType]] };
-          }
-          if (s.wrapType === "attack") {
-            itemData.system.actionType = "mwak";
-          } else if (s.wrapType === "save") {
-            itemData.system.actionType = "save";
-            const dcv = String(s.wrapSaveDC).trim();
-            itemData.system.save = { 
-              ability: s.wrapSaveAbility, 
-              dc: isNaN(dcv) ? null : parseInt(dcv), 
-              scaling: isNaN(dcv) ? dcv.replace("@attributes.","").replace("@","") : "flat" 
-            };
-          } else if (s.wrapType === "apply" || s.wrapType === "damage") {
-            itemData.system.actionType = "other";
-          }
-
-          // --- DND5e V3 Modern Payload (Universal Compatibility) ---
+          // dnd5e 5.x keeps activation / target / damage / save on the ACTIVITY.
+          // FeatData has no such fields, so item-level writes are silently dropped
+          // by the DataModel — everything below must live on the activity.
           const actId = foundry.utils.randomID();
-          const actType = s.wrapType === "apply" ? "utility" : (s.wrapType === "save" ? "save" : (s.wrapType === "damage" ? "damage" : "attack"));
-          const actName = s.wrapType === "apply" ? "Apply" : (s.wrapType === "save" ? "Save" : (s.wrapType === "damage" ? "Damage" : "Attack"));
-          itemData.system.activities = {
-            [actId]: {
-              _id: actId,
-              type: actType,
-              name: actName,
-              effects: [{ _id: aeData._id }]
-            }
+          const act = {
+            _id: actId,
+            type: ACT_TYPES[s.wrapType] ?? "utility",
+            name: ACT_NAMES[s.wrapType] ?? "Apply",
+            activation: { type: s.wrapActivation ?? "action", value: null, override: true },
+            effects: [{ _id: aeData._id }]
           };
 
+          // Area target types get a measured template; individual types a target count.
+          if (s.wrapTargetArea in CONFIG.DND5E.areaTargetTypes) {
+            act.target = {
+              template: {
+                type: s.wrapTargetArea,
+                size: String(parseInt(s.wrapAreaSize) || 20),
+                units: "ft"
+              },
+              override: true
+            };
+          } else {
+            act.target = {
+              affects: {
+                count: String(parseInt(s.wrapTargetCount) || 1),
+                type: s.wrapTargetArea
+              },
+              override: true
+            };
+          }
+
           if (s.wrapType === "attack") {
-            itemData.system.activities[actId].attack = { ability: "str", bonus: "", flat: false, type: { value: "melee" } };
+            act.attack = { ability: "str", bonus: "", flat: false, type: { value: "melee" } };
           } else if (s.wrapType === "save") {
             const dcv = String(s.wrapSaveDC).trim();
-            itemData.system.activities[actId].save = {
+            act.save = {
               ability: [s.wrapSaveAbility],
               dc: { calculation: isNaN(dcv) ? "spellcasting" : "custom", formula: isNaN(dcv) ? "" : dcv }
             };
-            itemData.system.activities[actId].damage = { onSave: "half" };
+            act.damage = { onSave: "half" };
           }
 
-          if (s.wrapDamageFormula?.trim()) {
-            itemData.system.activities[actId].damage = itemData.system.activities[actId].damage || {};
-            itemData.system.activities[actId].damage.parts = [{
-              custom: { enabled: true, formula: s.wrapDamageFormula.trim() },
+          const formula = s.wrapDamageFormula?.trim();
+          if (s.wrapType === "temphp") {
+            // Temp HP must come from a heal activity: system.attributes.hp.temp is a
+            // stored resource, so an AE change on it never gets consumed by damage.
+            act.healing = {
+              number: 0,
+              denomination: 0,
+              bonus: "",
+              types: ["temphp"],
+              custom: { enabled: true, formula: formula || "5" },
+              scaling: { mode: "", number: 1, formula: "" }
+            };
+          } else if (formula) {
+            act.damage = act.damage || {};
+            act.damage.parts = [{
+              custom: { enabled: true, formula },
               types: [s.wrapDamageType]
             }];
           }
+
+          itemData.system.activities = { [actId]: act };
         }
 
       const targetPack = s.wrapInFeature ? "forge-features" : "forge-effects";
@@ -539,16 +612,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       }
 
       // Reset state for next effect
-      this.#state = {
-        name: "", img: "icons/svg/aura.svg", description: "",
-        durationType: "fixed", rounds: 0,
-        otTrigger: "end", otWhose: "target", otDamage: "", otRollType: "damage", otDamageType: "fire",
-        otSave: false, otSaveAbility: "dex", otSaveDC: "14", otOnSave: "nodamage", otSuccesses: "1",
-        appMode: "activation", activationTarget: "targets",
-        statuses: [], advRows: [], acBonus: 0, abilityRows: [], stackable: "none",
-        wrapInFeature: false, wrapType: "none", wrapTargetCount: "1",
-        wrapTargetArea: "creature", wrapDamageFormula: "", wrapDamageType: "bludgeoning", wrapSaveAbility: "dex", wrapSaveDC: "14"
-      };
+      this.#state = foundry.utils.deepClone(DEFAULT_STATE);
       this.render();
     } catch (err) {
       console.error("Forge Effect Creator | Error saving effect:", err);

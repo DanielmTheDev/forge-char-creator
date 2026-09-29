@@ -72,6 +72,17 @@
              style="width:4rem; height:1.8rem; text-align:center;">
     </div>
 
+    <!-- Special duration (DAE / Times-Up) -->
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+      <label style="font-size:0.9em;">Expires:</label>
+      <select data-ef="specialDuration" style="height:1.8rem; max-width:16rem;">
+        {{#each specialDurations as |sd|}}
+        <option value="{{sd.id}}" {{#if (eq ../s.specialDuration sd.id)}}selected{{/if}}>{{sd.label}}</option>
+        {{/each}}
+      </select>
+      <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Needs the Times-Up module to expire.</span>
+    </div>
+
     <!-- OverTime sub-section (shown by JS) -->
     <div id="otSection" style="border-top:1px solid var(--color-border-light-tertiary); margin-top:6px; padding-top:6px; display:none;">
       <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
@@ -215,6 +226,16 @@
 
     <div id="wrapFeatureOptions" style="display:none; padding:10px; background:rgba(0,0,0,0.2); border-radius:4px; border:1px solid var(--color-border-light-tertiary);">
       
+      <!-- Activation cost (written to the activity, not the item) -->
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+        <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Activation:</span>
+        <select data-ef="wrapActivation" style="height:1.8rem; max-width:12rem;">
+          {{#each activationTypes as |at|}}
+          <option value="{{at.id}}" {{#if (eq ../s.wrapActivation at.id)}}selected{{/if}}>{{at.label}}</option>
+          {{/each}}
+        </select>
+      </div>
+
       <!-- Radio buttons row -->
       <div style="display:flex; gap:16px; margin-bottom:12px; align-items:center;">
         <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="none" {{#if (eq s.wrapType "none")}}checked{{/if}}> No Action</label>
@@ -222,6 +243,7 @@
         <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="attack" {{#if (eq s.wrapType "attack")}}checked{{/if}}> Midi Attack</label>
         <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="save" {{#if (eq s.wrapType "save")}}checked{{/if}}> Midi Save</label>
         <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="damage" {{#if (eq s.wrapType "damage")}}checked{{/if}}> Midi Damage</label>
+        <label style="display:flex; align-items:center; gap:4px; font-weight:normal; margin:0; cursor:pointer;"><input type="radio" name="wrapType" data-ef="wrapType" value="temphp" {{#if (eq s.wrapType "temphp")}}checked{{/if}}> Temp HP</label>
       </div>
       
       <!-- Common wrapper target/damage Row -->
@@ -229,9 +251,13 @@
         
         <!-- Targets & Area -->
         <div style="display:flex; gap:16px; align-items:center; width:100%;">
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div id="wrapTargetCountBox" style="display:flex; align-items:center; gap:6px;">
             <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Targets:</span>
             <input type="number" data-ef="wrapTargetCount" value="{{s.wrapTargetCount}}" style="width:3.5rem; text-align:center; height:1.8rem;">
+          </div>
+          <div id="wrapAreaSizeBox" style="display:none; align-items:center; gap:6px;">
+            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Size (ft):</span>
+            <input type="number" data-ef="wrapAreaSize" value="{{s.wrapAreaSize}}" min="0" style="width:3.5rem; text-align:center; height:1.8rem;">
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex:1;">
             <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Area:</span>
@@ -246,7 +272,7 @@
         <!-- Damage & Type -->
         <div id="wrapDamageRow" style="display:flex; gap:16px; align-items:center; width:100%;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Damage:</span>
+            <span id="wrapDamageLabel" style="font-size:0.9em; font-weight:bold; white-space:nowrap;">Damage:</span>
             <input type="text" data-ef="wrapDamageFormula" value="{{s.wrapDamageFormula}}" placeholder="1d8+3" style="width:6rem; height:1.8rem; text-align:center;">
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex:1;" id="wrapDamageTypeSection">
