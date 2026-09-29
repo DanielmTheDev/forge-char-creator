@@ -391,3 +391,15 @@
 .form-footer:has(.fc-keys) { display: flex; gap: 8px; align-items: center; }
 .form-footer:has(.fc-keys) > button { flex: 0 0 auto; width: auto; }
 .fc-step { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Icon picker ─────────────────────────────────────────────────── */
+.forge-icon-picker .window-content { display: flex; flex-direction: column; }
+.forge-icon-picker .ip-wrap { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: 6px; }
+.forge-icon-picker .ip-bar { display: flex; gap: 6px; }
+.forge-icon-picker .ip-search { flex: 1; height: 2rem; }
+.forge-icon-picker .ip-browse { flex: 0 0 auto; width: auto; }
+.forge-icon-picker .ip-status { margin: 0; font-size: 0.85em; color: var(--color-text-light-5); }
+.forge-icon-picker .ip-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 4px; align-content: start; }
+.forge-icon-picker .ip-cell { width: 52px; height: 52px; padding: 2px; }
+.forge-icon-picker .ip-cell img { width: 100%; height: 100%; object-fit: contain; border: none; }
+.forge-icon-picker .ip-cell:focus { outline: 2px solid var(--color-border-highlight, #ff6400); }

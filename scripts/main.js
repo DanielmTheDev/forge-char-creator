@@ -2,6 +2,7 @@ import { ForgeCharCreatorSettings } from "./data.js";
 import { CharCreatorApp } from "./app.js";
 import { EffectCreatorApp } from "./effect-creator.js";
 import { ForgeHubApp } from "./forge-hub.js";
+import { warmIconIndex } from "./ui/icon-picker.js";
 
 // Global instances for direct access
 let charCreatorInstance = null;
@@ -23,6 +24,9 @@ Hooks.once("init", () => {
 Hooks.once("ready", () => {
   console.log("Forge Character Creator | Ready");
   if (ui.controls) ui.controls.initialize();
+  // Build the icon picker index in the background (a few hundred directory listings,
+  // once per Foundry version — then it is read from localStorage).
+  if (game.user.isGM) setTimeout(() => warmIconIndex(), 15000);
 });
 
 // ── Global Hub UI & Omni-Search Hooks ────────────────────────────────────────

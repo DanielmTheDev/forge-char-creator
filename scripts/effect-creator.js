@@ -10,6 +10,7 @@
 import { CONDITIONS, DAMAGE_TYPES, ABILITIES, ADV_TYPES, ADV_ROLL_CATS, SPECIAL_DURATIONS, ACTIVATION_TYPES,
          KINDS, DEFAULT_STATE, buildEffect, buildItem, summarize } from "./feature-payload.js";
 import { attachStepper } from "./ui/stepper.js";
+import { IconPickerApp } from "./ui/icon-picker.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -23,7 +24,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     position: { width: 820, height: 680 },
     window: { icon: "fas fa-sparkles", resizable: true },
     actions: {
-      createEffect: function() { this._doCreate(); }
+      createEffect: function() { this._doCreate(); },
+      pickIcon: function() { this.#pickIcon(); }
     }
   };
 
@@ -62,6 +64,21 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     // Opened from the char wizard: the result must be a feature, never a bare effect.
     if (this.#state.isLocked && this.#state.kind === "effect") this.#state.kind = "attack";
     this.onComplete = onComplete;
+  }
+
+  // ── Icon picker ────────────────────────────────────────────────────────────
+  async #pickIcon() {
+    const s = this.#state;
+    const damageType = (s.damageRows[0] ?? s.saveDamageRows[0])?.type ?? "";
+    const path = await IconPickerApp.pick({ name: s.name, damageType, current: s.img });
+    if (!this.rendered) return;
+    // Hand focus back so the keyboard flow (step keys, Tab) continues where it left off.
+    this.element.querySelector("[data-action='pickIcon']")?.focus();
+    if (!path) return;
+    s.img = path;
+    this.element.querySelector("[data-ef='img']").value = path;
+    this.element.querySelector("#efImgPreview").src = path;
+    this.#updateRawPreview(this.element);
   }
 
   // ── Render hooks ───────────────────────────────────────────────────────────
