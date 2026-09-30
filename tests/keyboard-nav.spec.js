@@ -1,39 +1,11 @@
 import { test, expect } from '@playwright/test';
-
-async function boot(page) {
-  await page.goto('http://localhost:30000');
-  await page.waitForSelector('select[name="userid"]', { timeout: 15000 });
-  await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-  await page.click('button[name="join"]');
-  await page.waitForNavigation({ timeout: 20000 });
-  await page.waitForSelector('#ui-middle', { timeout: 30000 });
-  await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
-  await page.waitForTimeout(2000);
-  // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
-  // (and may add more later) — make them click-through.
-  await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
-}
-
-async function openBuilder(page) {
-  await page.evaluate(async () => {
-    const { EffectCreatorApp } = await import("./modules/forge-char-creator/scripts/effect-creator.js");
-    await new EffectCreatorApp().render(true);
-  });
-  await page.waitForSelector('.forge-effect-creator .fc-step.active');
-  return page.locator('.forge-effect-creator');
-}
-
-async function closeForgeApps(page) {
-  await page.evaluate(() => {
-    for (const a of [...foundry.applications.instances.values()]) if (a.id?.startsWith("forge-")) a.close();
-  });
-}
+import { bootFoundry, openBuilder, openWizard, closeForgeApps } from './helpers/foundry.js';
 
 test.describe('Keyboard navigation', () => {
   test.setTimeout(120000);
 
   test('builder: Alt+arrows walk steps, Ctrl+arrow still edits text, Alt+digit jumps', async ({ page }) => {
-    await boot(page);
+    await bootFoundry(page);
     const root = await openBuilder(page);
     await root.locator("[name='kind'][value='attack']").check();
     const active = () => root.locator(".fc-step.active").getAttribute("data-step");
@@ -61,7 +33,7 @@ test.describe('Keyboard navigation', () => {
   });
 
   test('builder: Ctrl+Enter creates from what was just typed, once even if pressed twice', async ({ page }) => {
-    await boot(page);
+    await bootFoundry(page);
     const root = await openBuilder(page);
     await root.locator("[name='kind'][value='passive']").check();
     await page.evaluate(() => {
@@ -86,12 +58,8 @@ test.describe('Keyboard navigation', () => {
   });
 
   test('char wizard: Ctrl+Enter with the search list open creates, without also adding the highlighted item', async ({ page }) => {
-    await boot(page);
-    await page.evaluate(async () => {
-      const { CharCreatorApp } = await import("./modules/forge-char-creator/scripts/app.js");
-      await new CharCreatorApp().render({ force: true });
-    });
-    await page.waitForSelector("#forge-char-creator-app .fc-step.active");
+    await bootFoundry(page);
+    await openWizard(page);
     await page.keyboard.type("KB Wizard E2E");
     await page.keyboard.press("Alt+3");
     await page.keyboard.type("fire");
@@ -110,13 +78,8 @@ test.describe('Keyboard navigation', () => {
   });
 
   test('char wizard: steps, Alt+digit, Esc closes search without stepping', async ({ page }) => {
-    await boot(page);
-    await page.evaluate(async () => {
-      const { CharCreatorApp } = await import("./modules/forge-char-creator/scripts/app.js");
-      await new CharCreatorApp().render({ force: true });
-    });
-    const root = page.locator("#forge-char-creator-app");
-    await page.waitForSelector("#forge-char-creator-app .fc-step.active");
+    await bootFoundry(page);
+    const root = await openWizard(page);
     const active = () => root.locator(".fc-step.active").getAttribute("data-step");
     expect(await active()).toBe("identity");
     await expect(root.locator("#charName")).toBeFocused();

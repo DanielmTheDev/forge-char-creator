@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry } from './helpers/foundry.js';
 
 // E2E for forge-content runtime sync against the LOCAL dist export (no GitHub):
 // manifestUrl override points at modules/forge-content/dist/index.json, which
@@ -8,28 +9,7 @@ test.describe('forge-content runtime sync', () => {
 
   test('syncs dist docs into module packs, idempotent on second run', async ({ page }) => {
 
-    await page.goto('http://localhost:30000');
-    if (page.url().includes('/setup')) {
-      console.log('On setup page. Launching world...');
-      await page.evaluate(async () => {
-         await fetch('/setup', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ action: 'launchWorld', world: 'ishait' })
-         });
-      });
-      await page.waitForTimeout(2000);
-      await page.goto('http://localhost:30000/join');
-    }
-
-    console.log('Logging in...');
-    await page.waitForSelector('select[name="userid"]', { timeout: 10000 });
-    await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-    await page.click('button[name="join"]');
-    await page.waitForNavigation({ timeout: 15000 });
-    await page.waitForSelector('#ui-middle', { timeout: 30000 });
-    await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 30000 });
-    await page.waitForTimeout(3000);
+    await bootFoundry(page);
 
     const first = await page.evaluate(async () => {
       // join + drain any auto-sync still running from world-ready before

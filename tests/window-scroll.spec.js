@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry } from './helpers/foundry.js';
 
 /**
  * Regression guard: the wizard windows must scroll their body and keep the
@@ -10,27 +11,7 @@ test.describe('Window scrolling', () => {
   test.setTimeout(120000);
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:30000');
-
-    if (page.url().includes('/setup')) {
-      console.log('On setup page. Launching world...');
-      await page.evaluate(async () => {
-        await fetch('/setup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'launchWorld', world: 'ishait' })
-        });
-      });
-      await page.waitForTimeout(2000);
-      await page.goto('http://localhost:30000/join');
-    }
-
-    await page.waitForSelector('select[name="userid"]', { timeout: 10000 });
-    await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-    await page.click('button[name="join"]');
-    await page.waitForNavigation({ timeout: 15000 });
-    await page.waitForSelector('#ui-middle', { timeout: 30000 });
-    await page.waitForTimeout(5000); // modules
+    await bootFoundry(page);
 
     // Short viewport so the form definitely overflows the window
     await page.setViewportSize({ width: 1280, height: 600 });
@@ -57,9 +38,6 @@ test.describe('Window scrolling', () => {
     // Footer button visible before scrolling — i.e. not clipped off the bottom
     await expect(button).toBeInViewport();
 
-    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
-    // (and may add more later) — make them click-through.
-    await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
     if (prep) await prep();
     // The form is split into steps; scroll-test the tallest one.
     const navs = page.locator(`${rootSel} .fc-nav-btn`);

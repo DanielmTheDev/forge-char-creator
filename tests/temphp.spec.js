@@ -1,17 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry, pipeConsole } from './helpers/foundry.js';
 
 test('Temp HP feature built by the wizard grants temp HP to a target via a real midi workflow', async ({ page }) => {
   test.setTimeout(180000);
-  await page.goto('http://localhost:30000');
-  await page.waitForSelector('select[name="userid"]', { timeout: 15000 });
-  await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-  await page.click('button[name="join"]');
-  await page.waitForNavigation({ timeout: 20000 });
-  await page.waitForSelector('#ui-middle', { timeout: 30000 });
-  await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
-  await page.waitForTimeout(3000);
+  await bootFoundry(page);
 
-  page.on('console', m => { const t = m.text(); if (/SMOKE|Error/.test(t)) console.log(`[Foundry] ${t}`); });
+  pipeConsole(page, /SMOKE|Error/);
 
   const res = await page.evaluate(async () => {
     const log = [];

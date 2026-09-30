@@ -1,48 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry, openWizard } from './helpers/foundry.js';
 
 test.describe('Item Search Descriptions', () => {
   test.setTimeout(120000);
 
   test('Should show compendium descriptions in the search picker and cache them', async ({ page }) => {
 
-    // 1. Navigate to local Foundry instance
-    await page.goto('http://localhost:30000');
-
-    // 2. Handle optional Setup screen (if world isn't booted)
-    if (page.url().includes('/setup')) {
-      console.log('On setup page. Launching world...');
-      await page.evaluate(async () => {
-         await fetch('/setup', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ action: 'launchWorld', world: 'ishait' })
-         });
-      });
-      await page.waitForTimeout(2000);
-      await page.goto('http://localhost:30000/join');
-    }
-
-    // 3. Log in as Gamemaster
-    console.log('Logging in...');
-    await page.waitForSelector('select[name="userid"]', { timeout: 10000 });
-    await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-    await page.click('button[name="join"]');
-    await page.waitForNavigation({ timeout: 15000 });
-
-    // 4. Wait for the Foundry Canvas and Modules to load
-    console.log('Waiting for Foundry UI...');
-    await page.waitForSelector('#ui-middle', { timeout: 30000 });
-    await page.waitForTimeout(5000);
+    await bootFoundry(page);
 
     // 5. Open Character Creator directly
-    await page.evaluate(async () => {
-       const { CharCreatorApp } = await import("./modules/forge-char-creator/scripts/app.js");
-       new CharCreatorApp().render({ force: true });
-    });
-    await page.waitForSelector('.forge-char-creator', { timeout: 10000 });
-    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
-    // (and may add more later) — make them click-through.
-    await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
+    await openWizard(page); // first render can take >10 s (compendium indexes)
     await page.locator('.forge-char-creator .fc-nav-btn', { hasText: 'Features' }).click();
 
     // 6. Search for a spell that definitely has description text in the SRD packs

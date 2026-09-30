@@ -1,38 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry } from './helpers/foundry.js';
 
 test.describe('Aura Ring Configuration Test Suite', () => {
   test.setTimeout(120000);
 
   test('Should open char creator, enable aura ring, configure options, and apply to token flags', async ({ page }) => {
     
-    // 1. Navigate to local Foundry instance
-    await page.goto('http://localhost:30000');
-    
-    // 2. Handle optional Setup screen (if world isn't booted)
-    if (page.url().includes('/setup')) {
-      console.log('On setup page. Launching world...');
-      await page.evaluate(async () => {
-         await fetch('/setup', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ action: 'launchWorld', world: 'ishait' }) // defaults to dev world
-         });
-      });
-      await page.waitForTimeout(2000);
-      await page.goto('http://localhost:30000/join');
-    }
-
-    // 3. Log in as Gamemaster
-    console.log('Logging in...');
-    await page.waitForSelector('select[name="userid"]', { timeout: 10000 });
-    await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-    await page.click('button[name="join"]');
-    await page.waitForNavigation({ timeout: 15000 });
-
-    // 4. Wait for the Foundry Canvas and Modules to load
-    console.log('Waiting for Foundry UI...');
-    await page.waitForSelector('#ui-middle', { timeout: 30000 });
-    await page.waitForTimeout(5000); // Wait for modules
+    await bootFoundry(page);
 
     // 5. Open Forge Hub and Character Creator
     console.log('Opening Forge Hub...');
@@ -56,9 +30,6 @@ test.describe('Aura Ring Configuration Test Suite', () => {
     await page.fill('#charName', 'Aura Test Bot');
 
     // 7. Enable Aura Ring (Token step)
-    // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
-    // (and may add more later) — make them click-through.
-    await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
     await page.locator('.forge-char-creator .fc-nav-btn', { hasText: 'Token' }).click();
     const enableAuraCheckbox = await page.locator('#enableAura');
     await enableAuraCheckbox.check();

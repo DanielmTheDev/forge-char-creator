@@ -1,19 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry, pipeConsole } from './helpers/foundry.js';
 
 // Builds "attack → on hit CON save → poisoned + extra damage" through the builder UI,
 // then runs real midi workflows with fixed dice (every die = middle face, d20 = 11).
 test('Attack with on-hit save: hit damage, save fail/success, miss — via a real midi workflow', async ({ page }) => {
   test.setTimeout(240000);
-  await page.goto('http://localhost:30000');
-  await page.waitForSelector('select[name="userid"]', { timeout: 15000 });
-  await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-  await page.click('button[name="join"]');
-  await page.waitForNavigation({ timeout: 20000 });
-  await page.waitForSelector('#ui-middle', { timeout: 30000 });
-  await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
-  await page.waitForTimeout(3000);
+  await bootFoundry(page);
 
-  page.on('console', m => { const t = m.text(); if (/SMOKE/.test(t)) console.log(`[Foundry] ${t}`); });
+  pipeConsole(page);
 
   const res = await page.evaluate(async () => {
     const log = [];

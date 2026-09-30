@@ -1,18 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry } from './helpers/foundry.js';
 
 test('Icon picker: name-based suggestions, search, keyboard pick, cached reopen, Esc cancels', async ({ page }) => {
   test.setTimeout(180000);
-  await page.goto('http://localhost:30000');
-  await page.waitForSelector('select[name="userid"]', { timeout: 15000 });
-  await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-  await page.click('button[name="join"]');
-  await page.waitForNavigation({ timeout: 20000 });
-  await page.waitForSelector('#ui-middle', { timeout: 30000 });
-  await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
-  await page.waitForTimeout(2000);
-  // Headless has no GPU: Foundry pins permanent warnings over the top of the screen
-  // (and may add more later) — make them click-through.
-  await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
+  await bootFoundry(page);
 
   await page.evaluate(async () => {
     const { EffectCreatorApp } = await import("./modules/forge-char-creator/scripts/effect-creator.js");

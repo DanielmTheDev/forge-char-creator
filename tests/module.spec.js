@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { bootFoundry } from './helpers/foundry.js';
 
 test.describe('Forge Character Creator Test Suite', () => {
   // Give Foundry time to boot, load canvas, and run long combat sequences.
@@ -8,34 +9,7 @@ test.describe('Forge Character Creator Test Suite', () => {
 
   test('Execute Native Foundry Suite', async ({ page }) => {
     
-    // 1. Navigate to local Foundry instance
-    await page.goto('http://localhost:30000');
-    
-    // 2. Handle optional Setup screen (if world isn't booted)
-    if (page.url().includes('/setup')) {
-      console.log('On setup page. Launching world...');
-      await page.evaluate(async () => {
-         await fetch('/setup', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ action: 'launchWorld', world: 'ishait' }) // defaults to your dev world
-         });
-      });
-      await page.waitForTimeout(2000);
-      await page.goto('http://localhost:30000/join');
-    }
-
-    // 3. Log in as Gamemaster
-    console.log('Logging in...');
-    await page.waitForSelector('select[name="userid"]', { timeout: 10000 });
-    await page.selectOption('select[name="userid"]', { label: 'Gamemaster' });
-    await page.click('button[name="join"]');
-    await page.waitForNavigation({ timeout: 15000 });
-
-    // 4. Wait for the Foundry Canvas and Modules to load
-    console.log('Waiting for Foundry UI...');
-    await page.waitForSelector('#ui-middle', { timeout: 30000 });
-    await page.waitForTimeout(5000); // Give macro/Midi hooks time to attach
+    await bootFoundry(page);
 
     // Forward browser console to terminal for visibility
     page.on('console', msg => {
