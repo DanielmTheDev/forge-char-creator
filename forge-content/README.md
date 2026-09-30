@@ -42,9 +42,11 @@ release artifact (sub-project C). Local zip build compiles first then zips.
 
 ## Runtime content sync (no module update needed for content changes)
 On every push to main, CI exports the resolved docs + a hash manifest to
-`forge-content/dist/` (committed). On world load, `scripts/sync.mjs` (GM only,
+`forge-content/dist/` and pushes it, with `forge-content/assets/`, to the
+`content-dist` branch (a commit only when content changed; main never gets one).
+On world load, `scripts/sync.mjs` (GM only,
 `autoSync` world setting, default on):
-1. resolves the latest main commit SHA via the GitHub API (uncached — a push is
+1. resolves the latest `content-dist` commit SHA via the GitHub API (uncached — a push is
    visible immediately), falls back to the branch ref if the API is down;
 2. fetches `dist/index.json` + changed docs from raw.githubusercontent.com
    pinned to that SHA;

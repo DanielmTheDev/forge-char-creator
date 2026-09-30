@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Export resolved forge-content docs as plain JSON + hash manifest to
-// forge-content/dist/, committed by CI and fetched at runtime by the module's
+// forge-content/dist/ (gitignored), pushed by CI to the content-dist branch and fetched at runtime by the module's
 // sync script (forge-content/scripts/sync.mjs). Docs are the SAME resolved
 // shape the pack build compiles (actors get abilities inlined), minus `_key`
 // (runtime document creation must not see it), plus a content hash stamped at

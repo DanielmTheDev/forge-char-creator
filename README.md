@@ -70,7 +70,7 @@ as recommended dependencies in the manifest.
 In Foundry: **Add-on Modules → Install Module**, paste the manifest URL:
 
 ```
-https://raw.githubusercontent.com/DanielmTheDev/forge-char-creator/main/module.json
+https://github.com/DanielmTheDev/forge-char-creator/releases/download/forge-char-creator-latest/module.json
 ```
 
 Enable **Forge Character Creator** in your world's module settings (along with the required modules

@@ -1,15 +1,18 @@
 name: Build and Release Foundry Module
 
+# Push to main -> gate -> release only the modules whose files changed.
+# Nothing is ever committed back to main (see scripts/release/plan.mjs):
+#   - versions come from tags <id>-v<x.y.z>; module.json "version" is a floor
+#   - each release = its own GitHub release (module.json + zip, installable forever)
+#   - <id>-latest release holds the current module.json + zip = the manifest URL
+#   - runtime content sync reads the content-dist branch, pushed here
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
-# Serialize release runs. Step 5 bumps versions + pushes a commit back to main
-# with a bare `git push` (no rebase). Two overlapping runs both checkout the
-# same sha, both bump to the same version, and the loser's push is rejected
-# (`cannot lock ref 'refs/heads/main'`) -> exit 1 -> build/publish skipped.
-# Queue instead of cancel so every push still produces a release build.
+# Serialize: two overlapping runs would compute the same next version.
 concurrency:
   group: release-main
   cancel-in-progress: false
@@ -19,11 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          ref: main
+          fetch-depth: 0   # tags + history for change detection and release notes
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -35,80 +40,68 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
-      - name: Bump patch versions, export content dist, commit to main
+      # Node-only gate. The Foundry functional gate (content:verify) is local.
+      - name: Gate — unit tests + pack build
         run: |
-          node scripts/bump-version.mjs module.json
-          node scripts/bump-version.mjs forge-content/module.json
-          # Resolved content JSON + hash manifest, fetched at runtime by the
-          # forge-content sync script (export AFTER bump so the manifest
-          # carries the released version).
+          npm run test:unit
+          npm run content:unit
+          npm run packs:build
+
+      - name: Plan release
+        id: plan
+        run: node scripts/release/plan.mjs | tee -a "$GITHUB_OUTPUT"
+
+      # Content sync source. Exported with the version forge-content is at after
+      # this run; committed to content-dist only when something differs.
+      - name: Publish content-dist branch
+        if: steps.plan.outputs.fc_version != ''
+        run: |
+          node scripts/release/plan.mjs stamp fc "${{ steps.plan.outputs.fc_version }}"
           node scripts/pack-tools/export-dist.mjs
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add module.json forge-content/module.json forge-content/dist
-          git commit -m "chore(release): bump module versions [skip ci]"
-          # Token push by GITHUB_TOKEN does not retrigger this workflow.
-          git push origin HEAD:main
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          WT="$RUNNER_TEMP/content-dist"
+          if git fetch -q origin content-dist; then
+            git worktree add -q "$WT" FETCH_HEAD
+            git -C "$WT" switch -q -C content-dist
+          else
+            git worktree add -q --detach "$WT"
+            git -C "$WT" checkout -q --orphan content-dist
+            git -C "$WT" rm -rfq .
+          fi
+          rm -rf "$WT/forge-content"
+          mkdir -p "$WT/forge-content"
+          cp -r forge-content/dist forge-content/assets "$WT/forge-content/"
+          git -C "$WT" add -A
+          if git -C "$WT" diff --cached --quiet; then
+            echo "content-dist unchanged"
+          else
+            git -C "$WT" commit -qm "content: forge-content ${{ steps.plan.outputs.fc_version }} from ${GITHUB_SHA::7}"
+            git -C "$WT" push -q origin content-dist
+          fi
+          git checkout -- forge-content/module.json
 
-      - name: Compile all packs (JSON -> LevelDB)
-        run: npm run packs:build
-
-      - name: Build forge-char-creator zip
+      - name: Release forge-char-creator
+        if: steps.plan.outputs.cc_release == 'true'
         run: |
-          mkdir -p dist
-          # -y: store symlinks as symlinks (never follow). FoundryData has a
-          # symlink back to repo root locally; -y + excludes prevent any zip loop.
-          zip -ry dist/forge-char-creator.zip ./* \
-            -x "dist/*" \
-            -x ".git/*" \
-            -x "node_modules/*" \
-            -x ".DS_Store" \
-            -x "FoundryData/*" \
-            -x "Data/*" \
-            -x "world-export/*" \
-            -x "FoundryVTT-Linux-13.351/*" \
-            -x "test-results/*" \
-            -x "scripts/tests/*" \
-            -x "scripts/pack-tools/*" \
-            -x "scripts/bump-version.mjs" \
-            -x "scripts/dev/*" \
-            -x "scripts/*.test.mjs" \
-            -x "scripts/ui/*.test.mjs" \
-            -x "src/*" \
-            -x "tests/*" \
-            -x "test.sh" \
-            -x "docs/*" \
-            -x "agents.md" \
-            -x "package.json" \
-            -x "package-lock.json" \
-            -x "build.sh" \
-            -x "DEPLOYMENT.md" \
-            -x "workflows/*" \
-            -x ".gitignore" \
-            -x ".github/*" \
-            -x "forge-content/*" \
-            -x "CLAUDE.md" \
-            -x "TODO.md" \
-            -x "content-verify.sh" \
-            -x "playwright*.js"
+          V="${{ steps.plan.outputs.cc_version }}"
+          node scripts/release/plan.mjs stamp cc "$V"
+          ./build.sh
+          cp module.json dist/module.json
+          scripts/release/publish.sh forge-char-creator "$V" "$(node scripts/release/plan.mjs notes cc)" \
+            dist/forge-char-creator.zip dist/module.json
 
-      - name: Build forge-content zip
+      - name: Release forge-content
+        if: steps.plan.outputs.fc_release == 'true'
         run: |
+          V="${{ steps.plan.outputs.fc_version }}"
+          node scripts/release/plan.mjs stamp fc "$V"
+          mkdir -p dist/fc
           cd forge-content
           # `assets` holds committed token/portrait images (image→statblock). Include
           # it only when present so the zip step never fails on a name-not-matched.
-          zip -r ../dist/forge-content.zip module.json packs scripts $([ -d assets ] && echo assets) -x "scripts/*.test.mjs"
-
-      - name: Update Latest Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: latest
-          name: Foundry VTT Module Update
-          body: Auto-generated from git commit. Includes forge-char-creator and forge-content.
-          files: |
-            dist/forge-char-creator.zip
-            dist/forge-content.zip
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          zip -qr ../dist/fc/forge-content.zip module.json packs scripts $([ -d assets ] && echo assets) -x "scripts/*.test.mjs"
+          cd ..
+          cp forge-content/module.json dist/fc/module.json
+          scripts/release/publish.sh forge-content "$V" "$(node scripts/release/plan.mjs notes fc)" \
+            dist/fc/forge-content.zip dist/fc/module.json

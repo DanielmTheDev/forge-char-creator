@@ -51,14 +51,14 @@ JSON source committed; compiled LevelDB `packs/` gitignored (built on demand / i
 ## Commands
 - `npm run packs:build [moduleName]` — JSON source → LevelDB for all modules (or one).
 - `npm run packs:unpack [moduleName]` — LevelDB → clean JSON source (import only; renames files).
-- `npm run content:dist` — export resolved docs + hash manifest to `forge-content/dist/` (CI does this on release; runtime sync fetches it — see forge-content/README.md "Runtime content sync").
+- `npm run content:dist` — export resolved docs + hash manifest to `forge-content/dist/` (gitignored; CI pushes it + assets to the `content-dist` branch, runtime sync fetches from there — see forge-content/README.md "Runtime content sync").
 - `npm run content:verify` — boot Foundry + run forge-content functional gate. Run before push.
 - `./test.sh` — boot Foundry + run char-creator suite (server lifecycle handled).
 - `npm run test` — Playwright char-creator suite only (server already running).
 - `npm run test:unit` (~1 s, node) · `npm run test:ui` (Playwright minus `@combat`) · `npm run test:combat` (only `@combat` midi specs) · `npm run test:all` (unit + full Playwright). Server must be running; start it detached, check `pgrep -f "[m]ain.js --dataPath"`.
 - `npm run dev:eval -- '<js>'` (or `-- file.js`) — log in headless as GM, run JS in live Foundry, print `RESULT <json>` (exit 2 on timeout; `EVAL_TIMEOUT`, `EVAL_LOG`). Fastest debug loop.
 - Specs import `test`/`expect` from `tests/helpers/fixtures.js` and take `{ gmPage: page }` (one logged-in page per worker, reset between tests); boot/open helpers in `tests/helpers/foundry.js`; `tests/global-setup.js` sweeps test residue by name (`tests/helpers/sweep.js`) before each run.
-- `./build.sh` — local char-creator zip. CI (release.yml) builds packs then publishes both modules on push to main.
+- `./build.sh` — local char-creator zip. CI (release.yml) on push to main: node gate → releases only changed modules as `<id>-v<x.y.z>` + rolling `<id>-latest` (manifest URL). **Never commits to main.** Version = last tag +1 patch; `module.json` version is a floor (raise by hand for minor/major). See DEPLOYMENT.md.
 
 ## Caveats (see agents.md)
 Foundry init slow — keep generous timeouts. Combat/scene tests can destroy Playwright eval context; runner catches it. Native tests live in `scripts/tests/index.js`, called from `runAll()`.

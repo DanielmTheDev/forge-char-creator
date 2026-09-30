@@ -1,6 +1,7 @@
 // Runtime content sync — pulls the latest published content into this module's
 // compendium packs without a module update. CI commits resolved docs + a hash
-// manifest to forge-content/dist/ on every push to main; on world ready (GM
+// manifest (forge-content/dist/) and the assets to the `content-dist` branch on
+// every push to main (never to main itself); on world ready (GM
 // only) this fetches the manifest, diffs it against the docs in the packs via
 // their flags["forge-content"].srcHash stamp, and upserts only what changed.
 //
@@ -17,7 +18,7 @@ import { computeDelta, computeAssetDelta, rewriteAssetPaths, uploadName, rawUrl,
 
 const MODULE_ID = "forge-content";
 const REPO = "DanielmTheDev/forge-char-creator";
-const BRANCH = "main";
+const BRANCH = "content-dist";  // CI-only branch: forge-content/dist + forge-content/assets
 const DIST_PATH = "forge-content/dist";
 
 Hooks.once("init", () => {
@@ -28,7 +29,7 @@ Hooks.once("init", () => {
   });
   game.settings.register(MODULE_ID, "manifestUrl", {
     name: "Manifest URL override",
-    hint: "Advanced/testing: full URL of a dist index.json (doc files are fetched relative to it). Leave empty to use the GitHub API + raw content of the main branch.",
+    hint: "Advanced/testing: full URL of a dist index.json (doc files are fetched relative to it). Leave empty to use the GitHub API + raw content of the content-dist branch.",
     scope: "world", config: true, type: String, default: "",
   });
   // { [assetPath]: { hash, url } } — what a prior sync uploaded and the path the

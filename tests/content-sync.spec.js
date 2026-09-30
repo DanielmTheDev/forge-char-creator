@@ -1,10 +1,12 @@
+import { execFileSync } from 'node:child_process';
 import { test, expect } from './helpers/fixtures.js';
 
 // E2E for forge-content runtime sync against the LOCAL dist export (no GitHub):
 // manifestUrl override points at modules/forge-content/dist/index.json, which
-// Foundry serves from the symlinked repo. Run `npm run content:dist` first.
+// Foundry serves from the symlinked repo. dist/ is gitignored build output: export it fresh.
 test.describe('forge-content runtime sync', () => {
   test.setTimeout(240000);
+  test.beforeAll(() => { execFileSync('node', ['scripts/pack-tools/export-dist.mjs'], { stdio: 'inherit' }); });
 
   test('syncs dist docs into module packs, idempotent on second run', async ({ gmPage: page }) => {
 
