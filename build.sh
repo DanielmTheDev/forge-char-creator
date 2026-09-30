@@ -26,6 +26,7 @@ zip -ry dist/forge-char-creator.zip ./* \
   -x "scripts/tests/*" \
   -x "scripts/pack-tools/*" \
   -x "scripts/bump-version.mjs" \
+  -x "scripts/dev/*" \
   -x "scripts/*.test.mjs" \
   -x "scripts/ui/*.test.mjs" \
   -x "src/*" \
