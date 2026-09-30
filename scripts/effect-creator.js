@@ -40,6 +40,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   #state = foundry.utils.deepClone(DEFAULT_STATE);
   #stepper = null;
   #creating = false;           // guards double submit (Ctrl+Enter twice / key repeat)
+  #otSaveEdited = false;       // user changed the per-turn save → stop mirroring the Saving Throw step
 
   async _prepareContext(options) {
     const ctx = await super._prepareContext(options);
@@ -62,6 +63,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   constructor(options = {}, initialState = {}, onComplete = null) {
     super(options);
     Object.assign(this.#state, initialState);
+    this.#otSaveEdited = "otSaveAbility" in initialState || "otSaveDC" in initialState;
     // Opened from the char wizard: the result must be a feature, never a bare effect.
     if (this.#state.isLocked && this.#state.kind === "effect") this.#state.kind = "attack";
     this.onComplete = onComplete;
@@ -94,6 +96,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       input.addEventListener("change", () => {
         if (type === "checkbox") this.#state[key] = input.checked;
         else this.#state[key] = input.value;
+        if (key === "otSaveAbility" || key === "otSaveDC") this.#otSaveEdited = true;
         this.#refresh(el);
       });
     });
@@ -147,8 +150,24 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   #refresh(el) {
+    this.#syncOtSave(el);
     this.#reactiveUpdate(el);
     this.#updateRawPreview(el);
+  }
+
+  // The per-turn save to end an effect is normally the feature's own save
+  // ("DC 16 WIS or frightened, repeat the save each turn"): mirror it until edited.
+  #syncOtSave(el) {
+    const s = this.#state;
+    const hasSaveStep = s.kind === "save" ? s.saveMode !== "none" : s.kind === "attack" && s.onHitSave;
+    if (this.#otSaveEdited || !hasSaveStep) return;
+    s.otSaveAbility = s.wrapSaveAbility;
+    const dc = String(s.wrapSaveDC ?? "").trim();
+    if (/^\d+$/.test(dc)) s.otSaveDC = dc;
+    const ab = el.querySelector("[data-ef='otSaveAbility']");
+    if (ab) ab.value = s.otSaveAbility;
+    const dcInput = el.querySelector("[data-ef='otSaveDC']");
+    if (dcInput) dcInput.value = s.otSaveDC;
   }
 
   // ── Reactive section visibility ────────────────────────────────────────────

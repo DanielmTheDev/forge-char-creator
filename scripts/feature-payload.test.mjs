@@ -173,3 +173,8 @@ test("review: OverTime label survives quotes and commas in the name", () => {
   assert.ok(v.endsWith('label="Burn Baby"'), v);
   assert.equal(v.split(",").length, 4, `only the 4 real key=value separators: ${v}`);
 });
+
+test("status effect is not a token overlay", () => {
+  const ae = buildEffect(st({ name: "Scare", statuses: ["frightened"] }));
+  assert.equal(ae.flags.core?.overlay, undefined);
+});

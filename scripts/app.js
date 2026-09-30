@@ -116,7 +116,34 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.abilities = { str:"STR", dex:"DEX", con:"CON", int:"INT", wis:"WIS", cha:"CHA" };
     // Provide a simple array generator for Handlebars to build the 1-20 level dropdown
     context.range = (start, end) => Array.from({length: (end - start + 1)}, (v, k) => k + start);
+    context.folders = CharCreatorApp.#folderOptions();
     return context;
+  }
+
+  static #FOLDER_KEY = "forge-char-creator.lastActorFolder";
+  static #NEW_FORGE_FOLDER = "__forge";
+
+  /** Actor folders as an indented tree. Default: last used, else "Forge Creations" (made on create if missing). */
+  static #folderOptions() {
+    const all = game.folders.filter(f => f.type === "Actor");
+    const byParent = (id) => all.filter(f => (f.folder?.id ?? null) === id)
+      .sort((a, b) => (a.sort - b.sort) || a.name.localeCompare(b.name));
+    const opts = [];
+    const walk = (id, depth) => byParent(id).forEach(f => {
+      opts.push({ id: f.id, label: `${"\u00A0\u00A0".repeat(depth)}${depth ? "└ " : ""}${f.name}` });
+      walk(f.id, depth + 1);
+    });
+    walk(null, 0);
+    if (!all.some(f => f.name === "Forge Creations"))
+      opts.unshift({ id: CharCreatorApp.#NEW_FORGE_FOLDER, label: "Forge Creations (new)" });
+    opts.push({ id: "", label: "(no folder)" });
+    let last = null;
+    try { last = localStorage.getItem(CharCreatorApp.#FOLDER_KEY); } catch {}
+    const pick = opts.find(o => last !== null && o.id === last)
+      ?? opts.find(o => all.find(f => f.id === o.id)?.name === "Forge Creations")
+      ?? opts[0];
+    pick.selected = true;
+    return opts;
   }
 
   // ── Render hooks ──────────────────────────────────────────────────────────
@@ -282,7 +309,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
-    // ── Steps + keyboard (Alt+←/→, Alt+1..4, Ctrl+Enter) ────────────────────
+    // ── Steps + keyboard (Alt+Shift+←/→, Alt+Shift+1..4, Ctrl+Enter) ────────────────────
     this.#stepper = attachStepper(this.element.querySelector("form"), {
       onCreate: () => this.element.querySelector("[data-action='createNPC']")?.click()
     });
@@ -471,9 +498,14 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async #createNPC(data) {
-    const folderName = "Forge Creations";
-    let folder = game.folders.find(f => f.name === folderName && f.type === "Actor");
-    if (!folder) folder = await Folder.create({ name: folderName, type: "Actor" });
+    let folderId = data.actorFolder ?? CharCreatorApp.#NEW_FORGE_FOLDER;
+    if (folderId === CharCreatorApp.#NEW_FORGE_FOLDER) {
+      const folderName = "Forge Creations";
+      const folder = game.folders.find(f => f.name === folderName && f.type === "Actor")
+        ?? await Folder.create({ name: folderName, type: "Actor" });
+      folderId = folder.id;
+    }
+    try { localStorage.setItem(CharCreatorApp.#FOLDER_KEY, folderId); } catch {}
 
     let portraitPath = "icons/svg/mystery-man.svg";
     let tokenPath = "icons/svg/mystery-man.svg";
@@ -520,7 +552,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const actorName = data.charName || "Unnamed Creature";
     const actorData = {
-      name: actorName, type: "npc", folder: folder.id, img: portraitPath,
+      name: actorName, type: "npc", folder: folderId || null, img: portraitPath,
       prototypeToken: {
         name: actorName, texture: { src: tokenPath },
         disposition: parseInt(data.disposition) || CONST.TOKEN_DISPOSITIONS.HOSTILE,

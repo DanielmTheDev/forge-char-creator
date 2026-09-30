@@ -337,9 +337,9 @@ export function buildEffect(s) {
     statuses: [...(s.statuses || [])],
     duration: s.durationType === "fixed" ? { rounds: parseInt(s.rounds) || 0 } : {},
     changes: buildChanges(s),
+    // No core.overlay: that draws the icon full-size over the whole token.
     flags: {
-      dae: { showIcon: true },
-      core: { overlay: true }
+      dae: { showIcon: true }
     }
   };
 

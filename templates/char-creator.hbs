@@ -4,47 +4,28 @@
   <div class="forge-form-body scrollable fc-panes">
   <section class="fc-step" data-step="identity" data-title="Identity">
   <p class="hint">{{message}}</p>
-      <div class="form-group">
-        <label for="charName">Character Name:</label>
-        <div class="form-fields">
-          <input type="text" id="charName" name="charName" placeholder="Enter name...">
+      <div class="fc-form">
+        <label for="charName">Name</label>
+        <input type="text" id="charName" name="charName" placeholder="Enter name...">
+
+        <label for="actorFolder">Folder</label>
+        <select id="actorFolder" name="actorFolder" data-tooltip="Actor folder the new actor goes into.">
+          {{#each folders as |f|}}
+          <option value="{{f.id}}" {{#if f.selected}}selected{{/if}}>{{f.label}}</option>
+          {{/each}}
+        </select>
+
+        <label for="portraitUpload">Portrait</label>
+        <div class="fc-ctl fc-nowrap">
+          <input type="file" id="portraitUpload" data-tooltip="Image for the portrait. A round token with a ring is generated from it." name="portraitUpload" accept="image/*">
+          <img id="portraitPreview" class="fc-portrait" src="icons/svg/mystery-man.svg" alt="Preview" width="48" height="48">
         </div>
       </div>
 
-      <div class="form-group flexrow" style="gap: 10px; margin-bottom: 10px;">
-        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
-          <label for="charLevel">Level / CR:</label>
-          <select id="charLevel" name="charLevel" data-tooltip="Level (PCs) or challenge rating (monsters). Used by the archetype template." style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
-            {{#each (range 1 20) as |lvl|}}
-            <option value="{{lvl}}">{{lvl}}</option>
-            {{/each}}
-          </select>
-        </div>
-        <div style="flex:2; display:flex; flex-direction:column; gap:4px;">
-          <label for="charArchetype">Archetype Template:</label>
-          <select id="charArchetype" name="charArchetype" data-tooltip="Fills AC, HP and ability scores with sensible values for the level. Edit freely afterwards." style="height:2rem; width:100%; text-align:center; font-size:1.1rem;">
-            <option value="custom">-- Custom / blank --</option>
-            <option value="warrior">Heavy Warrior / Tank</option>
-            <option value="rogue">Agile Rogue / Skirmisher</option>
-            <option value="mage_int">Intelligence Mage</option>
-            <option value="cleric_wis">Wisdom Cleric / Druid</option>
-            <option value="mage_cha">Charisma Caster (Bard/Sorcerer)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group portrait-group flexrow" style="align-items: center; margin-bottom: 10px;">
-        <label for="portraitUpload" style="flex: 1;">Portrait Image:</label>
-        <div class="form-fields" style="flex: 2; display: flex; align-items: center; gap: 10px;">
-          <input type="file" id="portraitUpload" data-tooltip="Image for the portrait. A round token with a ring is generated from it." name="portraitUpload" accept="image/*" style="width: 100%;">
-          <img id="portraitPreview" src="icons/svg/mystery-man.svg" alt="Preview" width="48" height="48" style="border: 1px solid #000; border-radius: 4px; object-fit: cover;">
-        </div>
-      </div>
-
-      <div class="flexrow" style="gap: 10px; margin-bottom: 10px;">
-        <fieldset class="size-fieldset" style="flex: 1; margin: 0;">
+      <div class="fc-cols">
+        <fieldset>
           <legend>Actor Size</legend>
-          <div class="form-fields" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; font-size: 0.95rem;">
+          <div class="fc-radios">
             <label><input type="radio" name="size" value="tiny"> Tiny</label>
             <label><input type="radio" name="size" value="sm"> Small</label>
             <label><input type="radio" name="size" value="med" checked> Medium</label>
@@ -54,9 +35,9 @@
           </div>
         </fieldset>
 
-        <fieldset class="disposition-fieldset" style="flex: 1; margin: 0;">
+        <fieldset>
           <legend data-tooltip="Token border color and who the creature is hostile to.">Token Disposition</legend>
-          <div class="form-fields" style="display: flex; flex-direction: column; gap: 5px; font-size: 0.95rem; align-items: center; justify-content: center; height: 100%;">
+          <div class="fc-radios">
             <label><input type="radio" name="disposition" value="1"> Friendly</label>
             <label><input type="radio" name="disposition" value="0"> Neutral</label>
             <label><input type="radio" name="disposition" value="-1" checked> Hostile</label>
@@ -67,61 +48,64 @@
   </section>
 
   <section class="fc-step" data-step="stats" data-title="Stats">
-      <fieldset class="combat-stats-fieldset" style="margin-bottom: 10px;">
+      <fieldset>
+        <legend data-tooltip="Pick a level and archetype to fill AC, HP, abilities and spellcasting below. Edit freely afterwards.">Template</legend>
+        <div class="fc-pairs">
+          <label for="charLevel">Level / CR</label>
+          <select id="charLevel" name="charLevel" data-tooltip="Level (PCs) or challenge rating (monsters). Used by the archetype template.">
+            {{#each (range 1 20) as |lvl|}}
+            <option value="{{lvl}}">{{lvl}}</option>
+            {{/each}}
+          </select>
+          <label for="charArchetype">Archetype</label>
+          <select id="charArchetype" name="charArchetype" data-tooltip="Fills AC, HP and ability scores with sensible values for the level. Edit freely afterwards.">
+            <option value="custom">-- Custom / blank --</option>
+            <option value="warrior">Heavy Warrior / Tank</option>
+            <option value="rogue">Agile Rogue / Skirmisher</option>
+            <option value="mage_int">Intelligence Mage</option>
+            <option value="cleric_wis">Wisdom Cleric / Druid</option>
+            <option value="mage_cha">Charisma Caster (Bard/Sorcerer)</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset class="combat-stats-fieldset">
         <legend>Combat Attributes</legend>
-        <div class="flexrow" style="gap: 10px;">
-          <div class="form-group flexcol" style="margin: 0; align-items: center;">
-            <label for="ac" style="line-height: 1.2;">Armor Class</label>
-            <div class="form-fields">
-              <input type="number" id="ac" name="ac" data-tooltip="Flat armor class." value="10" step="1" required style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
-            </div>
-          </div>
-          <div class="form-group flexcol" style="margin: 0; align-items: center;">
-            <label for="hp" style="line-height: 1.2;">Health (HP)</label>
-            <div class="form-fields">
-              <input type="number" id="hp" name="hp" data-tooltip="Maximum (and starting) hit points." value="10" step="1" required style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
-            </div>
-          </div>
+        <div class="fc-pairs">
+          <label for="ac">Armor Class</label>
+          <input type="number" id="ac" name="ac" data-tooltip="Flat armor class." value="10" step="1" required>
+          <label for="hp">Health (HP)</label>
+          <input type="number" id="hp" name="hp" data-tooltip="Maximum (and starting) hit points." value="10" step="1" required>
         </div>
       </fieldset>
 
       <fieldset class="abilities-fieldset">
         <legend>Ability Scores</legend>
-        <div class="flexrow" style="gap: 5px;">
+        <div class="fc-abilities">
           {{#each abilities as |label key|}}
-          <div class="form-group flexcol" style="margin: 0; align-items: center;">
-            <label for="ability-{{key}}" style="line-height: 1.2;">{{label}}</label>
-            <div class="form-fields">
-              <input type="number" id="ability-{{key}}" name="abilities.{{key}}" value="10" step="1" required style="text-align: center;">
-            </div>
+          <div class="fc-stat">
+            <label for="ability-{{key}}">{{label}}</label>
+            <input type="number" id="ability-{{key}}" name="abilities.{{key}}" value="10" step="1" required>
           </div>
           {{/each}}
         </div>
       </fieldset>
 
-      <fieldset class="spellcasting-fieldset" style="margin-bottom: 10px;">
+      <fieldset class="spellcasting-fieldset">
         <legend>Spellcasting</legend>
-        <div class="flexrow" style="gap: 10px;">
-          <div class="form-group flexcol" style="margin: 0; align-items: center; flex: 1;">
-            <label for="spellcasting" style="line-height: 1.2;">Ability</label>
-            <div class="form-fields" style="width: 100%;">
-              <select id="spellcasting" name="spellcasting" data-tooltip="Ability used for spell attacks and save DCs. None for non-casters." style="text-align: center; height: 2.5rem; font-size: 1.1rem; width: 100%;">
-                <option value="">None</option>
-                <option value="int">Intelligence</option>
-                <option value="wis">Wisdom</option>
-                <option value="cha">Charisma</option>
-                <option value="str">Strength</option>
-                <option value="dex">Dexterity</option>
-                <option value="con">Constitution</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group flexcol" style="margin: 0; align-items: center;">
-            <label for="spellLevel" style="line-height: 1.2;">Level</label>
-            <div class="form-fields">
-              <input type="number" id="spellLevel" name="spellLevel" data-tooltip="Caster level: sets spell slots and cantrip scaling." value="0" min="0" step="1" style="text-align: center; width: 3.5rem; height: 2.5rem; font-size: 1.25rem;">
-            </div>
-          </div>
+        <div class="fc-pairs">
+          <label for="spellcasting">Ability</label>
+          <select id="spellcasting" name="spellcasting" data-tooltip="Ability used for spell attacks and save DCs. None for non-casters.">
+            <option value="">None</option>
+            <option value="int">Intelligence</option>
+            <option value="wis">Wisdom</option>
+            <option value="cha">Charisma</option>
+            <option value="str">Strength</option>
+            <option value="dex">Dexterity</option>
+            <option value="con">Constitution</option>
+          </select>
+          <label for="spellLevel">Level</label>
+          <input type="number" id="spellLevel" name="spellLevel" data-tooltip="Caster level: sets spell slots and cantrip scaling." value="0" min="0" step="1">
         </div>
       </fieldset>
 

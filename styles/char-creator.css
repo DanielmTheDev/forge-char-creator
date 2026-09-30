@@ -94,7 +94,7 @@
 .forge-char-creator.standard-form .abilities-fieldset input[type="number"],
 .forge-char-creator.standard-form .combat-stats-fieldset input[type="number"],
 .forge-char-creator.standard-form .spellcasting-fieldset input[type="number"] {
-  width: 3.5rem;
+  width: 100%;
   height: 2.5rem;
   font-size: 1.25rem;
   padding: 0.2rem;
@@ -254,25 +254,6 @@
   text-shadow: 0 0 5px var(--color-shadow-primary);
 }
 
-/* Radio Button Matrix Alignment */
-.forge-char-creator .size-fieldset .form-fields {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  justify-items: start;
-  align-items: center;
-  padding: 5px;
-}
-
-.forge-char-creator .disposition-fieldset .form-fields {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  justify-items: start;
-  align-items: center;
-  padding: 5px;
-}
-
 /* Selected Items Dropzone Styling */
 .forge-char-creator .selected-items-bin {
   transition: all 0.2s ease-in-out;
@@ -403,3 +384,31 @@
 .forge-icon-picker .ip-cell { width: 52px; height: 52px; padding: 2px; }
 .forge-icon-picker .ip-cell img { width: 100%; height: 100%; object-fit: contain; border: none; }
 .forge-icon-picker .ip-cell:focus { outline: 2px solid var(--color-border-highlight, #ff6400); }
+
+/* ── Form grids ──────────────────────────────────────────────────────
+   Explicit grids instead of core .form-group/.flexrow: those wrap and
+   re-flow with window width, which misaligned labels and controls. */
+.fc-form { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: 6px 12px; align-items: center; }
+.fc-pairs { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr); gap: 6px 12px; align-items: center; }
+.fc-form > label, .fc-pairs > label, .fc-lbl { font-weight: bold; font-size: 0.9em; white-space: nowrap; margin: 0; }
+.fc-form > select, .fc-form > input:not([type=checkbox]), .fc-pairs > select, .fc-pairs > input { width: 100%; height: 2rem; margin: 0; }
+.fc-pairs > input[type=number] { text-align: center; }
+.fc-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-width: 0; }
+.fc-ctl > select, .fc-ctl > input[type=text] { flex: 1 1 8rem; min-width: 0; height: 1.8rem; margin: 0; }
+.fc-ctl label, .fc-inline { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; margin: 0; }
+.fc-ctl input[type=radio], .fc-ctl input[type=checkbox], .fc-radios input { margin: 0; }
+.fc-full { grid-column: 1 / -1; }
+.fc-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 10px; }
+.fc-cols > fieldset { margin: 0; }
+.fc-radios { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 18px; padding: 4px; }
+.fc-radios label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; margin: 0; }
+.fc-abilities { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.fc-stat { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+.fc-stat > label { text-align: center; font-weight: bold; margin: 0; }
+.fc-portrait { flex: 0 0 auto; border: 1px solid #000; border-radius: 4px; object-fit: cover; }
+.fc-sub { padding-left: 10px; border-left: 2px solid var(--color-border-light-tertiary); }
+.fc-sep { border-top: 1px solid var(--color-border-light-tertiary); padding-top: 6px; margin-top: 6px; }
+.fc-ctl .notes { font-size: 0.82em; color: var(--color-text-light-5); margin: 0; }
+.fc-form.fc-sub { grid-template-columns: calc(8rem - 12px) minmax(0, 1fr); } /* 10px pad + 2px border: keep controls on the outer column line */
+.fc-ctl.fc-nowrap { flex-wrap: nowrap; }
+.fc-ctl > input[type=file] { flex: 1 1 auto; min-width: 0; margin: 0; }

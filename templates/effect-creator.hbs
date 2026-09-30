@@ -177,143 +177,118 @@
       <!-- ── Application Mode ──────────────────────────────────────────────── -->
       <fieldset id="appModeFieldset">
         <legend>Application Mode</legend>
-        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
-          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-            <input type="radio" data-ef="appMode" name="appMode" value="passive"
-                   {{#if (eq s.appMode "passive")}}checked{{/if}}
-                   data-tooltip="Always active on whatever carries this effect.">
+        <div class="fc-ctl">
+          <label data-tooltip="Always active on whatever carries this effect.">
+            <input type="radio" data-ef="appMode" name="appMode" value="passive" {{#if (eq s.appMode "passive")}}checked{{/if}}>
             <strong>Passive</strong> — always active on item holder
           </label>
-          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-            <input type="radio" data-ef="appMode" name="appMode" value="activation"
-                   {{#if (eq s.appMode "activation")}}checked{{/if}}
-                   data-tooltip="Applied only when the item is used.">
+          <label data-tooltip="Applied only when the item is used.">
+            <input type="radio" data-ef="appMode" name="appMode" value="activation" {{#if (eq s.appMode "activation")}}checked{{/if}}>
             <strong>On Activation</strong>
           </label>
         </div>
-        <!-- Sub-row for activation target (shown/hidden by JS) -->
       </fieldset>
-        <div id="applyToRow" style="margin:0 0 8px; padding-left:8px; border-left:2px solid var(--color-border-light-tertiary);" data-tooltip="Who receives the effect when the feature is used.">
-          <span style="font-size:0.9em;">Apply to:</span>
-          <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
-            <input type="radio" data-ef="activationTarget" name="activationTarget" value="wearer"
-                   {{#if (eq s.activationTarget "wearer")}}checked{{/if}}>
-            Wearer / Self
-          </label>
-          <label style="display:inline-flex; align-items:center; gap:4px; margin-left:10px; cursor:pointer;">
-            <input type="radio" data-ef="activationTarget" name="activationTarget" value="targets"
-                   {{#if (eq s.activationTarget "targets")}}checked{{/if}}>
-            Target(s)
-          </label>
+      <div id="applyToRow" class="fc-form" data-tooltip="Who receives the effect when the feature is used.">
+        <span class="fc-lbl">Apply to</span>
+        <div class="fc-ctl">
+          <label><input type="radio" data-ef="activationTarget" name="activationTarget" value="wearer" {{#if (eq s.activationTarget "wearer")}}checked{{/if}}> Wearer / Self</label>
+          <label><input type="radio" data-ef="activationTarget" name="activationTarget" value="targets" {{#if (eq s.activationTarget "targets")}}checked{{/if}}> Target(s)</label>
         </div>
+      </div>
 
       <!-- ── Duration / Reroll Logic ───────────────────────────────────────── -->
       <fieldset>
         <legend>Duration</legend>
-        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
-          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-            <input type="radio" data-ef="durationType" name="durationType" value="fixed"
-                   {{#if (eq s.durationType "fixed")}}checked{{/if}}
-                   data-tooltip="Lasts a set number of rounds (0 = until removed).">
-            Fixed (rounds)
-          </label>
-          <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-            <input type="radio" data-ef="durationType" name="durationType" value="overtime"
-                   {{#if (eq s.durationType "overtime")}}checked{{/if}}
-                   data-tooltip="Does something every turn: damage, healing, or a save to end it.">
-            Reroll / Over Time
-          </label>
-        </div>
+        <div class="fc-form">
+          <span class="fc-lbl">Type</span>
+          <div class="fc-ctl">
+            <label data-tooltip="Lasts a set number of rounds (0 = until removed).">
+              <input type="radio" data-ef="durationType" name="durationType" value="fixed" {{#if (eq s.durationType "fixed")}}checked{{/if}}> Fixed (rounds)
+            </label>
+            <label data-tooltip="Does something every turn: damage, healing, or a save to end it.">
+              <input type="radio" data-ef="durationType" name="durationType" value="overtime" {{#if (eq s.durationType "overtime")}}checked{{/if}}> Reroll / Over Time
+            </label>
+          </div>
 
-        <!-- Fixed -->
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-          <label style="font-size:0.9em;">Rounds (0 = indefinite):</label>
-          <input type="number" data-ef="rounds" value="{{s.rounds}}" min="0"
-                 style="width:4rem; height:1.8rem; text-align:center;">
-        </div>
+          <label>Rounds</label>
+          <div class="fc-ctl">
+            <input type="number" data-ef="rounds" value="{{s.rounds}}" min="0" class="fc-num">
+            <span class="notes">0 = indefinite</span>
+          </div>
 
-        <!-- Special duration (DAE / Times-Up) -->
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-          <label style="font-size:0.9em;">Expires:</label>
-          <select data-ef="specialDuration" data-tooltip="Ends at a turn boundary instead of after N rounds. Needs the Times-Up module." style="height:1.8rem; max-width:16rem;">
-            {{#each specialDurations as |sd|}}
-            <option value="{{sd.id}}" {{#if (eq ../s.specialDuration sd.id)}}selected{{/if}}>{{sd.label}}</option>
-            {{/each}}
-          </select>
-          <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Needs the Times-Up module to expire.</span>
+          <label>Expires</label>
+          <div class="fc-ctl">
+            <select data-ef="specialDuration" data-tooltip="Ends at a turn boundary instead of after N rounds. Needs the Times-Up module.">
+              {{#each specialDurations as |sd|}}
+              <option value="{{sd.id}}" {{#if (eq ../s.specialDuration sd.id)}}selected{{/if}}>{{sd.label}}</option>
+              {{/each}}
+            </select>
+            <span class="notes">Needs the Times-Up module to expire.</span>
+          </div>
         </div>
 
         <!-- OverTime sub-section (shown by JS) -->
-        <div id="otSection" style="border-top:1px solid var(--color-border-light-tertiary); margin-top:6px; padding-top:6px; display:none;">
-          <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:6px;">
-            <label style="font-size:0.9em;">Trigger:
-              <select data-ef="otTrigger" data-tooltip="When the per-turn effect fires." style="height:1.8rem; margin-left:4px;">
-                <option value="end" {{#if (eq s.otTrigger "end")}}selected{{/if}}>End of Turn</option>
-                <option value="start" {{#if (eq s.otTrigger "start")}}selected{{/if}}>Start of Turn</option>
-              </select>
-            </label>
-            <label style="font-size:0.9em;">Whose turn:
-              <select data-ef="otWhose" data-tooltip="Whose turn triggers it: the affected creature's, or the one who applied it." style="height:1.8rem; margin-left:4px;">
-                <option value="target" {{#if (eq s.otWhose "target")}}selected{{/if}}>Target's</option>
-                <option value="source" {{#if (eq s.otWhose "source")}}selected{{/if}}>Source's</option>
-              </select>
+        <div id="otSection" class="fc-form fc-sep" style="display:none;">
+          <label>Trigger</label>
+          <div class="fc-ctl">
+            <select data-ef="otTrigger" data-tooltip="When the per-turn effect fires.">
+              <option value="end" {{#if (eq s.otTrigger "end")}}selected{{/if}}>End of Turn</option>
+              <option value="start" {{#if (eq s.otTrigger "start")}}selected{{/if}}>Start of Turn</option>
+            </select>
+            <label class="fc-lbl">of</label>
+            <select data-ef="otWhose" data-tooltip="Whose turn triggers it: the affected creature's, or the one who applied it.">
+              <option value="target" {{#if (eq s.otWhose "target")}}selected{{/if}}>Target's turn</option>
+              <option value="source" {{#if (eq s.otWhose "source")}}selected{{/if}}>Source's turn</option>
+            </select>
+          </div>
+
+          <label>Roll</label>
+          <div class="fc-ctl">
+            <input type="text" data-ef="otDamage" data-tooltip="Rolled each turn, e.g. 1d6. Leave blank for a save-only effect." placeholder="e.g. 1d6, @con.mod — blank = none" value="{{s.otDamage}}">
+            <span id="otRollTypeSection" class="fc-inline" style="display:none;">
+              <label><input type="radio" data-ef="otRollType" name="otRollType" value="damage" {{#if (eq s.otRollType "damage")}}checked{{/if}}> Damage</label>
+              <label><input type="radio" data-ef="otRollType" name="otRollType" value="healing" {{#if (eq s.otRollType "healing")}}checked{{/if}}> Healing</label>
+            </span>
+            <select id="otDamageTypeSection" data-ef="otDamageType" data-tooltip="Damage type" style="display:none;">
+              {{#each damageTypes as |dt|}}
+              <option value="{{dt}}" {{#if (eq ../s.otDamageType dt)}}selected{{/if}}>{{dt}}</option>
+              {{/each}}
+            </select>
+          </div>
+
+          <span class="fc-lbl">Save</span>
+          <div class="fc-ctl">
+            <label data-tooltip="The target saves each turn; enough successes end the effect.">
+              <input type="checkbox" data-ef="otSave" {{#if s.otSave}}checked{{/if}}> Saving throw each turn
             </label>
           </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
-            <label style="font-size:0.9em;">Damage/Healing Roll:
-              <input type="text" data-ef="otDamage" data-tooltip="Rolled each turn, e.g. 1d6. Leave blank for a save-only effect." placeholder="e.g. 1d6, @con.mod, healing"
-                     value="{{s.otDamage}}" style="width:10rem; height:1.8rem; margin-left:4px;">
-            </label>
-        
-            <!-- Roll Type (Damage or Healing) shown only if roll is populated -->
-            <div id="otRollTypeSection" style="display:none; align-items:center; gap:6px; margin-left:8px;">
-              <label style="cursor:pointer; font-size:0.9em;">
-                <input type="radio" data-ef="otRollType" name="otRollType" value="damage" {{#if (eq s.otRollType "damage")}}checked{{/if}}> Damage
-              </label>
-              <label style="cursor:pointer; font-size:0.9em;">
-                <input type="radio" data-ef="otRollType" name="otRollType" value="healing" {{#if (eq s.otRollType "healing")}}checked{{/if}}> Healing
-              </label>
-            </div>
 
-            <label id="otDamageTypeSection" style="font-size:0.9em; display:none;">Type:
-              <select data-ef="otDamageType" style="height:1.8rem; margin-left:4px;">
-                {{#each damageTypes as |dt|}}
-                <option value="{{dt}}" {{#if (eq ../s.otDamageType dt)}}selected{{/if}}>{{dt}}</option>
+          <div id="otSaveSection" class="fc-form fc-full fc-sub" style="display:none;">
+            <label>Ability</label>
+            <div class="fc-ctl">
+              <select data-ef="otSaveAbility" data-tooltip="Prefilled from the Saving Throw step.">
+                {{#each abilities as |ab|}}
+                <option value="{{ab.[0]}}" {{#if (eq ../s.otSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
                 {{/each}}
               </select>
-            </label>
-          </div>
-          <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; cursor:pointer; margin-bottom:4px;">
-            <input type="checkbox" data-ef="otSave" data-tooltip="The target saves each turn; enough successes end the effect." {{#if s.otSave}}checked{{/if}}>
-            Saving Throw
-          </label>
-          <div id="otSaveSection" style="padding-left:12px; border-left:2px solid var(--color-border-light-tertiary); display:none;">
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:4px;">
-              <label style="font-size:0.9em;">Ability:
-                <select data-ef="otSaveAbility" style="height:1.8rem; margin-left:4px;">
-                  {{#each abilities as |ab|}}
-                  <option value="{{ab.[0]}}" {{#if (eq ../s.otSaveAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
-                  {{/each}}
-                </select>
-              </label>
-              <label style="font-size:0.9em;">DC:
-                <input type="number" data-ef="otSaveDC" value="{{s.otSaveDC}}" min="5" max="30"
-                       style="width:4rem; height:1.8rem; text-align:center; margin-left:4px;">
-              </label>
+              <label class="fc-lbl">DC</label>
+              <input type="number" data-ef="otSaveDC" value="{{s.otSaveDC}}" min="5" max="30" class="fc-num" data-tooltip="Prefilled from the Saving Throw step.">
             </div>
-            <label style="font-size:0.9em;">On Save:
-              <select data-ef="otOnSave" style="height:1.8rem; margin-left:4px;">
+
+            <label>On save</label>
+            <div class="fc-ctl">
+              <select data-ef="otOnSave">
                 <option value="nodamage"   {{#if (eq s.otOnSave "nodamage")}}selected{{/if}}>No Damage</option>
                 <option value="halfdamage" {{#if (eq s.otOnSave "halfdamage")}}selected{{/if}}>Half Damage</option>
                 <option value="fulldamage" {{#if (eq s.otOnSave "fulldamage")}}selected{{/if}}>Full Damage</option>
               </select>
-            </label>
-            <label style="display:flex; align-items:center; gap:6px; font-size:0.9em; margin-top:4px;">
-              Remove after
-              <input type="number" data-ef="otSuccesses" data-tooltip="Number of successful saves needed to end it." value="{{s.otSuccesses}}" min="1"
-                     style="width:3rem; height:1.8rem; text-align:center;">
-              successful save(s)
-            </label>
+            </div>
+
+            <label>Remove after</label>
+            <div class="fc-ctl">
+              <input type="number" data-ef="otSuccesses" data-tooltip="Number of successful saves needed to end it." value="{{s.otSuccesses}}" min="1" class="fc-num">
+              <span>successful save(s)</span>
+            </div>
           </div>
         </div>
       </fieldset>
@@ -344,13 +319,14 @@
       <!-- ── Stat Modifiers ──────────────────────────────────────────────── -->
       <fieldset>
         <legend>Stat Modifiers</legend>
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
-          <label style="font-size:0.9em; font-weight:bold; white-space:nowrap;">AC Bonus/Penalty:</label>
-          <input type="number" data-ef="acBonus" data-tooltip="Added to AC. Negative for a penalty." value="{{s.acBonus}}"
-                 style="width:4rem; height:1.8rem; text-align:center;" placeholder="0">
-          <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">(positive = bonus, negative = penalty)</span>
+        <div class="fc-form" style="margin-bottom:8px;">
+          <label>AC bonus</label>
+          <div class="fc-ctl">
+            <input type="number" data-ef="acBonus" data-tooltip="Added to AC. Negative for a penalty." value="{{s.acBonus}}" class="fc-num" placeholder="0">
+            <span class="notes">positive = bonus, negative = penalty</span>
+          </div>
         </div>
-        <label style="font-size:0.9em; font-weight:bold; display:block; margin-bottom:4px;" data-tooltip="Added to ability scores while active.">Ability Score Modifiers:</label>
+        <label class="fc-lbl" style="display:block; margin-bottom:4px;" data-tooltip="Added to ability scores while active.">Ability score modifiers</label>
         <div id="abilityRowsContainer" style="margin-bottom:6px;"></div>
         <button type="button" id="addAbilityRow" style="font-size:0.85em; padding:2px 8px;">
           <i class="fas fa-plus"></i> Add Ability Modifier
@@ -360,13 +336,13 @@
       <!-- ── Stacking ────────────────────────────────────────────────────── -->
       <fieldset>
         <legend>Effect Stacking <span class="notes" style="font-size:0.82em; font-weight:normal;">(DAE)</span></legend>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <select data-ef="stackable" data-tooltip="Whether applying it again adds a second copy or replaces the first." style="height:1.8rem; flex:1; max-width:14rem;">
+        <div class="fc-ctl">
+          <select data-ef="stackable" data-tooltip="Whether applying it again adds a second copy or replaces the first." style="max-width:14rem;">
             <option value="none" {{#if (eq s.stackable "none")}}selected{{/if}}>None (default — replaces)</option>
             <option value="count" {{#if (eq s.stackable "count")}}selected{{/if}}>Count Stacks</option>
             <option value="multi" {{#if (eq s.stackable "multi")}}selected{{/if}}>Full Stack (Multi)</option>
           </select>
-          <span class="notes" style="font-size:0.82em; color:var(--color-text-light-5);">Controls whether multiple copies of this effect stack on a target.</span>
+          <span class="notes">Controls whether multiple copies of this effect stack on a target.</span>
         </div>
       </fieldset>
 
