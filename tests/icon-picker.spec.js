@@ -45,7 +45,7 @@ test('Icon picker: name-based suggestions, search, keyboard pick, cached reopen,
   await expect(b.locator("[data-ef='img']")).toHaveValue(first);
   // Focus returns to the builder, so step keys keep working.
   await expect(b.locator("[data-action='pickIcon']")).toBeFocused();
-  await page.keyboard.press('Alt+ArrowRight');
+  await page.keyboard.press('Alt+Shift+ArrowRight');
   await expect(b.locator('.fc-step.active')).not.toHaveAttribute('data-step', 'basics');
 
   await page.evaluate(() => { for (const a of [...foundry.applications.instances.values()]) if (a.id?.startsWith("forge-")) a.close(); });

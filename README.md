@@ -45,8 +45,8 @@ Both wizards are split into steps:
 
 | Keys | Action |
 |---|---|
-| `Alt+←` / `Alt+→` | previous / next step |
-| `Alt+1` … `Alt+9` | jump to a step |
+| `Alt+Shift+←` / `Alt+Shift+→` | previous / next step |
+| `Alt+Shift+1` … `Alt+Shift+9` | jump to a step |
 | `Ctrl+Enter` | create |
 | `Esc` | close the search list / icon picker |
 

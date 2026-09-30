@@ -4,8 +4,9 @@
  * Hidden sections (`hidden` attribute) are skipped by the nav, numbering and keys.
  *
  * Keys (only while focus is inside root):
- *   Alt+← / Alt+→  previous / next step   (Ctrl+arrow stays word-jump in text fields)
- *   Alt+1..9       jump to the nth visible step
+ *   Alt+Shift+← / →  previous / next step   (plain Alt+arrow = browser back/forward,
+ *                    Ctrl+arrow = word-jump in text fields)
+ *   Alt+Shift+1..9   jump to the nth visible step (plain Alt+digit = Foundry hotbar page)
  *   Ctrl+Enter     create (onCreate)
  */
 const FOCUSABLE = "input:not([type=hidden]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])";
@@ -14,7 +15,7 @@ export function attachStepper(root, { onCreate, onStepChange } = {}) {
   root.classList.add("fc-stepped");
   const nav = root.querySelector(".fc-steps-nav");
   const keys = root.querySelector(".fc-keys");
-  if (keys) keys.textContent = "Alt+←/→ step · Alt+1–9 jump · Ctrl+Enter create";
+  if (keys) keys.textContent = "Alt+Shift+←/→ step · Alt+Shift+1–9 jump · Ctrl+Enter create";
   let currentId = null;
 
   const all = () => [...root.querySelectorAll(".fc-step")];
@@ -23,7 +24,7 @@ export function attachStepper(root, { onCreate, onStepChange } = {}) {
   function renderNav() {
     if (!nav) return;
     nav.innerHTML = visible().map((s, i) => `
-      <button type="button" class="fc-nav-btn" data-go="${s.dataset.step}" data-tooltip="Alt+${i + 1}"
+      <button type="button" class="fc-nav-btn" data-go="${s.dataset.step}" data-tooltip="Alt+Shift+${i + 1}"
               ${s.dataset.step === currentId ? 'aria-current="step"' : ""}>${i + 1}. ${s.dataset.title}</button>`).join("");
     nav.querySelectorAll(".fc-nav-btn").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
   }
@@ -55,10 +56,11 @@ export function attachStepper(root, { onCreate, onStepChange } = {}) {
   }
 
   root.addEventListener("keydown", (e) => {
+    const nav = e.altKey && e.shiftKey && !e.ctrlKey;
     let handled = true;
-    if (e.altKey && !e.ctrlKey && e.key === "ArrowRight") next();
-    else if (e.altKey && !e.ctrlKey && e.key === "ArrowLeft") prev();
-    else if (e.altKey && !e.ctrlKey && /^Digit[1-9]$/.test(e.code)) {
+    if (nav && e.key === "ArrowRight") next();
+    else if (nav && e.key === "ArrowLeft") prev();
+    else if (nav && /^Digit[1-9]$/.test(e.code)) {  // e.code: Shift makes e.key a symbol
       const s = visible()[Number(e.code.slice(5)) - 1];
       if (s) go(s.dataset.step);
     }

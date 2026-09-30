@@ -4,7 +4,7 @@ import { openBuilder, openWizard, closeForgeApps } from './helpers/foundry.js';
 test.describe('Keyboard navigation', () => {
   test.setTimeout(120000);
 
-  test('builder: Alt+arrows walk steps, Ctrl+arrow still edits text, Alt+digit jumps', async ({ gmPage: page }) => {
+  test('builder: Alt+Shift+arrows walk steps, Ctrl+arrow still edits text, Alt+Shift+digit jumps', async ({ gmPage: page }) => {
     const root = await openBuilder(page);
     await root.locator("[name='kind'][value='attack']").check();
     const active = () => root.locator(".fc-step.active").getAttribute("data-step");
@@ -15,14 +15,14 @@ test.describe('Keyboard navigation', () => {
     await page.keyboard.press("Control+ArrowLeft");   // word jump inside the field, not a step
     expect(await active()).toBe("basics");
 
-    await page.keyboard.press("Alt+ArrowRight");
+    await page.keyboard.press("Alt+Shift+ArrowRight");
     expect(await active()).toBe("attack");
     await expect(root.locator("[data-ef='attackType']")).toBeFocused();
 
-    await page.keyboard.press("Alt+ArrowRight");      // save step hidden without the on-hit save
+    await page.keyboard.press("Alt+Shift+ArrowRight");      // save step hidden without the on-hit save
     expect(await active()).toBe("effects");
 
-    await page.keyboard.press("Alt+1");
+    await page.keyboard.press("Alt+Shift+1");
     expect(await active()).toBe("basics");
     await expect(root.locator(".fc-nav-btn[aria-current='step']")).toHaveText(/1\. Basics/);
 
@@ -58,7 +58,7 @@ test.describe('Keyboard navigation', () => {
   test('char wizard: Ctrl+Enter with the search list open creates, without also adding the highlighted item', async ({ gmPage: page }) => {
     await openWizard(page);
     await page.keyboard.type("KB Wizard E2E");
-    await page.keyboard.press("Alt+3");
+    await page.keyboard.press("Alt+Shift+3");
     await page.keyboard.type("fire");
     await page.waitForSelector("#itemSearchResults li[data-uuid]", { timeout: 15000 });
     await page.keyboard.press("ArrowDown");
@@ -74,13 +74,13 @@ test.describe('Keyboard navigation', () => {
     await closeForgeApps(page);
   });
 
-  test('char wizard: steps, Alt+digit, Esc closes search without stepping', async ({ gmPage: page }) => {
+  test('char wizard: steps, Alt+Shift+digit, Esc closes search without stepping', async ({ gmPage: page }) => {
     const root = await openWizard(page);
     const active = () => root.locator(".fc-step.active").getAttribute("data-step");
     expect(await active()).toBe("identity");
     await expect(root.locator("#charName")).toBeFocused();
 
-    await page.keyboard.press("Alt+3");
+    await page.keyboard.press("Alt+Shift+3");
     expect(await active()).toBe("features");
     await expect(root.locator("#itemSearchQuery")).toBeFocused();
 
@@ -91,7 +91,7 @@ test.describe('Keyboard navigation', () => {
     await expect(root).toBeVisible();                   // Esc closed the dropdown, not the window
     expect(await active()).toBe("features");
 
-    await page.keyboard.press("Alt+ArrowLeft");
+    await page.keyboard.press("Alt+Shift+ArrowLeft");
     expect(await active()).toBe("stats");
     await closeForgeApps(page);
   });
