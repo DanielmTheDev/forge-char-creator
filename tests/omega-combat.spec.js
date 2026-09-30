@@ -3,7 +3,7 @@ import { bootFoundry, pipeConsole } from './helpers/foundry.js';
 
 // Omega Combat Simulator: builder feature → combat → restrained + OverTime → advantage.
 // Lives outside ForgeTestingSuite.runAll() so a hang here can't sink the payload suite.
-test('Omega combat: feature → combat → OverTime tick → advantage vs restrained', async ({ page }) => {
+test('Omega combat: feature → combat → OverTime tick → advantage vs restrained @combat', async ({ page }) => {
   // Legs 1–2 pass since 2026-09-30 (restrained + OverTime applied, OT tick lands). Leg 3 fails: in this
   // stack (dnd5e 5.2.5, midi 13.0.63, test-world settings) nothing grants attackers advantage vs a
   // restrained target (the status carries no changes), so swordWorkflow.advantage is false. See TODO.md OMEGA-ADV.

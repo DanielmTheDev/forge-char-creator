@@ -55,6 +55,9 @@ JSON source committed; compiled LevelDB `packs/` gitignored (built on demand / i
 - `npm run content:verify` — boot Foundry + run forge-content functional gate. Run before push.
 - `./test.sh` — boot Foundry + run char-creator suite (server lifecycle handled).
 - `npm run test` — Playwright char-creator suite only (server already running).
+- `npm run test:unit` (~1 s, node) · `npm run test:ui` (Playwright minus `@combat`) · `npm run test:combat` (only `@combat` midi specs) · `npm run test:all` (unit + full Playwright). Server must be running; start it detached, check `pgrep -f "[m]ain.js --dataPath"`.
+- `npm run dev:eval -- '<js>'` (or `-- file.js`) — log in headless as GM, run JS in live Foundry, print `RESULT <json>` (exit 2 on timeout; `EVAL_TIMEOUT`, `EVAL_LOG`). Fastest debug loop.
+- Specs import `test`/`expect` from `tests/helpers/fixtures.js` and take `{ gmPage: page }` (one logged-in page per worker, reset between tests); boot/open helpers in `tests/helpers/foundry.js`; `tests/global-setup.js` sweeps test residue by name (`tests/helpers/sweep.js`) before each run.
 - `./build.sh` — local char-creator zip. CI (release.yml) builds packs then publishes both modules on push to main.
 
 ## Caveats (see agents.md)

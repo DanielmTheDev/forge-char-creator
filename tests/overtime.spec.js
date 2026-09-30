@@ -4,7 +4,7 @@ import { bootFoundry } from './helpers/foundry.js';
 test.describe('Overtime Effect Wrapped in Feature Test', () => {
   test.setTimeout(180000);
 
-  test('Should create overtime effect wrapped in feature, apply to target in combat, and verify overtime triggers on turn advance', async ({ page }) => {
+  test('Should create overtime effect wrapped in feature, apply to target in combat, and verify overtime triggers on turn advance @combat', async ({ page }) => {
 
     await bootFoundry(page);
 

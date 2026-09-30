@@ -1,7 +1,7 @@
 import { test, expect } from './helpers/fixtures.js';
 import { pipeConsole } from './helpers/foundry.js';
 
-test('Temp HP feature built by the wizard grants temp HP to a target via a real midi workflow', async ({ gmPage: page }) => {
+test('Temp HP feature built by the wizard grants temp HP to a target via a real midi workflow @combat', async ({ gmPage: page }) => {
   test.setTimeout(180000);
 
   pipeConsole(page, /SMOKE|Error/);
