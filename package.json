@@ -15,7 +15,7 @@
     "content:stale": "node forge-content/verify/stale.mjs",
     "spells:resolve": "node scripts/pack-tools/spell-resolve.mjs",
     "content:unit": "node --test 'forge-content/verify/*.test.mjs' 'forge-content/scripts/*.test.mjs' 'scripts/pack-tools/*.test.mjs'",
-    "unit": "node --test 'scripts/*.test.mjs' 'scripts/ui/*.test.mjs'",
+    "unit": "node --test 'scripts/*.test.mjs' 'scripts/ui/*.test.mjs' 'tests/helpers/*.test.mjs'",
     "dev:eval": "node scripts/dev/eval.mjs"
   },
   "dependencies": {
