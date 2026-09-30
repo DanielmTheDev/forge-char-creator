@@ -309,7 +309,7 @@ test.describe('Overtime Effect Wrapped in Feature Test', () => {
       const pack = game.packs.get("forge-char-creator.forge-features");
       if (pack) {
         const index = await pack.getIndex();
-        for (const e of index) if (/E2E|Test/i.test(e.name)) await pack.deleteDocument(e._id);
+        for (const e of index) if (/E2E|Test/i.test(e.name)) await (await pack.getDocument(e._id))?.delete();
       }
 
       // Clear targets (API varies by Foundry version)
