@@ -1,0 +1,80 @@
+{
+  "name": "Ranged Shot",
+  "img": "icons/weapons/crossbows/crossbow-simple-brown.webp",
+  "type": "feat",
+  "_id": "jtXB5rfZVhtFpxP3",
+  "system": {
+    "description": {
+      "value": "<p>Reference ability: a DEX-based ranged weapon attack against one creature within 80 ft, dealing 10 piercing damage on a hit. Base for bow/crossbow/thrown reskins.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "atkrangedshot001": {
+        "_id": "atkrangedshot001",
+        "type": "attack",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "range": {
+          "value": 80,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "attack": {
+          "ability": "dex",
+          "bonus": "",
+          "critical": {
+            "threshold": null
+          },
+          "flat": false,
+          "type": {
+            "value": "ranged",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "piercing"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "10"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "ranged-shot",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "3c9e879d36f1493d83a13d4115100d81127f8378bf1e25cf46b44db51f277db2"
+    }
+  },
+  "folder": null
+}

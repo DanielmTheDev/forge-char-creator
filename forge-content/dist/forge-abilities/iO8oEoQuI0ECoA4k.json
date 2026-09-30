@@ -1,0 +1,101 @@
+{
+  "name": "Sunbrand",
+  "img": "icons/skills/targeting/target-glowing-yellow.webp",
+  "type": "feat",
+  "_id": "iO8oEoQuI0ECoA4k",
+  "system": {
+    "description": {
+      "value": "<p>Mark one creature within 30 ft with clinging sunlight (no save): <strong>attack rolls against it have advantage</strong> until the start of your next turn. <strong>1/day</strong>.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [
+        {
+          "period": "day"
+        }
+      ]
+    },
+    "activities": {
+      "sunbrandmark0001": {
+        "_id": "sunbrandmark0001",
+        "type": "utility",
+        "activation": {
+          "type": "bonus",
+          "value": 1
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1"
+            }
+          ]
+        },
+        "range": {
+          "value": 30,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "effects": [
+          {
+            "_id": "sunbrandeff00001"
+          }
+        ]
+      }
+    },
+    "identifier": "sunbrand",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Sunbrand",
+      "img": "icons/skills/targeting/target-glowing-yellow.webp",
+      "type": "base",
+      "_id": "sunbrandeff00001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {
+        "rounds": 1
+      },
+      "changes": [
+        {
+          "key": "flags.midi-qol.grants.advantage.attack.all",
+          "mode": 5,
+          "value": "1",
+          "priority": 20
+        }
+      ],
+      "statuses": [],
+      "flags": {
+        "dae": {
+          "specialDuration": [
+            "turnStartSource"
+          ]
+        }
+      }
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "964d612286dd9e56e24bf154afce2d345d421108d9f8405f73f39a5272aed307"
+    }
+  },
+  "folder": null
+}

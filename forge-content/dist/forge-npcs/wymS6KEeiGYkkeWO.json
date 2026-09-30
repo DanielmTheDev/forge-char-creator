@@ -1,0 +1,146 @@
+{
+  "_id": "wymS6KEeiGYkkeWO",
+  "name": "Wretched Prisoner",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/wretched-prisoner.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/wretched-prisoner-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 0.75
+      }
+    }
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 8
+      },
+      "dex": {
+        "value": 9
+      },
+      "con": {
+        "value": 8
+      },
+      "int": {
+        "value": 10
+      },
+      "wis": {
+        "value": 10
+      },
+      "cha": {
+        "value": 8
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 4,
+        "max": 4,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "natural",
+        "flat": 9
+      },
+      "movement": {
+        "walk": 25
+      }
+    },
+    "details": {
+      "cr": 0,
+      "type": {
+        "value": "humanoid"
+      },
+      "biography": {
+        "value": "<p>WRETCHED PRISONER — CR 0 rescue NPC (run several, generic). A starved, beaten slave in the staging mine near Dhul Maldur; freed or extracted during the mine breakout. Escort liability — the cost of saving them.</p><p><strong>Manual — Wretched:</strong> starved, beaten, exhausted — disadvantage on STR &amp; CON checks and saves; can't Dash two rounds running.</p><p><strong>Manual — Won't fight (RP):</strong> cowers, flees, or clings to rescuers; acts only if cornered. Needs escort/protecting through the breakout.</p><p><strong>Manual — Desperate Surge (1/day):</strong> when freed, or when a rescuer takes a hit for them, adrenaline grants one extra move OR a Help action this turn.</p>"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Feeble Blow",
+      "img": "icons/skills/wounds/bone-broken-marrow-yellow.webp",
+      "type": "feat",
+      "_id": "BFRB7bbpZ1LLBVXz",
+      "system": {
+        "description": {
+          "value": "<p>Melee attack with a fist or a scrap of debris: <strong>1d4-1 bludgeoning</strong> (minimum 1) on a hit.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "oCIk4i2CSOqcooGm": {
+            "_id": "oCIk4i2CSOqcooGm",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "bludgeoning"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d4-1"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "c988b0f014e95d6a6eba6c19e43bb0dd1becda54ae8b917ae35155e0369f026a"
+    }
+  },
+  "folder": null
+}

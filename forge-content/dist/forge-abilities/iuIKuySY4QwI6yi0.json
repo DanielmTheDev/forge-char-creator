@@ -1,0 +1,100 @@
+{
+  "name": "Writhing Lash",
+  "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+  "type": "feat",
+  "_id": "iuIKuySY4QwI6yi0",
+  "system": {
+    "description": {
+      "value": "<p>The tendril acts on its own. <strong>Melee attack, reach 10 ft: 1d8+3 bludgeoning</strong> and on a hit the target is <strong>grappled</strong> (escape DC 13 — DM adjudicates; remove the condition when it escapes). At-will.</p><p><em>Manual riders: while grappling you can drag the target 5 ft. If you start your turn grappling an ALLY, DC 10 Wis save or the mutation keeps holding on.</em></p>",
+      "chat": ""
+    },
+    "activities": {
+      "lashattack000001": {
+        "_id": "lashattack000001",
+        "type": "attack",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "range": {
+          "value": 10,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "attack": {
+          "ability": "str",
+          "bonus": "",
+          "critical": {
+            "threshold": null
+          },
+          "flat": false,
+          "type": {
+            "value": "melee",
+            "classification": "weapon"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "bludgeoning"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "1d8+3"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        },
+        "effects": [
+          {
+            "_id": "lashgrapple00001"
+          }
+        ]
+      }
+    },
+    "identifier": "writhing-lash",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Grappled (Writhing Lash)",
+      "img": "icons/creatures/tentacles/tentacle-earth-green.webp",
+      "type": "base",
+      "_id": "lashgrapple00001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {},
+      "changes": [],
+      "statuses": [
+        "grappled"
+      ],
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "27f027bbccac447e869be3611308d2a6901981076af43a72908b7b8a4214c85e"
+    }
+  },
+  "folder": null
+}

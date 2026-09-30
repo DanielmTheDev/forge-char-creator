@@ -1,0 +1,68 @@
+{
+  "name": "Searing Bolt",
+  "img": "icons/magic/fire/projectile-fireball-orange.webp",
+  "type": "feat",
+  "_id": "searingbolt00001",
+  "system": {
+    "description": {
+      "value": "<p>You hurl a mote of fire at a creature within range, dealing 10 fire damage.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "dmgfire000000001": {
+        "_id": "dmgfire000000001",
+        "type": "damage",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "range": {
+          "value": 60,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "fire"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "10"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "searing-bolt",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "53732fd404aa15cd780812c14cddd1cfc4a3ae32810cdcb9fbbfa5a0030ec00d"
+    }
+  },
+  "folder": null
+}

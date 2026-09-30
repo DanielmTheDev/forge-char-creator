@@ -1,0 +1,56 @@
+{
+  "name": "Bracers of Defense",
+  "img": "icons/equipment/wrist/bracer-armored-steel-blue.webp",
+  "type": "feat",
+  "_id": "aaaaaaaaaaaaaaaa",
+  "system": {
+    "description": {
+      "value": "<p>While worn, your Armor Class increases by 2.</p>",
+      "chat": ""
+    },
+    "activities": {},
+    "uses": {
+      "spent": 0,
+      "recovery": []
+    },
+    "advancement": [],
+    "identifier": "bracers-of-defense",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Bracers of Defense",
+      "img": "icons/equipment/wrist/bracer-banded-leather-brown.webp",
+      "type": "base",
+      "_id": "bbbbbbbbbbbbbbbb",
+      "transfer": true,
+      "disabled": false,
+      "changes": [
+        {
+          "key": "system.attributes.ac.bonus",
+          "mode": 2,
+          "value": "2",
+          "priority": 20
+        }
+      ],
+      "duration": {},
+      "statuses": [],
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "21553e252c2682ae8b6c093284c861007bd6336a344cb6efb676ad7a96a12431"
+    }
+  },
+  "folder": null
+}

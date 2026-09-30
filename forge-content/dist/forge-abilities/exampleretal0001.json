@@ -1,0 +1,75 @@
+{
+  "name": "Example Retaliate",
+  "img": "icons/skills/melee/strike-blade-knife-white-red.webp",
+  "type": "feat",
+  "_id": "exampleretal0001",
+  "system": {
+    "description": {
+      "value": "<p><strong>Reaction</strong>, when you take damage from a creature you can see: lash back, dealing <strong>6 force damage</strong> to that attacker.</p>",
+      "chat": ""
+    },
+    "activities": {
+      "retaliate0000001": {
+        "_id": "retaliate0000001",
+        "type": "damage",
+        "activation": {
+          "type": "reaction",
+          "value": 1
+        },
+        "range": {
+          "value": 5,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "force"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "6"
+              },
+              "scaling": {
+                "mode": "",
+                "number": null,
+                "formula": ""
+              }
+            }
+          ]
+        }
+      }
+    },
+    "identifier": "example-retaliate",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [],
+  "flags": {
+    "dae": {
+      "macro": {
+        "name": "Example Retaliate",
+        "type": "script",
+        "command": "if (args?.[0]?.macroPass !== 'isDamaged') return;\nconst attacker = workflow?.token;\nif (!attacker?.actor) return;\nconst cur = attacker.actor.system.attributes.hp.value;\nawait attacker.actor.update({ 'system.attributes.hp.value': cur - 6 });"
+      }
+    },
+    "forge-content": {
+      "srcHash": "b995cde64336c6928437ef87dc58a7b3cf938c597642094c3806a68a6c07882a"
+    }
+  },
+  "folder": "folderexample001"
+}

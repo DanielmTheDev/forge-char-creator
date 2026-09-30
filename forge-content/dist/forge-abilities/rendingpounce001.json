@@ -1,0 +1,109 @@
+{
+  "name": "Rending Pounce",
+  "img": "icons/creatures/claws/claw-hooked-barbed.webp",
+  "type": "feat",
+  "_id": "rendingpounce001",
+  "system": {
+    "description": {
+      "value": "<p>Mucknathal pounces a foe <strong>Derek has marked</strong> and tears a deep wound: <strong>3d6 bleed</strong> at the start of the target's turns for 2 rounds. Only marked foes bleed. Recharge 5–6.</p>",
+      "chat": ""
+    },
+    "uses": {
+      "spent": 0,
+      "max": "1",
+      "recovery": [
+        {
+          "period": "recharge",
+          "formula": "5"
+        }
+      ]
+    },
+    "activities": {
+      "pouncedmg0000001": {
+        "_id": "pouncedmg0000001",
+        "type": "damage",
+        "activation": {
+          "type": "action",
+          "value": 1
+        },
+        "consumption": {
+          "targets": [
+            {
+              "type": "itemUses",
+              "target": "",
+              "value": "1"
+            }
+          ]
+        },
+        "range": {
+          "value": 5,
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "type": "creature",
+            "count": "1"
+          }
+        },
+        "damage": {
+          "parts": [
+            {
+              "types": [
+                "slashing"
+              ],
+              "custom": {
+                "enabled": true,
+                "formula": "0"
+              }
+            }
+          ]
+        },
+        "effects": [
+          {
+            "_id": "rendingbleed0001"
+          }
+        ]
+      }
+    },
+    "identifier": "rending-pounce",
+    "source": {
+      "revision": 1,
+      "rules": "2024"
+    },
+    "properties": [],
+    "requirements": "",
+    "type": {
+      "value": "",
+      "subtype": ""
+    }
+  },
+  "effects": [
+    {
+      "name": "Rending Bleed",
+      "img": "icons/skills/wounds/blood-drip-droplet-red.webp",
+      "type": "base",
+      "_id": "rendingbleed0001",
+      "transfer": false,
+      "disabled": false,
+      "duration": {
+        "rounds": 2
+      },
+      "changes": [
+        {
+          "key": "flags.midi-qol.OverTime",
+          "mode": 0,
+          "value": "turn=start,damageRoll=3d6,damageType=slashing,label=Rending Bleed,condition=target?.flags?.world?.squiresMark",
+          "priority": 20
+        }
+      ],
+      "statuses": [],
+      "flags": {}
+    }
+  ],
+  "flags": {
+    "forge-content": {
+      "srcHash": "0988a594cfcad4c28f724a6c868c5e2cbe791ac0c36fc3e5b4f020d982d07766"
+    }
+  },
+  "folder": "foldermuckna0001"
+}

@@ -1,0 +1,341 @@
+{
+  "_id": "pvhH5tj5rFP5VrPd",
+  "name": "Korrun Slagledger",
+  "type": "npc",
+  "img": "modules/forge-content/assets/tokens/korrun-slagledger.png",
+  "prototypeToken": {
+    "texture": {
+      "src": "modules/forge-content/assets/tokens/korrun-slagledger-token.png"
+    },
+    "ring": {
+      "enabled": true,
+      "subject": {
+        "scale": 0.75
+      }
+    }
+  },
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 18
+      },
+      "dex": {
+        "value": 10
+      },
+      "con": {
+        "value": 16
+      },
+      "int": {
+        "value": 13
+      },
+      "wis": {
+        "value": 12
+      },
+      "cha": {
+        "value": 10
+      }
+    },
+    "attributes": {
+      "hp": {
+        "value": 67,
+        "max": 67,
+        "formula": ""
+      },
+      "ac": {
+        "calc": "natural",
+        "flat": 16
+      },
+      "movement": {
+        "walk": 25
+      },
+      "senses": {
+        "darkvision": 60
+      }
+    },
+    "traits": {
+      "dr": {
+        "value": [
+          "acid",
+          "poison"
+        ],
+        "bypasses": [],
+        "custom": ""
+      }
+    },
+    "details": {
+      "cr": 3,
+      "type": {
+        "value": "humanoid"
+      },
+      "biography": {
+        "value": "<p>KORRUN SLAGLEDGER — CR 3 mini-boss. Scalewoven dwarf overseer (\"the warden\") of the staging mine near Dhul Maldur. Cold bureaucrat: slaves are quota &amp; ledger, clinical impersonal cruelty. Chain dominion — scaleweaving warps iron.</p><p><strong>Manual — Multiattack:</strong> one Overseer's Maul + one Chain Lash each turn (use both items).</p><p><strong>Manual — Chain Lash pull:</strong> on a hit the target makes a DC 14 Strength save or is pulled 10 ft toward Korrun.</p><p><strong>Manual — Dwarven Resilience:</strong> advantage on saves vs. poison (poison resistance is on the sheet).</p><p><strong>Manual — Tactics/Flee:</strong> uses normi conscript guards as shields, never risks himself. At bloodied (≤33 HP) or when his guards fall: Disengage, retreat into the mine via the chains, sound the alarm. He does NOT die here — recurs at the Dhul Maldur assault.</p>"
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Overseer's Maul",
+      "img": "icons/weapons/hammers/hammer-double-simple-worn.webp",
+      "type": "feat",
+      "_id": "F9FdNZdBXdHL5tbB",
+      "system": {
+        "description": {
+          "value": "<p>Melee weapon attack: <strong>2d6+4 bludgeoning</strong> on a hit.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "sQYieMESyIuy2okg": {
+            "_id": "sQYieMESyIuy2okg",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 5,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "bludgeoning"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "2d6+4"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    },
+    {
+      "name": "Chain Lash",
+      "img": "icons/skills/melee/strike-chain-whip-blue.webp",
+      "type": "feat",
+      "_id": "UQaoUisYKiSgmssE",
+      "system": {
+        "description": {
+          "value": "<p>Melee weapon attack, reach <strong>15 ft</strong>: <strong>1d8+4 bludgeoning</strong> on a hit. <strong>Manual:</strong> on a hit the target makes a DC 14 Strength save or is pulled 10 ft toward Korrun.</p>",
+          "chat": ""
+        },
+        "activities": {
+          "zLL5BNDvxBPRHz5D": {
+            "_id": "zLL5BNDvxBPRHz5D",
+            "type": "attack",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "range": {
+              "value": 15,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "attack": {
+              "ability": "str",
+              "bonus": "",
+              "critical": {
+                "threshold": null
+              },
+              "flat": false,
+              "type": {
+                "value": "melee",
+                "classification": "weapon"
+              }
+            },
+            "damage": {
+              "parts": [
+                {
+                  "types": [
+                    "bludgeoning"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "1d8+4"
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": null,
+                    "formula": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "identifier": "example-strike",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [],
+      "flags": {}
+    },
+    {
+      "name": "Animate Shackles",
+      "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
+      "type": "feat",
+      "_id": "SYsW4AaQEO44iqWw",
+      "system": {
+        "description": {
+          "value": "<p>Scaleweaving warps the mine's iron — chains erupt from wall and floor. One creature within <strong>30 ft</strong> makes a <strong>DC 14 Dexterity save</strong> or takes <strong>2d6 bludgeoning damage</strong> and is <strong>restrained</strong>. Nothing on a success. <strong>Manual:</strong> the target can repeat the escape attempt (DC 14 Athletics or Acrobatics) at the end of each of its turns — remove the effect on a success. <strong>3/day</strong>.</p>",
+          "chat": ""
+        },
+        "uses": {
+          "spent": 0,
+          "max": "3",
+          "recovery": [
+            {
+              "period": "day"
+            }
+          ]
+        },
+        "activities": {
+          "FTB3RrnF9rT1xtHP": {
+            "_id": "FTB3RrnF9rT1xtHP",
+            "type": "save",
+            "activation": {
+              "type": "action",
+              "value": 1
+            },
+            "consumption": {
+              "targets": [
+                {
+                  "type": "itemUses",
+                  "target": "",
+                  "value": "1"
+                }
+              ]
+            },
+            "range": {
+              "value": 30,
+              "units": "ft"
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1"
+              }
+            },
+            "save": {
+              "ability": [
+                "dex"
+              ],
+              "dc": {
+                "calculation": "custom",
+                "formula": "14"
+              }
+            },
+            "damage": {
+              "onSave": "none",
+              "parts": [
+                {
+                  "types": [
+                    "bludgeoning"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "2d6"
+                  }
+                }
+              ]
+            },
+            "effects": [
+              {
+                "_id": "K4Es28QI64cWGcq4",
+                "onSave": false
+              }
+            ]
+          }
+        },
+        "identifier": "animate-shackles",
+        "source": {
+          "revision": 1,
+          "rules": "2024"
+        },
+        "properties": [],
+        "requirements": "",
+        "type": {
+          "value": "",
+          "subtype": ""
+        }
+      },
+      "effects": [
+        {
+          "name": "Restrained (Animate Shackles)",
+          "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
+          "type": "base",
+          "_id": "K4Es28QI64cWGcq4",
+          "transfer": false,
+          "disabled": false,
+          "duration": {},
+          "changes": [],
+          "statuses": [
+            "restrained"
+          ],
+          "flags": {}
+        }
+      ],
+      "flags": {}
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "forge-content": {
+      "srcHash": "6dae7ecff17dfc4717fe24d8291bc297b2d8135969fd15ae7e9f084a97e93e17"
+    }
+  },
+  "folder": null
+}
