@@ -1,11 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry, openBuilder, openWizard, closeForgeApps } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
+import { openBuilder, openWizard, closeForgeApps } from './helpers/foundry.js';
 
 test.describe('Keyboard navigation', () => {
   test.setTimeout(120000);
 
-  test('builder: Alt+arrows walk steps, Ctrl+arrow still edits text, Alt+digit jumps', async ({ page }) => {
-    await bootFoundry(page);
+  test('builder: Alt+arrows walk steps, Ctrl+arrow still edits text, Alt+digit jumps', async ({ gmPage: page }) => {
     const root = await openBuilder(page);
     await root.locator("[name='kind'][value='attack']").check();
     const active = () => root.locator(".fc-step.active").getAttribute("data-step");
@@ -32,8 +31,7 @@ test.describe('Keyboard navigation', () => {
     await closeForgeApps(page);
   });
 
-  test('builder: Ctrl+Enter creates from what was just typed, once even if pressed twice', async ({ page }) => {
-    await bootFoundry(page);
+  test('builder: Ctrl+Enter creates from what was just typed, once even if pressed twice', async ({ gmPage: page }) => {
     const root = await openBuilder(page);
     await root.locator("[name='kind'][value='passive']").check();
     await page.evaluate(() => {
@@ -57,8 +55,7 @@ test.describe('Keyboard navigation', () => {
     await closeForgeApps(page);
   });
 
-  test('char wizard: Ctrl+Enter with the search list open creates, without also adding the highlighted item', async ({ page }) => {
-    await bootFoundry(page);
+  test('char wizard: Ctrl+Enter with the search list open creates, without also adding the highlighted item', async ({ gmPage: page }) => {
     await openWizard(page);
     await page.keyboard.type("KB Wizard E2E");
     await page.keyboard.press("Alt+3");
@@ -77,8 +74,7 @@ test.describe('Keyboard navigation', () => {
     await closeForgeApps(page);
   });
 
-  test('char wizard: steps, Alt+digit, Esc closes search without stepping', async ({ page }) => {
-    await bootFoundry(page);
+  test('char wizard: steps, Alt+digit, Esc closes search without stepping', async ({ gmPage: page }) => {
     const root = await openWizard(page);
     const active = () => root.locator(".fc-step.active").getAttribute("data-step");
     expect(await active()).toBe("identity");

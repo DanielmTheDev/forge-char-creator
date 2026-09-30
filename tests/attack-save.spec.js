@@ -1,11 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry, pipeConsole } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
+import { pipeConsole } from './helpers/foundry.js';
 
 // Builds "attack → on hit CON save → poisoned + extra damage" through the builder UI,
 // then runs real midi workflows with fixed dice (every die = middle face, d20 = 11).
-test('Attack with on-hit save: hit damage, save fail/success, miss — via a real midi workflow', async ({ page }) => {
+test('Attack with on-hit save: hit damage, save fail/success, miss — via a real midi workflow', async ({ gmPage: page }) => {
   test.setTimeout(240000);
-  await bootFoundry(page);
 
   pipeConsole(page);
 

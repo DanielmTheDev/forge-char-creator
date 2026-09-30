@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
 
 /**
  * Regression guard: the wizard windows must scroll their body and keep the
@@ -10,9 +9,7 @@ import { bootFoundry } from './helpers/foundry.js';
 test.describe('Window scrolling', () => {
   test.setTimeout(120000);
 
-  test.beforeEach(async ({ page }) => {
-    await bootFoundry(page);
-
+  test.beforeEach(async ({ gmPage: page }) => {
     // Short viewport so the form definitely overflows the window
     await page.setViewportSize({ width: 1280, height: 600 });
   });
@@ -70,19 +67,19 @@ test.describe('Window scrolling', () => {
     await expect(button).toBeInViewport();
   }
 
-  test('Character Creator body scrolls and Create button stays visible', async ({ page }) => {
+  test('Character Creator body scrolls and Create button stays visible', async ({ gmPage: page }) => {
     // Steps keep each page short; a small screen still has to scroll the body, not clip it.
     await page.setViewportSize({ width: 1280, height: 420 });
     await assertScrolls(page, 'CharCreatorApp', 'app.js', '.forge-char-creator');
   });
 
-  test('Effect Creator body scrolls and Create button stays visible', async ({ page }) => {
+  test('Effect Creator body scrolls and Create button stays visible', async ({ gmPage: page }) => {
     await assertScrolls(page, 'EffectCreatorApp', 'effect-creator.js', '.forge-effect-creator');
   });
 
   // `min-height: 0` on a `flex-basis: 0%` child collapses auto-height windows to
   // nothing. Guard both the tall-viewport wizard and the (auto-height) hub.
-  test('Windows do not collapse in a tall viewport', async ({ page }) => {
+  test('Windows do not collapse in a tall viewport', async ({ gmPage: page }) => {
     await page.setViewportSize({ width: 1440, height: 1200 });
 
     await page.evaluate(async () => {

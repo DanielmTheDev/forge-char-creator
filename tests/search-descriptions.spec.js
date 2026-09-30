@@ -1,12 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry, openWizard } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
+import { openWizard } from './helpers/foundry.js';
 
 test.describe('Item Search Descriptions', () => {
   test.setTimeout(120000);
 
-  test('Should show compendium descriptions in the search picker and cache them', async ({ page }) => {
+  test('Should show compendium descriptions in the search picker and cache them', async ({ gmPage: page }) => {
 
-    await bootFoundry(page);
 
     // 5. Open Character Creator directly
     await openWizard(page); // first render can take >10 s (compendium indexes)

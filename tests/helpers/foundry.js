@@ -7,6 +7,12 @@ export async function makeNotificationsClickThrough(page) {
   await page.addStyleTag({ content: "#notifications, #notifications * { pointer-events: none !important; }" });
 }
 
+// Headless has no GPU: each software-rendered canvas frame blocks the main thread (~285 ms per
+// Playwright round-trip measured). Tests only need canvas DATA (placeables, targets), not pixels.
+export async function stopCanvasTicker(page) {
+  await page.evaluate(() => canvas?.app?.ticker?.stop());
+}
+
 export async function bootFoundry(page) {
   await page.goto(BASE);
   if (page.url().includes('/setup')) {
@@ -23,6 +29,7 @@ export async function bootFoundry(page) {
   await page.waitForNavigation({ timeout: 20000 });
   await page.waitForSelector('#ui-middle', { timeout: 30000 });
   await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
+  await stopCanvasTicker(page);
   await makeNotificationsClickThrough(page);
   await page.waitForTimeout(2000); // module/midi hooks attach
 }

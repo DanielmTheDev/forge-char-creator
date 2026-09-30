@@ -1,9 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
 
-test('Icon picker: name-based suggestions, search, keyboard pick, cached reopen, Esc cancels', async ({ page }) => {
+test('Icon picker: name-based suggestions, search, keyboard pick, cached reopen, Esc cancels', async ({ gmPage: page }) => {
   test.setTimeout(180000);
-  await bootFoundry(page);
 
   await page.evaluate(async () => {
     const { EffectCreatorApp } = await import("./modules/forge-char-creator/scripts/effect-creator.js");

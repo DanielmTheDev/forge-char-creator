@@ -1,12 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
 
 test.describe('Aura Ring Configuration Test Suite', () => {
   test.setTimeout(120000);
 
-  test('Should open char creator, enable aura ring, configure options, and apply to token flags', async ({ page }) => {
+  test('Should open char creator, enable aura ring, configure options, and apply to token flags', async ({ gmPage: page }) => {
     
-    await bootFoundry(page);
 
     // 5. Open Forge Hub and Character Creator
     console.log('Opening Forge Hub...');

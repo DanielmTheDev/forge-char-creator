@@ -1,9 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry, pipeConsole } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
+import { pipeConsole } from './helpers/foundry.js';
 
-test('Temp HP feature built by the wizard grants temp HP to a target via a real midi workflow', async ({ page }) => {
+test('Temp HP feature built by the wizard grants temp HP to a target via a real midi workflow', async ({ gmPage: page }) => {
   test.setTimeout(180000);
-  await bootFoundry(page);
 
   pipeConsole(page, /SMOKE|Error/);
 

@@ -1,12 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry, openWizard } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
+import { openWizard } from './helpers/foundry.js';
 
 test.describe('Item Search Keyboard Navigation', () => {
   test.setTimeout(120000);
 
-  test('Should navigate search results with arrow keys and select with Enter', async ({ page }) => {
+  test('Should navigate search results with arrow keys and select with Enter', async ({ gmPage: page }) => {
 
-    await bootFoundry(page);
 
     // 5. Open Character Creator directly
     await openWizard(page); // first render can take >10 s (compendium indexes)
