@@ -46,7 +46,6 @@ class ForgeTestingSuite {
     await runTest("CharCreatorApp: Maps AC, HP, Size, Spellcasting to Actor", this.#testCharCreatorMapping);
     await runTest("CharCreatorApp: Scales Attributes dynamically via Archetype Math", this.#testCharCreatorArchetypes);
     await runTest("CharCreatorApp: Create New Feature automatically adds to selected items", this.#testCharCreatorFeatureCreation);
-    await runTest("Midi-QOL Integration: Omega Combat Simulator (E2E Feature -> Combat -> Advantage -> Overtime)", this.#testCombatEngineIntegration);
 
     console.log(`%c🧪 Test Run Complete! ${passed} Passed, ${failed} Failed.`, `color: ${failed > 0 ? 'red' : 'green'}; font-size: 1.2em; font-weight: bold;`);
     console.groupEnd();
@@ -1243,7 +1242,8 @@ class ForgeTestingSuite {
     });
   }
 
-  static async #testCombatEngineIntegration() {
+  // Full midi combat E2E; run on its own by tests/omega-combat.spec.js (not part of runAll).
+  static async testCombatEngineIntegration() {
     return new Promise(async (resolve, reject) => {
       let attacker, defender, attackerToken, defenderToken, combat, compendiumItem;
       const scene = canvas.scene;
@@ -1262,7 +1262,9 @@ class ForgeTestingSuite {
         });
         defender = await Actor.create({
           name: "Test Defender E2E", type: "npc",
-          system: { attributes: { hp: { value: 100, max: 100 } }, traits: { size: "med" } }
+          system: { attributes: { hp: { value: 100, max: 100 } }, traits: { size: "med" } },
+          // Headless: an unforced GM-side NPC save opens a roll dialog and the workflow stalls.
+          flags: { "midi-qol": { fail: { ability: { save: { all: 1 } } } } }
         });
 
         // 2. Generate the Restraining Strike feature via complete native UI actuation
@@ -1318,7 +1320,8 @@ class ForgeTestingSuite {
 
         // 4. Instantiate Foundry Combat Sequence
         ui.notifications.info("Omega Test: Initializing Combat Encounter...");
-        combat = await Combat.create({ scene: scene.id });
+        combat = await Combat.create({ scene: scene.id, active: true });
+        await combat.activate(); // midi only ticks OverTime for the active combat
         await combat.createEmbeddedDocuments("Combatant", [
           { tokenId: attackerToken.id, actorId: attacker.id, initiative: 20 },
           { tokenId: defenderToken.id, actorId: defender.id, initiative: 10 }
@@ -1326,48 +1329,51 @@ class ForgeTestingSuite {
         await combat.startCombat();
 
         // 5. Force Midi-QOL Execution
-        game.user.updateTokenTargets([defenderToken.id]);
+        canvas.tokens.setTargets([defenderToken.id]); // v13: User#updateTokenTargets is gone
         ui.notifications.info("Omega Test: Mechanically forcing Feature Execution...");
-        const workflow = await MidiQOL.completeItemUse(embeddedFeature, 
-          { showFullCard: false, createWorkflow: true }, 
-          { workflowOptions: { autoRollDamage: 'always', autoFastDamage: true, autoRollSave: 'always', autoFastSave: true, targetConfirmation: 'none' }}
-        );
+        // midi 13: activity-level use with explicit targets (the item-level/workflowOptions API is gone).
+        const midiOptions = { fastForward: true, fastForwardAttack: true, fastForwardDamage: true, autoRollDamage: 'always',
+          targetUuids: [defenderToken.uuid], ignoreUserTargets: true };
+        await MidiQOL.completeActivityUse(embeddedFeature.system.activities.contents[0].uuid, { midiOptions });
         
         await ForgeTestingSuite.#delay(2500); // 2.5s for Midi Animations and Database resolutions
         
-        // 6. Assert Effect Applications
-        const hasRestrained = defender.effects.some(e => e.statuses.has("restrained"));
+        // 6. Assert Effect Applications — on the token's actor: NPC tokens are unlinked, midi applies to the synthetic actor.
+        const defActor = defenderToken.actor;
+        const hasRestrained = defActor.effects.some(e => e.statuses.has("restrained"));
         if (!hasRestrained) throw new Error("Defender failed to inherit the Restrained status hook from the attack payload!");
         
-        const hasOvertime = defender.effects.some(e => e.changes.some(c => c.key === "flags.midi-qol.OverTime"));
+        const hasOvertime = defActor.effects.some(e => e.changes.some(c => c.key === "flags.midi-qol.OverTime"));
         if (!hasOvertime) throw new Error("Defender failed to inherit the OverTime listener from the attack payload!");
 
         // 7. Assert OverTime Execution
-        const initialHP = defender.system.attributes.hp.value;
+        const initialHP = defActor.system.attributes.hp.value;
         ui.notifications.info("Omega Test: Advancing Combat turn for Overtime processing...");
-        await combat.nextTurn();
-        await ForgeTestingSuite.#delay(2500); // 2.5s for Midi Overtime macro to fire, roll, and apply
+        // Defender acts second and OverTime defaults to turn=end: its turn must start AND end (≤ 2 advances).
+        for (let t = 0; t < 2 && defActor.system.attributes.hp.value >= initialHP; t++) {
+          await combat.nextTurn();
+          // Midi's OverTime workflow can take ~7 s headless to roll + apply: poll up to 12 s.
+          for (let i = 0; i < 24 && defActor.system.attributes.hp.value >= initialHP; i++) await ForgeTestingSuite.#delay(500);
+        }
         
-        const newHP = defender.system.attributes.hp.value;
+        const newHP = defActor.system.attributes.hp.value;
         if (newHP >= initialHP) throw new Error(`OverTime damage hook failed to execute. HP remained ${newHP} on nextTurn()`);
 
         // 8. Assert Advantage Mechanics via Core Item
+        const swordActId = foundry.utils.randomID();
         const [sword] = await attacker.createEmbeddedDocuments("Item", [{
           name: "Test Sword", type: "weapon",
           system: {
             actionType: "mwak", equipped: true,
             damage: { parts: [[{ custom: { enabled: true, formula: "1d8" }, types: ["slashing"] }]] }, // V3 schema compatible
-            activities: {
-              act1: { type: "attack", attack: { ability: "str", flat: true } }
+            activities: { // activity ids must be 16 chars or dnd5e drops them
+              [swordActId]: { _id: swordActId, type: "attack", attack: { ability: "str", flat: true } }
             }
           }
         }]);
         
         ui.notifications.info("Omega Test: Actuating secondary attack to assert Dice Advantage interpolation...");
-        const swordWorkflow = await MidiQOL.completeItemUse(sword, 
-          { showFullCard: false, createWorkflow: true }, 
-          { workflowOptions: { autoRollDamage: 'always', autoFastDamage: true, targetConfirmation: 'none' }}
-        );
+        const swordWorkflow = await MidiQOL.completeActivityUse(sword.system.activities.get(swordActId).uuid, { midiOptions });
         
         await ForgeTestingSuite.#delay(1500);
         
@@ -1377,14 +1383,13 @@ class ForgeTestingSuite {
         console.groupEnd();
         
         // CLEANUP
-        Hooks.off("createActor", captureHook); // Purge any stray hooks
         await attacker.delete();
         await defender.delete();
         await attackerToken.delete();
         await defenderToken.delete();
         if (combat) await combat.delete();
         if (compendiumItem) await compendiumItem.delete();
-        game.user.updateTokenTargets([]);
+        canvas.tokens.setTargets([]);
         
         // Extra cleanup for hung artifacts
         game.actors.filter(a => a.name.includes("E2E")).forEach(a => a.delete());
@@ -1401,7 +1406,7 @@ class ForgeTestingSuite {
         if (defenderToken) await defenderToken.delete().catch(console.error);
         if (combat) await combat.delete().catch(console.error);
         if (compendiumItem) await compendiumItem.delete().catch(console.error);
-        game.user.updateTokenTargets([]);
+        canvas.tokens.setTargets([]);
         reject(e);
       }
     });
