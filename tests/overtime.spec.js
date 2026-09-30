@@ -1,12 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
 
 test.describe('Overtime Effect Wrapped in Feature Test', () => {
   test.setTimeout(180000);
 
-  test('Should create overtime effect wrapped in feature, apply to target in combat, and verify overtime triggers on turn advance @combat', async ({ page }) => {
+  test('Should create overtime effect wrapped in feature, apply to target in combat, and verify overtime triggers on turn advance @combat', async ({ gmPage: page }) => {
 
-    await bootFoundry(page);
 
     // Forward console messages
     page.on('console', msg => {

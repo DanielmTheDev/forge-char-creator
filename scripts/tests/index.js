@@ -1243,7 +1243,8 @@ class ForgeTestingSuite {
   }
 
   // Full midi combat E2E; run on its own by tests/omega-combat.spec.js (not part of runAll).
-  static async testCombatEngineIntegration() {
+  // skipAdvantage: stop after the OverTime tick (the advantage leg isn't automated in every stack).
+  static async testCombatEngineIntegration({ skipAdvantage = false } = {}) {
     return new Promise(async (resolve, reject) => {
       let attacker, defender, attackerToken, defenderToken, combat, compendiumItem;
       const scene = canvas.scene;
@@ -1359,25 +1360,27 @@ class ForgeTestingSuite {
         const newHP = defActor.system.attributes.hp.value;
         if (newHP >= initialHP) throw new Error(`OverTime damage hook failed to execute. HP remained ${newHP} on nextTurn()`);
 
-        // 8. Assert Advantage Mechanics via Core Item
-        const swordActId = foundry.utils.randomID();
-        const [sword] = await attacker.createEmbeddedDocuments("Item", [{
-          name: "Test Sword", type: "weapon",
-          system: {
-            actionType: "mwak", equipped: true,
-            damage: { parts: [[{ custom: { enabled: true, formula: "1d8" }, types: ["slashing"] }]] }, // V3 schema compatible
-            activities: { // activity ids must be 16 chars or dnd5e drops them
-              [swordActId]: { _id: swordActId, type: "attack", attack: { ability: "str", flat: true } }
+        if (!skipAdvantage) {
+          // 8. Assert Advantage Mechanics via Core Item
+          const swordActId = foundry.utils.randomID();
+          const [sword] = await attacker.createEmbeddedDocuments("Item", [{
+            name: "Test Sword", type: "weapon",
+            system: {
+              actionType: "mwak", equipped: true,
+              damage: { parts: [[{ custom: { enabled: true, formula: "1d8" }, types: ["slashing"] }]] }, // V3 schema compatible
+              activities: { // activity ids must be 16 chars or dnd5e drops them
+                [swordActId]: { _id: swordActId, type: "attack", attack: { ability: "str", flat: true } }
+              }
             }
-          }
-        }]);
+          }]);
         
-        ui.notifications.info("Omega Test: Actuating secondary attack to assert Dice Advantage interpolation...");
-        const swordWorkflow = await MidiQOL.completeActivityUse(sword.system.activities.get(swordActId).uuid, { midiOptions });
+          ui.notifications.info("Omega Test: Actuating secondary attack to assert Dice Advantage interpolation...");
+          const swordWorkflow = await MidiQOL.completeActivityUse(sword.system.activities.get(swordActId).uuid, { midiOptions });
         
-        await ForgeTestingSuite.#delay(1500);
+          await ForgeTestingSuite.#delay(1500);
         
-        if (!swordWorkflow.advantage) throw new Error("Attacker did not gain Advantage against the Restrained target! Internal Advantage map bypassed.");
+          if (!swordWorkflow.advantage) throw new Error("Attacker did not gain Advantage against the Restrained target! Internal Advantage map bypassed.");
+        }
 
         ui.notifications.info("Omega Test: 100% Success! Destroying test artifacts...");
         console.groupEnd();

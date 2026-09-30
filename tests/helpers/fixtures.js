@@ -1,5 +1,5 @@
 import { test as base, expect } from '@playwright/test';
-import { bootFoundry, closeForgeApps } from './foundry.js';
+import { applyTestPageState, bootFoundry, closeForgeApps } from './foundry.js';
 import { TEST_NAME_RE } from './sweep.js';
 
 const VIEWPORT = { width: 1440, height: 900 };
@@ -16,11 +16,13 @@ export const test = base.extend({
 
   // Per test: hand out the shared page; re-login if a previous test killed or reloaded it; clean up after.
   gmPage: async ({ gmPageHolder }, use) => {
-    const alive = !gmPageHolder.page.isClosed()
-      && await gmPageHolder.page.evaluate(() => globalThis.game?.ready === true).catch(() => false);
-    if (!alive) {
+    const state = gmPageHolder.page.isClosed() ? null : await gmPageHolder.page.evaluate(() =>
+      ({ ready: globalThis.game?.ready === true, prepared: window.__forgeTestPage === true })).catch(() => null);
+    if (!state?.ready) {
       if (gmPageHolder.page.isClosed()) gmPageHolder.page = await gmPageHolder.page.context().newPage();
       await bootFoundry(gmPageHolder.page);
+    } else if (!state.prepared) {
+      await applyTestPageState(gmPageHolder.page); // a previous test reloaded the page
     }
     const page = gmPageHolder.page;
     await use(page);

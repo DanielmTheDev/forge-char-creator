@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
 
 // E2E for forge-content runtime sync against the LOCAL dist export (no GitHub):
 // manifestUrl override points at modules/forge-content/dist/index.json, which
@@ -7,9 +6,8 @@ import { bootFoundry } from './helpers/foundry.js';
 test.describe('forge-content runtime sync', () => {
   test.setTimeout(240000);
 
-  test('syncs dist docs into module packs, idempotent on second run', async ({ page }) => {
+  test('syncs dist docs into module packs, idempotent on second run', async ({ gmPage: page }) => {
 
-    await bootFoundry(page);
 
     const first = await page.evaluate(async () => {
       // join + drain any auto-sync still running from world-ready before

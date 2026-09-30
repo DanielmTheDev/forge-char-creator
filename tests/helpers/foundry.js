@@ -29,9 +29,15 @@ export async function bootFoundry(page) {
   await page.waitForNavigation({ timeout: 20000 });
   await page.waitForSelector('#ui-middle', { timeout: 30000 });
   await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 60000 });
+  await applyTestPageState(page);
+  await page.waitForTimeout(2000); // module/midi hooks attach
+}
+
+// Page-lifetime state every test relies on; lost on reload, so the gmPage fixture re-applies it.
+export async function applyTestPageState(page) {
   await stopCanvasTicker(page);
   await makeNotificationsClickThrough(page);
-  await page.waitForTimeout(2000); // module/midi hooks attach
+  await page.evaluate(() => { window.__forgeTestPage = true; });
 }
 
 export async function closeForgeApps(page) {

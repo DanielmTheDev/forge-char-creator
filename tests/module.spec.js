@@ -1,5 +1,4 @@
-import { test, expect } from '@playwright/test';
-import { bootFoundry } from './helpers/foundry.js';
+import { test, expect } from './helpers/fixtures.js';
 
 test.describe('Forge Character Creator Test Suite', () => {
   // Give Foundry time to boot, load canvas, and run long combat sequences.
@@ -7,9 +6,8 @@ test.describe('Forge Character Creator Test Suite', () => {
   // one of which runs a full midi combat, so this needs a lot of headroom.
   test.setTimeout(300000);
 
-  test('Execute Native Foundry Suite', async ({ page }) => {
+  test('Execute Native Foundry Suite', async ({ gmPage: page }) => {
     
-    await bootFoundry(page);
 
     // Forward browser console to terminal for visibility
     page.on('console', msg => {
