@@ -1,6 +1,7 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 import { EffectCreatorApp } from "./effect-creator.js";
 import { attachStepper } from "./ui/stepper.js";
+import { CR_TABLE, DIFFICULTY_LABELS, crLabel, difficultyOf, suggestCR, statsForCR, estimateCR, attackFloor, partyBudget, crRow } from "./encounter-math.js";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Preset effect templates
@@ -117,7 +118,47 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Provide a simple array generator for Handlebars to build the 1-20 level dropdown
     context.range = (start, end) => Array.from({length: (end - start + 1)}, (v, k) => k + start);
     context.folders = CharCreatorApp.#folderOptions();
+    context.party = CharCreatorApp.#partyDefaults();
+    context.difficulties = DIFFICULTY_LABELS;
+    context.crOptions = CR_TABLE.map(r => ({ value: r.cr, label: crLabel(r.cr) }));
     return context;
+  }
+
+  /** Party prefill: players' assigned characters (else player-owned ones), count + highest level. Fallback 4 × level 1. */
+  static #partyDefaults() {
+    const assigned = new Set(game.users.filter(u => !u.isGM && u.character).map(u => u.character));
+    // Owned fallback still lists wild-shape/polymorph copies; assigned characters don't.
+    const pcs = assigned.size ? [...assigned] : game.actors.filter(a => a.type === "character" && a.hasPlayerOwner);
+    if (!pcs.length) return { size: 4, level: 1 };
+    const level = Math.max(...pcs.map(a => Number(a.system.details?.level) || 1));
+    return { size: pcs.length, level: Math.min(20, Math.max(1, level)) };
+  }
+
+  /** Ability spread + AC offset per archetype at a level. AC offset stays within ±1 so it never moves the CR. */
+  static #archetype(arch, lvl) {
+    const a = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
+    let spell = "", acOffset = 0;
+    if (arch === "warrior") {
+      acOffset = 1;
+      a.str = Math.min(22, 15 + Math.floor(lvl / 3));
+      a.dex = Math.min(14, 10 + Math.floor(lvl / 5));
+      a.con = Math.min(20, 14 + Math.floor(lvl / 4));
+      a.wis = 12;
+    } else if (arch === "rogue") {
+      a.dex = Math.min(22, 16 + Math.floor(lvl / 3));
+      a.con = Math.min(16, 12 + Math.floor(lvl / 4));
+      a.int = 12; a.cha = 12; a.str = 8;
+    } else if (arch.startsWith("mage_") || arch === "cleric_wis") {
+      acOffset = arch === "cleric_wis" ? 0 : -1;
+      a.dex = Math.min(16, 12 + Math.floor(lvl / 4));
+      a.con = Math.min(18, 12 + Math.floor(lvl / 4));
+      a.str = 8;
+      const main = Math.min(24, 16 + Math.floor(lvl / 3));
+      if (arch === "mage_int") { a.int = main; a.wis = 14; spell = "int"; }
+      else if (arch === "cleric_wis") { a.wis = main; a.cha = 12; spell = "wis"; }
+      else { a.cha = main; a.int = 12; a.wis = 12; spell = "cha"; }
+    }
+    return { abilities: a, spell, acOffset };
   }
 
   static #FOLDER_KEY = "forge-char-creator.lastActorFolder";
@@ -150,71 +191,51 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onRender(context, options) {
     super._onRender(context, options);
 
-    // ── Archetype Mathematics & Reactivity ──────────────────────────────────
-    const levelSelect = this.element.querySelector("#charLevel");
-    const archSelect = this.element.querySelector("#charArchetype");
-    if (levelSelect && archSelect) {
-      const applyArchetype = () => {
-        const arch = archSelect.value;
-        if (arch === "custom") return; // Do not overwrite user inputs if Custom is selected
-        
-        const lvl = parseInt(levelSelect.value) || 1;
-        
-        let ac=10, hp=10, str=10, dex=10, con=10, int=10, wis=10, cha=10, spell=""
-        
-        if (arch === "warrior") {
-          ac = 16 + Math.floor(lvl / 4);
-          hp = 10 + (lvl * Math.floor(6 + (lvl/5)));
-          str = Math.min(22, 15 + Math.floor(lvl / 3));
-          dex = Math.min(14, 10 + Math.floor(lvl / 5));
-          con = Math.min(20, 14 + Math.floor(lvl / 4));
-          wis = 12;
-        } else if (arch === "rogue") {
-          ac = 14 + Math.min(5, Math.floor(lvl / 4));
-          hp = 8 + (lvl * Math.floor(4.5 + (lvl/6)));
-          dex = Math.min(22, 16 + Math.floor(lvl / 3));
-          con = Math.min(16, 12 + Math.floor(lvl / 4));
-          int = 12; cha = 12; str = 8;
-        } else if (arch.startsWith("mage_") || arch === "cleric_wis") {
-          ac = 12 + Math.floor(lvl / 5);
-          hp = 6 + (lvl * Math.floor(3.5 + (lvl/6)));
-          dex = Math.min(16, 12 + Math.floor(lvl / 4));
-          con = Math.min(18, 12 + Math.floor(lvl / 4));
-          str = 8;
-          
-          if (arch === "mage_int") {
-            int = Math.min(24, 16 + Math.floor(lvl / 3));
-            wis = 14; cha = 10;
-            spell = "int";
-          } else if (arch === "cleric_wis") {
-            wis = Math.min(24, 16 + Math.floor(lvl / 3));
-            ac = 14 + Math.floor(lvl / 5); // clerics get slightly better AC naturally
-            hp = 8 + (lvl * Math.floor(4.5 + (lvl/6))); // slightly tankier
-            int = 10; cha = 12;
-            spell = "wis";
-          } else if (arch === "mage_cha") {
-            cha = Math.min(24, 16 + Math.floor(lvl / 3));
-            int = 12; wis = 12;
-            spell = "cha";
-          }
-          // Auto-fill spell level
-          const spellInput = this.element.querySelector("#spellLevel");
-          if (spellInput) spellInput.value = Math.max(1, Math.min(20, lvl));
-        }
-        
-        // Write the calculated values to the DOM inputs
-        const setVal = (id, val) => { const el = this.element.querySelector(`#${id}`); if (el) el.value = val; };
-        setVal("ac", ac); setVal("hp", hp);
-        setVal("ability-str", str); setVal("ability-dex", dex); setVal("ability-con", con);
-        setVal("ability-int", int); setVal("ability-wis", wis); setVal("ability-cha", cha);
-        setVal("spellcasting", spell);
-        
-        // Reset the dropdown back to custom so the user knows it's an unlocked state
-        archSelect.value = "custom";
-        ui.notifications.info(`Auto-filled stats for Level ${lvl} ${arch.replace("_", " ")}`);
+    // ── Challenge: difficulty ↔ CR ↔ stats, both ways ───────────────────────
+    // Pick difficulty/CR/archetype → fill stats. Edit stats → CR + difficulty re-estimated.
+    const q = (id) => this.element.querySelector(`#${id}`);
+    const ABIL = ["str", "dex", "con", "int", "wis", "cha"];
+    if (q("cr") && q("difficulty")) {
+      const party = () => ({ size: q("partySize").value, level: q("partyLevel").value, copies: q("monsterCopies").value });
+      const refresh = () => {
+        const cr = estimateCR({
+          hp: q("hp").value, ac: q("ac").value, spellcasting: q("spellcasting").value,
+          abilities: Object.fromEntries(ABIL.map(k => [k, q(`ability-${k}`).value]))
+        });
+        const p = party(), r = crRow(cr), b = partyBudget(p.size, p.level);
+        q("cr").value = String(cr);
+        q("difficulty").value = difficultyOf(cr, p);
+        const n = Math.max(1, parseInt(p.copies) || 1);
+        q("encounterHint").textContent =
+          `${(r.xp * n).toLocaleString()} XP${n > 1 ? ` (${n}×)` : ""} vs budget ${b.low.toLocaleString()} / ${b.moderate.toLocaleString()} / ${b.high.toLocaleString()}`
+          + ` · aim: +${r.atk} to hit, ${r.dmgMin}–${r.dmgMax} dmg/round, save DC ${r.dc}`;
       };
-
-      archSelect.addEventListener("change", applyArchetype);
+      const fill = (cr) => {
+        const arch = q("charArchetype").value;
+        const lvl = Math.min(20, Math.max(1, Math.round(Number(cr))));
+        const setVal = (id, val) => { const el = q(id); if (el) el.value = val; };
+        const { ac, hp } = statsForCR(cr);
+        let acOffset = 0;
+        if (arch !== "custom") {
+          const t = CharCreatorApp.#archetype(arch, lvl);
+          acOffset = t.acOffset;
+          for (const k of ABIL) setVal(`ability-${k}`, t.abilities[k]);
+          setVal("spellcasting", t.spell);
+          if (t.spell) setVal("spellLevel", lvl);
+        }
+        // Main attack stat must reach the CR's to-hit, or the estimate (and the dropdowns) slide back down.
+        const spell = q("spellcasting").value;
+        const key = spell || (Number(q("ability-dex").value) > Number(q("ability-str").value) ? "dex" : "str");
+        setVal(`ability-${key}`, attackFloor(cr, q(`ability-${key}`).value));
+        setVal("ac", ac + acOffset); setVal("hp", hp);
+        refresh();
+      };
+      q("difficulty").addEventListener("change", () => fill(suggestCR(q("difficulty").value, party())));
+      q("cr").addEventListener("change", () => fill(Number(q("cr").value)));
+      q("charArchetype").addEventListener("change", () => fill(Number(q("cr").value)));
+      for (const id of ["partySize", "partyLevel", "monsterCopies", "hp", "ac", "spellcasting", ...ABIL.map(k => `ability-${k}`)])
+        q(id)?.addEventListener(id === "partyLevel" || id === "spellcasting" ? "change" : "input", refresh);
+      fill(suggestCR("moderate", party()));
     }
 
     // Portrait preview
@@ -565,8 +586,14 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           hp: { value: data.hp ?? 10, max: data.hp ?? 10 },
           ac: { flat: data.ac ?? 10, calc: "natural" },
           spellcasting: data.spellcasting || "",
-          spell: { level: parseInt(data.spellLevel) || 0 }
+          spell: { level: parseInt(data.spellLevel) || 0 },
+          movement: {
+            walk: parseInt(data["movement.walk"]) || 0, fly: parseInt(data["movement.fly"]) || 0,
+            swim: parseInt(data["movement.swim"]) || 0, climb: parseInt(data["movement.climb"]) || 0,
+            burrow: parseInt(data["movement.burrow"]) || 0, hover: data["movement.hover"] === "on", units: "ft"
+          }
         },
+        details: { cr: Number(data.cr) || 0 },
         abilities: {
           str: { value: data.abilities?.str ?? 10 }, dex: { value: data.abilities?.dex ?? 10 },
           con: { value: data.abilities?.con ?? 10 }, int: { value: data.abilities?.int ?? 10 },

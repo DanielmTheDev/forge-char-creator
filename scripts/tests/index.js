@@ -1094,12 +1094,12 @@ class ForgeTestingSuite {
         await ForgeTestingSuite.#delay(150);
         const el = app.element;
         
-        ForgeTestingSuite.#simulateChange(el.querySelector("#charLevel"), "10");
+        ForgeTestingSuite.#simulateChange(el.querySelector("#cr"), "10");
         ForgeTestingSuite.#simulateChange(el.querySelector("#charArchetype"), "warrior");
         
-        if (el.querySelector("#ac").value !== "18") throw new Error("AC scaling failed for Warrior Lvl 10");
-        if (el.querySelector("#hp").value !== "90") throw new Error("HP scaling failed for Warrior Lvl 10");
-        if (el.querySelector("#ability-str").value !== "18") throw new Error("STR scaling failed for Warrior Lvl 10");
+        if (el.querySelector("#ac").value !== "18") throw new Error("AC scaling failed for Warrior CR 10");
+        if (el.querySelector("#hp").value !== "213") throw new Error("HP scaling failed for Warrior CR 10");
+        if (el.querySelector("#ability-str").value !== "18") throw new Error("STR scaling failed for Warrior CR 10");
         
         ForgeTestingSuite.#simulateChange(el.querySelector("[name='charName']"), "Test Warrior E2E");
 
@@ -1108,7 +1108,7 @@ class ForgeTestingSuite {
           Hooks.off("createActor", captureHook);
           clearTimeout(timeoutId);
           try {
-            if (actor.system.attributes.hp.max !== 90) throw new Error(`Actor DB HP failed, got ${actor.system.attributes.hp.max}`);
+            if (actor.system.attributes.hp.max !== 213) throw new Error(`Actor DB HP failed, got ${actor.system.attributes.hp.max}`);
             if (actor.system.abilities.str.value !== 18) throw new Error(`Actor DB STR failed, got ${actor.system.abilities.str.value}`);
             
             app.close();

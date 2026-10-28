@@ -48,24 +48,41 @@
   </section>
 
   <section class="fc-step" data-step="stats" data-title="Stats">
-      <fieldset>
-        <legend data-tooltip="Pick a level and archetype to fill AC, HP, abilities and spellcasting below. Edit freely afterwards.">Template</legend>
+      <fieldset class="encounter-fieldset">
+        <legend data-tooltip="Two-way: pick a difficulty or CR to fill AC, HP and abilities, or edit stats below and both update. 2024 DMG encounter budget.">Challenge</legend>
         <div class="fc-pairs">
-          <label for="charLevel">Level / CR</label>
-          <select id="charLevel" name="charLevel" data-tooltip="Level (PCs) or challenge rating (monsters). Used by the archetype template.">
+          <label for="partySize">Party Size</label>
+          <input type="number" id="partySize" data-tooltip="Number of player characters. Prefilled from player-owned characters." value="{{party.size}}" min="1" step="1">
+          <label for="partyLevel">Party Level</label>
+          <select id="partyLevel" data-tooltip="Character level. Prefilled with the highest player character level.">
             {{#each (range 1 20) as |lvl|}}
-            <option value="{{lvl}}">{{lvl}}</option>
+            <option value="{{lvl}}" {{#if (eq lvl ../party.level)}}selected{{/if}}>{{lvl}}</option>
+            {{/each}}
+          </select>
+          <label for="monsterCopies">Copies</label>
+          <input type="number" id="monsterCopies" data-tooltip="How many of this creature the party fights at once (1 = boss, 4 = pack)." value="1" min="1" step="1">
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty" data-tooltip="How dangerous the encounter is for the party. Pick one to fill stats, or read it off as you edit.">
+            {{#each difficulties as |label key|}}
+            <option value="{{key}}">{{label}}</option>
+            {{/each}}
+          </select>
+          <label for="cr">Challenge Rating</label>
+          <select id="cr" name="cr" data-tooltip="Saved on the actor (sets proficiency and XP). Pick one to fill stats, or read it off as you edit.">
+            {{#each crOptions as |o|}}
+            <option value="{{o.value}}">{{o.label}}</option>
             {{/each}}
           </select>
           <label for="charArchetype">Archetype</label>
-          <select id="charArchetype" name="charArchetype" data-tooltip="Fills AC, HP and ability scores with sensible values for the level. Edit freely afterwards.">
-            <option value="custom">-- Custom / blank --</option>
+          <select id="charArchetype" name="charArchetype" data-tooltip="Shapes ability scores and spellcasting for the CR. Stays selected: changing difficulty or CR refills in this style.">
+            <option value="custom">-- Custom / keep abilities --</option>
             <option value="warrior">Heavy Warrior / Tank</option>
             <option value="rogue">Agile Rogue / Skirmisher</option>
             <option value="mage_int">Intelligence Mage</option>
             <option value="cleric_wis">Wisdom Cleric / Druid</option>
             <option value="mage_cha">Charisma Caster (Bard/Sorcerer)</option>
           </select>
+          <p id="encounterHint" class="notes fc-full"></p>
         </div>
       </fieldset>
 
@@ -76,6 +93,24 @@
           <input type="number" id="ac" name="ac" data-tooltip="Flat armor class." value="10" step="1" required>
           <label for="hp">Health (HP)</label>
           <input type="number" id="hp" name="hp" data-tooltip="Maximum (and starting) hit points." value="10" step="1" required>
+        </div>
+      </fieldset>
+
+      <fieldset class="movement-fieldset">
+        <legend>Movement (ft)</legend>
+        <div class="fc-pairs">
+          <label for="move-walk">Walk</label>
+          <input type="number" id="move-walk" name="movement.walk" value="30" min="0" step="5">
+          <label for="move-fly">Fly</label>
+          <input type="number" id="move-fly" name="movement.fly" value="0" min="0" step="5">
+          <label for="move-swim">Swim</label>
+          <input type="number" id="move-swim" name="movement.swim" value="0" min="0" step="5">
+          <label for="move-climb">Climb</label>
+          <input type="number" id="move-climb" name="movement.climb" value="0" min="0" step="5">
+          <label for="move-burrow">Burrow</label>
+          <input type="number" id="move-burrow" name="movement.burrow" value="0" min="0" step="5">
+          <label for="move-hover">Hover</label>
+          <div class="fc-ctl"><input type="checkbox" id="move-hover" name="movement.hover" data-tooltip="Can fly without falling when speed drops to 0."></div>
         </div>
       </fieldset>
 
