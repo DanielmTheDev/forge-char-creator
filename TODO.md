@@ -254,6 +254,13 @@ Front-end onto the EXISTING actor pipeline: image → gate-valid `forge-npcs/<sl
 - Convention NOW: every ability uses a fitting **Foundry core icon** (`icons/<cat>/...`, 6323 available under FoundryVTT-Linux-13.351/resources/app/public/icons — weapons/magic/equipment/creatures/consumables/skills/tools/...). Pick by theme; verify path exists before authoring.
 - [ ] FUTURE: hook up an image-generation API so generated icons can be authored onto abilities. Details TBD (which API, cost, where files live in module, how referenced in module.json img). Discuss before building.
 
+## Wizard: legendary actions + resistances — DONE ✅ (2026-11-03)
+- Actor builder Stats step: `legact`/`legres` counts → `system.resources.legact/legres.max`. dnd5e refills legact at turn end + auto-spends `activation.value` for `activation.type:"legendary"`.
+- Feature builder: cost dropdown "Legendary Action" + Cost 1-3; "+ Legendary" checkbox = second activity set (normal cost OR legendary, shared uses, on-hit save relinked).
+- legres > 0 → auto-adds "Legendary Resistance" feat (`buildLegendaryResistanceItem`): midi `optional.LegRes.save.fail.all=success`, count `@resources.legres.value`. Needed because midi merged-card saves (`autoCheckSaves: allNoRoll`) never post a dnd5e save card → native Resist button never shows.
+- Tests: unit (feature-payload.test.mjs) + tests/legendary.spec.js (UI + 2× @combat: legact spend/refusal, LR prompt → success + legres spent).
+- [ ] OPEN: Overtime ignores Rounds (`duration:{}`), `otWhose` only cosmetic, "fulldamage" described as "half" — see chat 2026-11-03.
+
 ## Bugs found (fix later, tracked)
 - [x] **Pack test residue** — FIXED. overtime.spec cleanup now deletes E2E/Test docs from the `forge-char-creator.forge-features` compendium index (was searching `game.items`, which never holds pack docs). forge-features pack emptied (+.gitkeep). (found 2026-06-01, fixed 2026-06-05)
 - [x] **`[object Object]` description** — FIXED. Root cause `scripts/effect-creator.js:432`: AE `description` was written as `{value}` but Foundry V13 `ActiveEffect.description` is a plain string → object-coerced on save. Now a plain string (+ line 463 reads it directly). `packs:build` guard now throws on any literal `[object Object]`. (found 2026-06-01, fixed 2026-06-05)

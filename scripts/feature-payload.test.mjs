@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_STATE, buildEffect, buildItem, KINDS, effectHasContent, summarize } from "./feature-payload.js";
+import { DEFAULT_STATE, buildEffect, buildItem, KINDS, effectHasContent, summarize, buildLegendaryResistanceItem } from "./feature-payload.js";
 
 let n = 0;
 const cfg = { randomID: () => `id${String(++n).padStart(14, "0")}`, areaTargetTypes: { radius: {}, cone: {} } };
@@ -177,4 +177,67 @@ test("review: OverTime label survives quotes and commas in the name", () => {
 test("status effect is not a token overlay", () => {
   const ae = buildEffect(st({ name: "Scare", statuses: ["frightened"] }));
   assert.equal(ae.flags.core?.overlay, undefined);
+});
+
+test("legendary action: activation type + cost on every activity", () => {
+  const it = buildItem(st({ kind: "attack", wrapActivation: "legendary", legendaryCost: "2", damageRows: [{ formula: "2d6", type: "slashing" }] }), cfg);
+  for (const a of Object.values(it.system.activities)) assert.deepEqual(a.activation, { type: "legendary", value: 2, override: true });
+});
+
+test("legendary cost clamps to 1-3; non-legendary keeps value null", () => {
+  const leg = (c) => Object.values(buildItem(st({ kind: "save", wrapActivation: "legendary", legendaryCost: c }), cfg).system.activities)[0].activation.value;
+  assert.equal(leg("9"), 3);
+  assert.equal(leg(""), 1);
+  const plain = Object.values(buildItem(st({ kind: "save" }), cfg).system.activities)[0];
+  assert.equal(plain.activation.value, null);
+});
+
+test("legendary description states the cost once", () => {
+  assert.match(summarize(st({ kind: "save", wrapActivation: "legendary", legendaryCost: "2" })), /^Legendary Action \(costs 2\)\. /);
+  const buff = summarize(st({ kind: "buff", wrapActivation: "legendary", legendaryCost: "1", activationTarget: "wearer" }));
+  assert.equal(buff.match(/Legendary Action/g).length, 1);
+  assert.match(buff, /^Legendary Action \(costs 1\)\. /);
+});
+
+test("alsoLegendary: duplicates activities as a legendary set, on-hit save relinked", () => {
+  const it = buildItem(st({ kind: "attack", name: "Tail", wrapActivation: "action", alsoLegendary: true, legendaryCost: "2",
+    onHitSave: true, damageRows: [{ formula: "2d8", type: "bludgeoning" }], statuses: ["prone"] }), cfg);
+  const all = acts(it);
+  assert.equal(all.length, 4);
+  const [atk, sv, latk, lsv] = all;
+  assert.deepEqual([atk.activation.type, atk.activation.value], ["action", null]);
+  assert.deepEqual([latk.activation.type, latk.activation.value], ["legendary", 2]);
+  assert.equal(lsv.activation.type, "legendary");
+  assert.equal(atk.otherActivityId, sv._id);
+  assert.equal(latk.otherActivityId, lsv._id);
+  assert.notEqual(latk._id, atk._id);
+  assert.match(latk.name, /Legendary/);
+  assert.deepEqual(latk.attack, atk.attack);
+  assert.deepEqual(lsv.effects, sv.effects);
+  for (const a of all) assert.match(a._id, /^[A-Za-z0-9]{16}$/);
+});
+
+test("alsoLegendary ignored when the main cost is already legendary; described", () => {
+  const one = buildItem(st({ kind: "save", wrapActivation: "legendary", alsoLegendary: true }), cfg);
+  assert.equal(acts(one).length, 1);
+  const d = summarize(st({ kind: "save", wrapActivation: "action", alsoLegendary: true, legendaryCost: "3" }));
+  assert.match(d, /Also a Legendary Action \(costs 3\)\./);
+});
+
+test("alsoLegendary: recharge/uses consumption on both sets", () => {
+  const it = buildItem(st({ kind: "save", alsoLegendary: true, usesMode: "recharge", rechargeOn: "5" }), cfg);
+  for (const a of acts(it)) assert.equal(a.consumption?.targets?.[0]?.type, "itemUses");
+});
+
+test("legendary resistance item: midi optional save-fail → success, spends actor legres", () => {
+  const it = buildLegendaryResistanceItem(3);
+  assert.equal(it.name, "Legendary Resistance");
+  assert.equal(it.type, "feat");
+  assert.match(it.system.description.value, /3\/Day/);
+  const [ae] = it.effects;
+  assert.equal(ae.transfer, true);
+  const ch = Object.fromEntries(ae.changes.map(c => [c.key, c.value]));
+  assert.equal(ch["flags.midi-qol.optional.LegRes.save.fail.all"], "success");
+  assert.equal(ch["flags.midi-qol.optional.LegRes.count"], "@resources.legres.value");
+  assert.equal(ch["flags.midi-qol.optional.LegRes.label"], "Legendary Resistance");
 });

@@ -96,6 +96,16 @@
         </div>
       </fieldset>
 
+      <fieldset class="legendary-fieldset">
+        <legend data-tooltip="Leave at 0 for non-legendary creatures. dnd5e tracks both on the sheet.">Legendary</legend>
+        <div class="fc-pairs">
+          <label for="legact">Actions / round</label>
+          <input type="number" id="legact" name="legact" value="0" min="0" max="5" step="1" data-tooltip="Legendary actions per round. Refill at the end of the creature's turn. Features with the 'Legendary Action' cost spend them.">
+          <label for="legres">Resistances / day</label>
+          <input type="number" id="legres" name="legres" value="0" min="0" max="5" step="1" data-tooltip="Legendary resistances per day. Adds a Legendary Resistance feature: on a failed save, midi-qol asks whether to succeed instead and spends one.">
+        </div>
+      </fieldset>
+
       <fieldset class="movement-fieldset">
         <legend>Movement (ft)</legend>
         <div class="fc-pairs">

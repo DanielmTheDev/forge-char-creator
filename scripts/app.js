@@ -1,4 +1,5 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+import { buildLegendaryResistanceItem } from "./feature-payload.js";
 import { EffectCreatorApp } from "./effect-creator.js";
 import { attachStepper } from "./ui/stepper.js";
 import { CR_TABLE, DIFFICULTY_LABELS, crLabel, difficultyOf, suggestCR, statsForCR, estimateCR, attackFloor, partyBudget, crRow } from "./encounter-math.js";
@@ -572,6 +573,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const actorName = data.charName || "Unnamed Creature";
+    const legresMax = Math.min(5, Math.max(0, parseInt(data.legres) || 0));
     const actorData = {
       name: actorName, type: "npc", folder: folderId || null, img: portraitPath,
       prototypeToken: {
@@ -594,6 +596,10 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
           }
         },
         details: { cr: Number(data.cr) || 0 },
+        resources: {
+          legact: { max: Math.min(5, Math.max(0, parseInt(data.legact) || 0)), spent: 0 },
+          legres: { max: legresMax, spent: 0 }
+        },
         abilities: {
           str: { value: data.abilities?.str ?? 10 }, dex: { value: data.abilities?.dex ?? 10 },
           con: { value: data.abilities?.con ?? 10 }, int: { value: data.abilities?.int ?? 10 },
@@ -642,6 +648,8 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
         if (valid.length > 0) await npc.createEmbeddedDocuments("Item", valid);
       }
+      // midi-qol saves never reach dnd5e's native Resist button; this feature adds midi's prompt.
+      if (legresMax > 0) await npc.createEmbeddedDocuments("Item", [buildLegendaryResistanceItem(legresMax)]);
 
       ui.notifications.info(`Successfully created ${actorName}!`);
       if (app) app.close();

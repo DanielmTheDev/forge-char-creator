@@ -196,6 +196,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     showFlex("targetRow", ["attack", "save", "buff"].includes(k) && !(k === "buff" && s.activationTarget === "wearer"));
     showFlex("buffRow", k === "buff");
     showFlex("tempHpBox", k === "buff" && s.buffMode === "temphp");
+    showFlex("alsoLegendaryBox", s.wrapActivation !== "legendary");
+    showFlex("legendaryCostBox", s.wrapActivation === "legendary" || !!s.alsoLegendary);
     showFlex("usesMaxBox", s.usesMode === "perRest");
     showFlex("rechargeBox", s.usesMode === "recharge");
     showFlex("toHitFlatBox", s.toHitMode === "flat");

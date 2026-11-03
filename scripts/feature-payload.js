@@ -55,6 +55,7 @@ export const ACTIVATION_TYPES = [
   { id: "action",   label: "Action" },
   { id: "bonus",    label: "Bonus Action" },
   { id: "reaction", label: "Reaction" },
+  { id: "legendary", label: "Legendary Action" },
   { id: "",         label: "No Cost" }
 ];
 
@@ -101,6 +102,8 @@ export const DEFAULT_STATE = {
   stackable: "none",    // "none" | "count" | "multi"
   // Use
   wrapActivation: "action",  // activity activation.type ("" = no cost)
+  legendaryCost: "1",        // legendary actions spent per use (legendary or alsoLegendary)
+  alsoLegendary: false,      // add a second activity set usable as a legendary action
   usesMode: "atwill",        // atwill | perRest | recharge
   usesMax: "1",
   rechargeOn: "5",
@@ -251,9 +254,9 @@ function deliverySentence(s) {
     case "buff": {
       if (s.buffMode === "temphp") {
         const grant = `Grants ${s.tempHpFormula?.trim() || "5"} temporary hit points.`;
-        return cost?.id ? `${cost.label}: ${grant.charAt(0).toLowerCase()}${grant.slice(1)}` : grant;
+        return cost?.id && cost.id !== "legendary" ? `${cost.label}: ${grant.charAt(0).toLowerCase()}${grant.slice(1)}` : grant;
       }
-      return `${cost?.id ? `${cost.label}: a` : "A"}pplies to ${s.activationTarget === "wearer" ? "self" : "target(s)"}.`;
+      return `${cost?.id && cost.id !== "legendary" ? `${cost.label}: a` : "A"}pplies to ${s.activationTarget === "wearer" ? "self" : "target(s)"}.`;
     }
     case "passive": return "Passive (always active).";
     default:
@@ -322,8 +325,23 @@ function usesSentence(s) {
   return "";
 }
 
+// dnd5e auto-spends activation.value legendary actions per use (clamped 1-3).
+const legendaryCost = (s) => Math.min(3, Math.max(1, intOr(s.legendaryCost, 1)));
+const isLegendary = (s) => s.kind !== "effect" && s.wrapActivation === "legendary";
+
+// Normal cost + a duplicate legendary activity set (e.g. Tail: action OR legendary).
+const isDualLegendary = (s) => !!s.alsoLegendary && !["effect", "passive"].includes(s.kind) && s.wrapActivation !== "legendary";
+
+function legendarySentence(s) {
+  return isLegendary(s) ? `Legendary Action (costs ${legendaryCost(s)}).` : "";
+}
+
+function alsoLegendarySentence(s) {
+  return isDualLegendary(s) ? `Also a Legendary Action (costs ${legendaryCost(s)}).` : "";
+}
+
 export function summarize(s) {
-  return [deliverySentence(s), ...effectSentences(s), usesSentence(s)].filter(Boolean).join(" ") || "A custom effect.";
+  return [legendarySentence(s), deliverySentence(s), ...effectSentences(s), usesSentence(s), alsoLegendarySentence(s)].filter(Boolean).join(" ") || "A custom effect.";
 }
 
 // ── Effect ──────────────────────────────────────────────────────────────────
@@ -378,10 +396,19 @@ function saveDC(s) {
 // dnd5e 5.x keeps activation / target / damage / save on the ACTIVITY.
 // FeatData has no such fields, so item-level writes are silently dropped.
 function buildActivities(s, aeId, randomID, areaTargetTypes) {
+  const main = activitySet(s, aeId, randomID, areaTargetTypes,
+    { type: s.wrapActivation ?? "action", value: isLegendary(s) ? legendaryCost(s) : null }, "");
+  if (!isDualLegendary(s)) return main;
+  return [...main, ...activitySet(s, aeId, randomID, areaTargetTypes,
+    { type: "legendary", value: legendaryCost(s) }, " (Legendary)")];
+}
+
+// One complete activity set (primary + linked extras) for a given activation cost.
+function activitySet(s, aeId, randomID, areaTargetTypes, activation, suffix) {
   const link = aeId ? [{ _id: aeId }] : [];
   const base = (type, name) => ({
-    _id: randomID(16), type, name,
-    activation: { type: s.wrapActivation ?? "action", value: null, override: true },
+    _id: randomID(16), type, name: name + suffix,
+    activation: { ...activation, override: true },
     target: buildTarget(s, areaTargetTypes),
     effects: []
   });
@@ -455,4 +482,28 @@ export function buildItem(s, { randomID, areaTargetTypes = {} }) {
   const acts = buildActivities(s, withAE ? aeData._id : null, randomID, areaTargetTypes);
   item.system.activities = Object.fromEntries(acts.map(a => [a._id, a]));
   return item;
+}
+
+// ── Legendary Resistance ────────────────────────────────────────────────────
+// The counter lives on the actor (system.resources.legres); this feature only
+// wires midi-qol's optional prompt: on a failed save, offer "succeed instead"
+// and spend one legres. midi's own sample uses the same AE shape.
+export function buildLegendaryResistanceItem(perDay) {
+  const n = Math.max(1, parseInt(perDay) || 1);
+  const opt = (k, value) => ({ key: `flags.midi-qol.optional.LegRes.${k}`, mode: 5, value, priority: 20 });
+  return {
+    name: "Legendary Resistance",
+    type: "feat",
+    img: "icons/magic/defensive/shield-barrier-deflect-gold.webp",
+    system: {
+      type: { value: "monster" },
+      description: { value: `<p>Legendary Resistance (${n}/Day). If it fails a saving throw, it can choose to succeed instead. midi-qol prompts on each failed save; uses the actor's legendary resistance counter.</p>` }
+    },
+    effects: [{
+      name: "Legendary Resistance",
+      img: "icons/magic/defensive/shield-barrier-deflect-gold.webp",
+      transfer: true,
+      changes: [opt("label", "Legendary Resistance"), opt("save.fail.all", "success"), opt("count", "@resources.legres.value")]
+    }]
+  };
 }

@@ -44,6 +44,16 @@
               {{/each}}
             </select>
           </label>
+          <label id="alsoLegendaryBox" data-tooltip="Adds a second way to use it: the normal cost OR as a legendary action. Both share the same uses/recharge.">
+            <input type="checkbox" data-ef="alsoLegendary" {{#if s.alsoLegendary}}checked{{/if}}> + Legendary
+          </label>
+          <label id="legendaryCostBox" data-tooltip="Legendary actions spent per use. dnd5e deducts them automatically and refills them at the end of the creature's turn.">Cost
+            <select data-ef="legendaryCost">
+              <option value="1" {{#if (eq s.legendaryCost "1")}}selected{{/if}}>1</option>
+              <option value="2" {{#if (eq s.legendaryCost "2")}}selected{{/if}}>2</option>
+              <option value="3" {{#if (eq s.legendaryCost "3")}}selected{{/if}}>3</option>
+            </select>
+          </label>
           <label data-tooltip="At will = unlimited. X / long rest = limited uses. Recharge = roll a d6 each turn; regains its use on N–6.">Uses
             <select data-ef="usesMode">
               <option value="atwill" {{#if (eq s.usesMode "atwill")}}selected{{/if}}>At will</option>
