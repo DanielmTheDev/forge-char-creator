@@ -68,9 +68,58 @@ export const KINDS = [
   { id: "effect",  label: "Effect only",  hint: "A bare Active Effect saved on its own, to drag onto other items." }
 ];
 
+// What document the builder makes. Orthogonal to KINDS (what it does), but each
+// item type only allows the kinds that make sense for it — keeps the UI matrix small.
+export const ITEM_TYPES = [
+  { id: "feat",      label: "Feature",          hint: "A creature ability: statblock action, trait or reaction." },
+  { id: "weapon",    label: "Weapon",           hint: "A real weapon item (inventory). Attack with it; can be magic (+X), finesse, versatile…" },
+  { id: "equipment", label: "Armor / Wearable", hint: "Armor, shield, ring, cloak… Its effects are active only while equipped (and attuned, if required)." }
+];
+export const KINDS_BY_TYPE = {
+  feat: ["attack", "save", "buff", "passive", "effect"],
+  weapon: ["attack"],
+  equipment: ["passive", "buff"]
+};
+export const allowedKind = (itemType, kind) => {
+  const ok = KINDS_BY_TYPE[itemType] ?? KINDS_BY_TYPE.feat;
+  return ok.includes(kind) ? kind : ok[0];
+};
+
+// dnd5e CONFIG keys (labels inlined: this module stays Foundry-free for node tests).
+export const WEAPON_TYPES = [
+  { id: "simpleM", label: "Simple Melee" }, { id: "martialM", label: "Martial Melee" },
+  { id: "simpleR", label: "Simple Ranged" }, { id: "martialR", label: "Martial Ranged" },
+  { id: "natural", label: "Natural" }, { id: "improv", label: "Improvised" }
+];
+export const WEAPON_PROPERTIES = [
+  { id: "fin", label: "Finesse" }, { id: "lgt", label: "Light" }, { id: "hvy", label: "Heavy" },
+  { id: "two", label: "Two-Handed" }, { id: "ver", label: "Versatile" }, { id: "thr", label: "Thrown" },
+  { id: "rch", label: "Reach" }, { id: "amm", label: "Ammunition" }, { id: "lod", label: "Loading" },
+  { id: "sil", label: "Silvered" }, { id: "ada", label: "Adamantine" }
+];
+export const WEAPON_MASTERIES = ["", "cleave", "graze", "nick", "push", "sap", "slow", "topple", "vex"];
+export const ARMOR_TYPES = ["light", "medium", "heavy", "shield"];
+export const EQUIPMENT_TYPES = [
+  { id: "light", label: "Light Armor" }, { id: "medium", label: "Medium Armor" },
+  { id: "heavy", label: "Heavy Armor" }, { id: "shield", label: "Shield" },
+  { id: "clothing", label: "Clothing / Cloak" }, { id: "ring", label: "Ring" },
+  { id: "wondrous", label: "Wondrous Item" }, { id: "trinket", label: "Trinket" },
+  { id: "rod", label: "Rod" }, { id: "wand", label: "Wand" }
+];
+// Typical base AC + dex cap per armor type (PHB median): prefilled on type change.
+export const ARMOR_DEFAULTS = {
+  light: { ac: "12", dex: "" }, medium: { ac: "14", dex: "2" }, heavy: { ac: "16", dex: "0" }, shield: { ac: "2", dex: "" }
+};
+export const RARITIES = [
+  { id: "", label: "Mundane" }, { id: "common", label: "Common" }, { id: "uncommon", label: "Uncommon" },
+  { id: "rare", label: "Rare" }, { id: "veryRare", label: "Very Rare" }, { id: "legendary", label: "Legendary" },
+  { id: "artifact", label: "Artifact" }
+];
+
 // Default wizard state. Single source of truth for the initial state AND the
 // post-create reset; deep-cloned on use so the arrays are never shared.
 export const DEFAULT_STATE = {
+  itemType: "feat",          // feat | weapon | equipment (see ITEM_TYPES)
   kind: "effect",            // attack | save | buff | passive | effect
   name: "",
   img: "icons/svg/aura.svg",
@@ -127,7 +176,21 @@ export const DEFAULT_STATE = {
   saveOnSuccess: "half",     // half | none
   // Buff
   buffMode: "apply",         // apply | temphp
-  tempHpFormula: ""
+  tempHpFormula: "",
+  // Physical items (weapon / equipment)
+  magicBonus: "0",           // +X: weapon to-hit/damage (calculated mode) or armor AC
+  rarity: "",                // "" = mundane
+  attunement: "",            // "" | required | optional
+  weaponType: "martialM",
+  weaponProps: [],           // WEAPON_PROPERTIES ids
+  versatileDamage: "",       // two-handed dice for "ver", e.g. 1d10
+  attackRangeLong: "",       // long range (ranged / thrown)
+  mastery: "",
+  equipType: "light",
+  armorValue: "12",          // base AC (shield: bonus); magic bonus added by dnd5e
+  armorDex: "",              // max DEX bonus; "" = uncapped
+  strengthReq: "",
+  stealthDis: false
 };
 
 // ── Changes ─────────────────────────────────────────────────────────────────
@@ -199,6 +262,17 @@ export function buildChanges(s) {
 
 const intOr = (v, d) => { const n = parseInt(v); return Number.isFinite(n) ? n : d; };
 const isNumeric = v => String(v ?? "").trim() !== "" && !isNaN(String(v).trim());
+const magicBonus = s => Math.max(0, intOr(s.magicBonus, 0));
+const isArmor = s => s.itemType === "equipment" && ARMOR_TYPES.includes(s.equipType);
+// Weapon in "Calculated" mode: dnd5e derives to-hit + base damage from the weapon itself.
+const isWeaponCalc = s => s.itemType === "weapon" && s.toHitMode === "derived";
+// Simple/martial weapons fix melee vs ranged; natural/improvised use the Attack step's choice.
+const attackTypeOf = s => {
+  if (s.itemType !== "weapon") return s.attackType;
+  if (/M$/.test(s.weaponType)) return "melee";
+  if (/R$/.test(s.weaponType)) return "ranged";
+  return s.attackType;
+};
 // dnd5e 5.2.5 CONFIG.DND5E.areaTargetTypes keys.
 const AREA_WORDS = { circle: "circle", radius: "radius", sphere: "sphere", cone: "cone", cube: "cube",
                      cylinder: "cylinder", line: "line", square: "square", wall: "wall" };
@@ -234,13 +308,24 @@ function deliverySentence(s) {
     case "attack": {
       const bonus = String(s.toHitBonus ?? "").trim();
       const flat = intOr(s.toHitFlat, 0);
+      const wCalc = isWeaponCalc(s);
+      const magic = wCalc ? magicBonus(s) : 0;
+      const abil = s.toHitAbility ? s.toHitAbility.toUpperCase() : (s.weaponProps?.includes("fin") ? "STR or DEX" : "weapon ability");
       const hit = s.toHitMode === "derived"
-        ? `${s.toHitAbility.toUpperCase()} + prof${bonus ? ` + ${bonus}` : ""}`
+        ? `${abil} + prof${magic ? ` + ${magic}` : ""}${bonus ? ` + ${bonus}` : ""}`
         : `${flat >= 0 ? "+" : ""}${flat}`;
-      const ranged = s.attackType === "ranged";
-      let t = `${ranged ? "Ranged" : "Melee"} Attack: ${hit} to hit, ${ranged ? "range" : "reach"} ${intOr(s.attackRange, 5)} ft, ${targets}.`;
-      const dmg = damageText(s.damageRows);
+      const ranged = attackTypeOf(s) === "ranged";
+      const long = intOr(s.attackRangeLong, 0);
+      const reach = `${ranged ? "range" : "reach"} ${intOr(s.attackRange, 5)}${ranged && long ? `/${long}` : ""} ft`;
+      let t = `${ranged ? "Ranged" : "Melee"} Attack: ${hit} to hit, ${reach}, ${targets}.`;
+      let dmg = damageText(s.damageRows);
+      // dnd5e adds the ability mod + magic bonus to a weapon's base damage on its own.
+      if (dmg && wCalc) {
+        const [first, ...rest] = s.damageRows.filter(r => r.formula?.trim());
+        dmg = [`${first.formula.trim()} + mod${magic ? ` + ${magic}` : ""} ${first.type}`, damageText(rest)].filter(Boolean).join(" + ");
+      }
       if (dmg) t += ` Hit: ${dmg}.`;
+      if (wCalc && s.weaponProps?.includes("ver") && s.versatileDamage?.trim()) t += ` Two-handed: ${s.versatileDamage.trim()}.`;
       if (s.onHitSave) {
         t += ` On hit: ${saveTxt()}`;
         if (effectHasContent(s)) t += " Effects apply on a failed save.";
@@ -258,7 +343,9 @@ function deliverySentence(s) {
       }
       return `${cost?.id && cost.id !== "legendary" ? `${cost.label}: a` : "A"}pplies to ${s.activationTarget === "wearer" ? "self" : "target(s)"}.`;
     }
-    case "passive": return "Passive (always active).";
+    case "passive":
+      if (s.itemType === "equipment") return effectHasContent(s) ? "While equipped:" : "";
+      return "Passive (always active).";
     default:
       return s.appMode === "passive" ? "Mode: Passive (always active)."
         : `Mode: On Activation (applies to ${s.activationTarget === "wearer" ? "self" : "target(s)"}).`;
@@ -304,7 +391,7 @@ function effectSentences(s) {
   }
 
   // Duration — only meaningful when there is an effect to last.
-  if (effectHasContent(s) || s.kind === "effect" || s.kind === "passive" || (s.kind === "buff" && s.buffMode === "apply")) {
+  if (effectHasContent(s) || s.kind === "effect" || (s.kind === "passive" && (s.itemType ?? "feat") === "feat") || (s.kind === "buff" && s.buffMode === "apply")) {
     const durationRounds = parseInt(s.rounds);
     if (s.durationType === "fixed" && durationRounds > 0) {
       summaries.push(`Duration: ${durationRounds} round${durationRounds !== 1 ? "s" : ""}.`);
@@ -340,8 +427,35 @@ function alsoLegendarySentence(s) {
   return isDualLegendary(s) ? `Also a Legendary Action (costs ${legendaryCost(s)}).` : "";
 }
 
+// "Martial Melee weapon (finesse, light), +1, rare, requires attunement."
+function itemSentence(s) {
+  const t = s.itemType;
+  if (t !== "weapon" && t !== "equipment") return "";
+  const bits = [];
+  const magic = magicBonus(s);
+  if (t === "weapon") {
+    const wt = WEAPON_TYPES.find(w => w.id === s.weaponType)?.label ?? "Weapon";
+    const props = WEAPON_PROPERTIES.filter(p => s.weaponProps?.includes(p.id)).map(p => p.label.toLowerCase());
+    bits.push(`${wt} weapon${props.length ? ` (${props.join(", ")})` : ""}`);
+    if (s.mastery) bits.push(`mastery: ${s.mastery}`);
+  } else {
+    const et = EQUIPMENT_TYPES.find(e => e.id === s.equipType)?.label ?? "Wearable";
+    if (s.equipType === "shield") bits.push(`Shield, +${intOr(s.armorValue, 2) + magic} AC`);
+    else if (isArmor(s)) {
+      const dex = s.equipType === "heavy" ? "" : isNumeric(s.armorDex) ? ` + Dex (max ${intOr(s.armorDex, 0)})` : " + Dex";
+      bits.push(`${et}, AC ${intOr(s.armorValue, 10) + magic}${dex}`);
+      if (s.stealthDis) bits.push("stealth disadvantage");
+      if (intOr(s.strengthReq, 0) > 0) bits.push(`Str ${intOr(s.strengthReq, 0)}`);
+    } else bits.push(et);
+  }
+  if (magic && !(t === "equipment" && isArmor(s))) bits.push(`+${magic}`);
+  if (s.rarity) bits.push(RARITIES.find(r => r.id === s.rarity)?.label.toLowerCase() ?? s.rarity);
+  if (s.attunement === "required") bits.push("requires attunement");
+  return `${bits.join(", ")}.`;
+}
+
 export function summarize(s) {
-  return [legendarySentence(s), deliverySentence(s), ...effectSentences(s), usesSentence(s), alsoLegendarySentence(s)].filter(Boolean).join(" ") || "A custom effect.";
+  return [itemSentence(s), legendarySentence(s), deliverySentence(s), ...effectSentences(s), usesSentence(s), alsoLegendarySentence(s)].filter(Boolean).join(" ") || "A custom effect.";
 }
 
 // ── Effect ──────────────────────────────────────────────────────────────────
@@ -423,12 +537,18 @@ function activitySet(s, aeId, randomID, areaTargetTypes, activation, suffix) {
   const extra = [];
   if (s.kind === "attack") {
     primary = base("attack", "Attack");
-    const type = { value: s.attackType, classification: "weapon" };
+    const type = { value: attackTypeOf(s), classification: "weapon" };
+    // Weapon ability "" = dnd5e picks (melee STR, ranged DEX, finesse the better one).
+    const ability = s.toHitAbility || (s.itemType === "weapon" ? "" : "str");
     primary.attack = s.toHitMode === "derived"
-      ? { ability: s.toHitAbility, bonus: String(s.toHitBonus ?? "").trim(), flat: false, type }
+      ? { ability, bonus: String(s.toHitBonus ?? "").trim(), flat: false, type }
       : { ability: "none", bonus: String(intOr(s.toHitFlat, 0)), flat: true, type };
     primary.range = { value: String(intOr(s.attackRange, 5)), units: "ft", override: true };
-    primary.damage = { includeBase: false, parts: damageParts(s.damageRows) };
+    // Fixed mode = statblock exact: flat to-hit ignores magic/prof, custom parts get no @mod.
+    // Calculated weapon: first row is the weapon's base damage (+mod +magic added by dnd5e).
+    primary.damage = isWeaponCalc(s)
+      ? { includeBase: true, parts: damageParts(s.damageRows.filter(r => r.formula?.trim()).slice(1)) }
+      : { includeBase: false, parts: damageParts(s.damageRows) };
     if (s.onHitSave) {
       // midi-qol: on a hit, the "other activity" save is rolled for the hit targets only.
       const sv = saveAct("On-Hit Save");
@@ -462,7 +582,58 @@ function activitySet(s, aeId, randomID, areaTargetTypes, activation, suffix) {
   return [primary, ...extra];
 }
 
+// "1d8+1" → dnd5e DamageField {number, denomination, bonus}; anything else → custom formula.
+export function parseDamage(formula, type) {
+  const f = String(formula ?? "").replace(/\s+/g, "");
+  if (!f) return null;
+  const m = f.match(/^(\d+)d(\d+)(?:([+-])(\d+))?$/i);
+  if (m) return { number: +m[1], denomination: +m[2], bonus: m[3] ? `${m[3] === "-" ? "-" : ""}${m[4]}` : "",
+                  types: [type], custom: { enabled: false, formula: "" }, scaling: { number: 1 } };
+  return { number: null, denomination: null, bonus: "", types: [type], custom: { enabled: true, formula: f }, scaling: { number: 1 } };
+}
+
+const DEFAULT_IMG = { feat: "icons/svg/feature.svg", weapon: "icons/svg/sword.svg", equipment: "icons/svg/shield.svg" };
+
+// Shared physical-item fields. Created equipped so it works the moment it lands on an
+// actor. Never pre-attuned: attunement (and its slot limit) stays the owner's call.
+function physicalSystem(s) {
+  const magic = magicBonus(s);
+  const props = new Set(s.itemType === "weapon" ? (s.weaponProps ?? []).filter(p => WEAPON_PROPERTIES.some(w => w.id === p)) : []);
+  if (s.itemType === "equipment" && isArmor(s) && s.stealthDis) props.add("stealthDisadvantage");
+  // dnd5e applies magicalBonus only with the "mgc" property (magicAvailable).
+  if (magic || s.rarity || s.attunement) props.add("mgc");
+  return { quantity: 1, equipped: true, identified: true, rarity: s.rarity || "",
+           attunement: s.attunement || "", attuned: false, properties: [...props] };
+}
+
+function weaponSystem(s) {
+  const sys = { ...physicalSystem(s), type: { value: s.weaponType || "martialM", baseItem: "" },
+                magicalBonus: magicBonus(s) || null, mastery: s.mastery || "" };
+  const range = intOr(s.attackRange, 5), long = intOr(s.attackRangeLong, 0) || null;
+  sys.range = attackTypeOf(s) === "ranged" ? { value: range, long, units: "ft" }
+            : { reach: range, ...(s.weaponProps?.includes("thr") ? { value: 20, long: long ?? 60 } : {}), units: "ft" };
+  // Base damage only in Calculated mode — Fixed mode carries exact custom parts on the activity.
+  const first = (s.damageRows ?? []).find(r => r.formula?.trim());
+  if (isWeaponCalc(s) && first) {
+    sys.damage = { base: parseDamage(first.formula, first.type) };
+    if (s.weaponProps?.includes("ver") && s.versatileDamage?.trim())
+      sys.damage.versatile = parseDamage(s.versatileDamage, first.type);
+  }
+  return sys;
+}
+
+function equipmentSystem(s) {
+  const armor = isArmor(s);
+  return { ...physicalSystem(s), type: { value: s.equipType || "wondrous", baseItem: "" },
+           armor: { value: armor ? Math.max(0, intOr(s.armorValue, 10)) : null,
+                    dex: armor && s.equipType !== "shield" && isNumeric(s.armorDex) ? intOr(s.armorDex, 0) : null,
+                    magicalBonus: armor ? (magicBonus(s) || null) : null },
+           strength: armor && intOr(s.strengthReq, 0) > 0 ? intOr(s.strengthReq, 0) : null };
+}
+
 export function buildItem(s, { randomID, areaTargetTypes = {} }) {
+  const itemType = s.itemType in DEFAULT_IMG ? s.itemType : "feat";
+  s = { ...s, kind: itemType === "feat" ? s.kind : allowedKind(itemType, s.kind) };
   const aeData = buildEffect(s);
   aeData._id = randomID(16);
   const name = s.name?.trim() || "New Feature";
@@ -472,9 +643,12 @@ export function buildItem(s, { randomID, areaTargetTypes = {} }) {
   }
 
   // Nothing to apply → no AE (else targets get a blank effect icon that never expires).
-  const withAE = effectHasContent(s) || s.kind === "passive";
-  const item = { name, img: s.img || "icons/svg/feature.svg", type: "feat",
-                 system: { description: { value: aeData.description } }, effects: withAE ? [aeData] : [] };
+  // A passive FEATURE always carries its AE (the AE is the feature); plain armor needs none.
+  const withAE = effectHasContent(s) || (s.kind === "passive" && itemType === "feat");
+  const img = (s.img && !(s.img === "icons/svg/aura.svg" && itemType !== "feat")) ? s.img : DEFAULT_IMG[itemType];
+  const extra = itemType === "weapon" ? weaponSystem(s) : itemType === "equipment" ? equipmentSystem(s) : {};
+  const item = { name, img, type: itemType,
+                 system: { description: { value: aeData.description }, ...extra }, effects: withAE ? [aeData] : [] };
   const uses = buildUses(s);
   if (uses) item.system.uses = uses;
   if (s.kind === "passive") return item;

@@ -8,7 +8,9 @@
  */
 
 import { CONDITIONS, DAMAGE_TYPES, ABILITIES, ADV_TYPES, ADV_ROLL_CATS, SPECIAL_DURATIONS, ACTIVATION_TYPES,
-         KINDS, DEFAULT_STATE, buildEffect, buildItem, summarize } from "./feature-payload.js";
+         KINDS, DEFAULT_STATE, buildEffect, buildItem, summarize,
+         ITEM_TYPES, KINDS_BY_TYPE, allowedKind, WEAPON_TYPES, WEAPON_PROPERTIES, WEAPON_MASTERIES,
+         EQUIPMENT_TYPES, ARMOR_TYPES, ARMOR_DEFAULTS, RARITIES } from "./feature-payload.js";
 import { attachStepper } from "./ui/stepper.js";
 import { IconPickerApp } from "./ui/icon-picker.js";
 
@@ -56,6 +58,12 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     ctx.activationTypes = ACTIVATION_TYPES;
     ctx.targetTypes = CONFIG.DND5E.targetTypes;
     ctx.kinds = KINDS;
+    ctx.itemTypes = ITEM_TYPES;
+    ctx.weaponTypes = WEAPON_TYPES;
+    ctx.weaponProps = WEAPON_PROPERTIES.map(p => ({ ...p, checked: this.#state.weaponProps.includes(p.id) }));
+    ctx.masteries = WEAPON_MASTERIES;
+    ctx.equipTypes = EQUIPMENT_TYPES;
+    ctx.rarities = RARITIES;
     ctx.rechargeOpts = ["2", "3", "4", "5", "6"];
     return ctx;
   }
@@ -97,6 +105,8 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         if (type === "checkbox") this.#state[key] = input.checked;
         else this.#state[key] = input.value;
         if (key === "otSaveAbility" || key === "otSaveDC") this.#otSaveEdited = true;
+        if (key === "itemType") this.#onItemTypeChange(el);
+        if (key === "equipType") this.#onEquipTypeChange(el);
         this.#refresh(el);
       });
     });
@@ -110,6 +120,13 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         this.#refresh(el);
       });
     });
+
+    // Weapon properties (multi-select array)
+    el.querySelectorAll("[data-wprop]").forEach(cb => cb.addEventListener("change", () => {
+      const p = cb.dataset.wprop, props = this.#state.weaponProps;
+      this.#state.weaponProps = cb.checked ? [...new Set([...props, p])] : props.filter(x => x !== p);
+      this.#refresh(el);
+    }));
 
     // Icon path preview
     const imgInput = el.querySelector("[data-ef='img']");
@@ -147,6 +164,39 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this.#renderDamageRows(el, "saveDamageRows");
     this.#refresh(el);
     this.#stepper = attachStepper(el.querySelector("form") ?? el, { onCreate: () => this._doCreate() });
+  }
+
+  // Switching item type: snap the kind to one the type allows (weapon → attack…).
+  #onItemTypeChange(el) {
+    const s = this.#state;
+    s.kind = allowedKind(s.itemType, s.kind === "effect" && s.isLocked ? "attack" : s.kind);
+    const radio = el.querySelector(`[name='kind'][value='${s.kind}']`);
+    if (radio) radio.checked = true;
+    // Weapons let dnd5e pick the ability (finesse → better of STR/DEX); "str" was just the feature default.
+    if (s.itemType === "weapon" && s.toHitAbility === "str") this.#setField(el, "toHitAbility", "");
+    // Weapons default to Calculated (dnd5e derives to-hit/damage from the item); features stay Fixed.
+    const mode = s.itemType === "weapon" ? "derived" : "flat";
+    if (s.toHitMode !== mode) {
+      s.toHitMode = mode;
+      const r = el.querySelector(`[name='toHitMode'][value='${mode}']`);
+      if (r) r.checked = true;
+    }
+  }
+
+  // Prefill typical AC / dex cap for the chosen armor type (user can still edit).
+  #onEquipTypeChange(el) {
+    const d = ARMOR_DEFAULTS[this.#state.equipType];
+    if (!d) return;
+    this.#setField(el, "armorValue", d.ac);
+    this.#setField(el, "armorDex", d.dex);
+    this.#setField(el, "stealthDis", this.#state.equipType === "heavy");
+  }
+
+  #setField(el, key, value) {
+    this.#state[key] = value;
+    const input = el.querySelector(`[data-ef='${key}']`);
+    if (!input) return;
+    if (input.type === "checkbox") input.checked = !!value; else input.value = value;
   }
 
   #refresh(el) {
@@ -188,8 +238,32 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     show("otDamageTypeSection", s.durationType === "overtime" && !!s.otDamage && s.otRollType === "damage");
 
     const k = s.kind;
+    const t = s.itemType ?? "feat";
+    const isWeapon = t === "weapon", isEquip = t === "equipment";
+    const isArmor = isEquip && ARMOR_TYPES.includes(s.equipType);
+    const ranged = isWeapon ? (/R$/.test(s.weaponType) || (!/M$/.test(s.weaponType) && s.attackType === "ranged")) : s.attackType === "ranged";
+    // Kinds the item type can't be are disabled (never just hidden: the choice stays visible).
+    el.querySelectorAll("[name='kind']").forEach(r => {
+      r.disabled = !(KINDS_BY_TYPE[t] ?? KINDS_BY_TYPE.feat).includes(r.value) || (!!s.isLocked && r.value === "effect");
+    });
+    show("weaponFields", isWeapon);
+    show("equipFields", isEquip);
+    ["armorValueBox", "armorDexBox", "strengthBox", "stealthBox"].forEach(id => showFlex(id, isArmor));
+    if (isArmor && s.equipType === "shield") { showFlex("armorDexBox", false); showFlex("strengthBox", false); showFlex("stealthBox", false); }
+    if (isArmor && s.equipType === "heavy") showFlex("armorDexBox", false);
+    showFlex("versatileBox", isWeapon && s.weaponProps.includes("ver") && s.toHitMode === "derived");
+    showFlex("rangeLongBox", isWeapon && (ranged || s.weaponProps.includes("thr")));
+    showFlex("attackTypeBox", !isWeapon || !/[MR]$/.test(s.weaponType));
+    show("magicFixedHint", isWeapon && s.toHitMode === "flat" && (parseInt(s.magicBonus) || 0) > 0);
+    show("weaponCalcHint", isWeapon && s.toHitMode === "derived");
+    show("attuneNote", s.attunement === "required");
+    const auto = el.querySelector("#toHitAbilityAuto");
+    if (auto) {
+      auto.hidden = auto.disabled = !isWeapon;
+      if (!isWeapon && s.toHitAbility === "") this.#setField(el, "toHitAbility", "str");
+    }
     const isArea = s.wrapTargetArea in (CONFIG.DND5E?.areaTargetTypes ?? {});
-    const stepOn = { basics: true, attack: k === "attack", save: k === "save" || (k === "attack" && s.onHitSave),
+    const stepOn = { basics: true, item: t !== "feat", attack: k === "attack", save: k === "save" || (k === "attack" && s.onHitSave),
                      effects: true, review: true };
     el.querySelectorAll(".fc-step").forEach(sec => { sec.hidden = !stepOn[sec.dataset.step]; });
     show("deliveryBasics", k !== "effect");
@@ -216,13 +290,13 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       attack: s.onHitSave ? "Applied to the target when it FAILS the on-hit save." : "Applied to the target on a HIT.",
       save: noSave ? "Applied to every target." : "Applied to targets that FAIL the save.",
       buff: "Applied on use.",
-      passive: "Always active on the creature that has this feature.",
+      passive: isEquip ? `Active while the item is equipped${s.attunement === "required" ? " and attuned" : ""}.` : "Always active on the creature that has this feature.",
       effect: "The effect itself."
     }[k];
     const h = el.querySelector("#effectsHint");
     if (h) h.textContent = hint ?? "";
     const lbl = el.querySelector("#fcCreateLabel");
-    if (lbl) lbl.textContent = k === "effect" ? "Create Effect" : "Create Feature";
+    if (lbl) lbl.textContent = k === "effect" ? "Create Effect" : t === "feat" ? "Create Feature" : "Create Item";
 
     this.#stepper?.refresh();
   }
@@ -375,7 +449,7 @@ export class EffectCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     try {
       const itemData = this._buildItemData();
 
-      const targetPack = s.kind === "effect" ? "forge-effects" : "forge-features";
+      const targetPack = itemData.type === "feat" ? (s.kind === "effect" ? "forge-effects" : "forge-features") : "forge-items";
       const pack = game.packs.get(`forge-char-creator.${targetPack}`);
       if (!pack) { ui.notifications.error(`Could not find ${targetPack} compendium. Reload Foundry.`); return; }
 

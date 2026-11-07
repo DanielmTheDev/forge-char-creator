@@ -3,7 +3,7 @@
 export const TEST_NAME_RE = /\bE2E\b|^Aura Test Bot$|^Test (Advantage|Midi Damage)$|^(Auto|Advanced) Desc Test$/;
 export const isTestName = n => TEST_NAME_RE.test(n ?? '');
 
-const PACKS = ['forge-char-creator.forge-features', 'forge-char-creator.forge-effects'];
+const PACKS = ['forge-char-creator.forge-features', 'forge-char-creator.forge-effects', 'forge-char-creator.forge-items'];
 
 export async function sweepResidue(page) {
   return page.evaluate(async ([src, packs]) => {

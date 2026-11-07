@@ -519,6 +519,33 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     try { await this.#createNPC(data); } finally { this.#creating = false; }
   }
 
+  // The typed AC is the statblock's final AC. Equipped armor, shields and item effects
+  // (Ring of Protection…) would otherwise stack on top of it. Prefer letting the armor
+  // drive AC when it lands on the same number (unequip then behaves); else keep the typed
+  // AC exact by offsetting the natural base. Returns what it did (tests + notification).
+  static async reconcileAc(npc, typedAc) {
+    const ac = () => npc.system.attributes.ac.value;
+    if (!Number.isFinite(typedAc)) return "unchanged";
+    const armorTypes = CONFIG.DND5E.armorTypes;
+    const wearsArmor = npc.itemTypes.equipment.some(i => i.system.equipped
+      && i.system.type.value in armorTypes && i.system.type.value !== "shield");
+    // Armor that reproduces the typed AC wins even when natural already matches:
+    // then unequipping / swapping the armor changes AC as it should.
+    if (wearsArmor && npc.system.attributes.ac.calc !== "default") {
+      await npc.update({ "system.attributes.ac.calc": "default" });
+      if (ac() === typedAc) {
+        ui.notifications.info(`${npc.name}: AC ${typedAc} now comes from its equipped armor.`);
+        return "armor";
+      }
+      await npc.update({ "system.attributes.ac.calc": "natural" });
+    }
+    const diff = ac() - typedAc;
+    if (!diff) return "unchanged";
+    await npc.update({ "system.attributes.ac.flat": npc.system.attributes.ac.flat - diff });
+    ui.notifications.info(`${npc.name}: AC kept at ${typedAc} — equipped items add ${diff > 0 ? "+" : ""}${diff}, natural base adjusted.`);
+    return "offset";
+  }
+
   async #createNPC(data) {
     let folderId = data.actorFolder ?? CharCreatorApp.#NEW_FORGE_FOLDER;
     if (folderId === CharCreatorApp.#NEW_FORGE_FOLDER) {
@@ -650,6 +677,7 @@ export class CharCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       }
       // midi-qol saves never reach dnd5e's native Resist button; this feature adds midi's prompt.
       if (legresMax > 0) await npc.createEmbeddedDocuments("Item", [buildLegendaryResistanceItem(legresMax)]);
+      if (app?.selectedItems?.size > 0) await CharCreatorApp.reconcileAc(npc, Number(actorData.system.attributes.ac.flat));
 
       ui.notifications.info(`Successfully created ${actorName}!`);
       if (app) app.close();

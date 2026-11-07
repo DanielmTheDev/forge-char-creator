@@ -2,7 +2,7 @@
   "id": "forge-char-creator",
   "title": "Forge Character Creator",
   "description": "A character creator wizard module for Foundry VTT V13.",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "authors": [
     {
       "name": "Daniel Muckelbauer",
@@ -74,6 +74,14 @@
       "name": "forge-features",
       "label": "Forge Features",
       "path": "packs/forge-features",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" }
+    },
+    {
+      "name": "forge-items",
+      "label": "Forge Items",
+      "path": "packs/forge-items",
       "type": "Item",
       "system": "dnd5e",
       "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" }

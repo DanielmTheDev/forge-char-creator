@@ -6,7 +6,18 @@
     <!-- ── Step: Basics ──────────────────────────────────────────────────── -->
     <section class="fc-step" data-step="basics" data-title="Basics">
       <fieldset>
-        <legend>What is it?</legend>
+        <legend>Make a…</legend>
+        <div class="fc-kinds" id="itemTypes">
+          {{#each itemTypes as |t|}}
+          <label class="fc-kind" data-tooltip="{{t.hint}}">
+            <input type="radio" name="itemType" data-ef="itemType" value="{{t.id}}" {{#if (eq ../s.itemType t.id)}}checked{{/if}}>
+            <span>{{t.label}}</span>
+          </label>
+          {{/each}}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>What does it do?</legend>
         <div class="fc-kinds">
           {{#each kinds as |k|}}
           <label class="fc-kind" data-tooltip="{{k.hint}}">
@@ -100,12 +111,88 @@
       </fieldset>
     </section>
 
+    <!-- ── Step: Item (weapon / equipment only) ─────────────────────────── -->
+    <section class="fc-step" data-step="item" data-title="Item">
+      <fieldset id="weaponFields">
+        <legend>Weapon</legend>
+        <div class="fc-row">
+          <label data-tooltip="Simple/martial melee or ranged. Decides melee vs ranged attack and who is proficient.">Category
+            <select data-ef="weaponType">
+              {{#each weaponTypes as |w|}}<option value="{{w.id}}" {{#if (eq ../s.weaponType w.id)}}selected{{/if}}>{{w.label}}</option>{{/each}}
+            </select>
+          </label>
+          <label data-tooltip="2024 rules weapon mastery (optional).">Mastery
+            <select data-ef="mastery">
+              {{#each masteries as |m|}}<option value="{{m}}" {{#if (eq ../s.mastery m)}}selected{{/if}}>{{#if m}}{{m}}{{else}}none{{/if}}</option>{{/each}}
+            </select>
+          </label>
+        </div>
+        <div class="fc-row fc-props">
+          {{#each weaponProps as |p|}}
+          <label><input type="checkbox" data-wprop="{{p.id}}" {{#if p.checked}}checked{{/if}}> {{p.label}}</label>
+          {{/each}}
+        </div>
+        <div class="fc-row">
+          <label id="versatileBox" data-tooltip="Damage dice when wielded two-handed, e.g. 1d10. Only used in Calculated mode.">Two-handed dice
+            <input type="text" data-ef="versatileDamage" value="{{s.versatileDamage}}" placeholder="1d10" class="fc-formula">
+          </label>
+          <label id="rangeLongBox" data-tooltip="Long range in feet (attacks beyond normal range have disadvantage).">Long range (ft)
+            <input type="number" data-ef="attackRangeLong" value="{{s.attackRangeLong}}" min="0" step="5" class="fc-num">
+          </label>
+        </div>
+      </fieldset>
+      <fieldset id="equipFields">
+        <legend>Armor / wearable</legend>
+        <div class="fc-row">
+          <label data-tooltip="Armor and shields set AC while equipped. Other types only carry effects.">Type
+            <select data-ef="equipType">
+              {{#each equipTypes as |e|}}<option value="{{e.id}}" {{#if (eq ../s.equipType e.id)}}selected{{/if}}>{{e.label}}</option>{{/each}}
+            </select>
+          </label>
+          <label id="armorValueBox" data-tooltip="Base AC (shield: AC bonus). The magic bonus below is added on top.">AC
+            <input type="number" data-ef="armorValue" value="{{s.armorValue}}" min="0" class="fc-num">
+          </label>
+          <label id="armorDexBox" data-tooltip="Max DEX bonus to AC. Blank = no cap. Heavy armor ignores DEX.">Max Dex
+            <input type="text" data-ef="armorDex" value="{{s.armorDex}}" placeholder="—" class="fc-num">
+          </label>
+          <label id="strengthBox" data-tooltip="Strength score required (heavy armor), blank = none.">Str req.
+            <input type="text" data-ef="strengthReq" value="{{s.strengthReq}}" placeholder="—" class="fc-num">
+          </label>
+          <label id="stealthBox" data-tooltip="Disadvantage on Stealth checks while worn.">
+            <input type="checkbox" data-ef="stealthDis" {{#if s.stealthDis}}checked{{/if}}> Stealth disadv.
+          </label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Magic</legend>
+        <div class="fc-row">
+          <label data-tooltip="+X magic weapon / armor. Weapons: added to to-hit and damage in Calculated mode only. Armor/shield: added to AC.">Bonus +
+            <input type="number" data-ef="magicBonus" value="{{s.magicBonus}}" min="0" max="5" class="fc-num">
+          </label>
+          <label>Rarity
+            <select data-ef="rarity">
+              {{#each rarities as |r|}}<option value="{{r.id}}" {{#if (eq ../s.rarity r.id)}}selected{{/if}}>{{r.label}}</option>{{/each}}
+            </select>
+          </label>
+          <label data-tooltip="Required: its magic and effects work only while attuned. Attune it on the actor's sheet (counts toward the attunement limit).">Attunement
+            <select data-ef="attunement">
+              <option value="" {{#if (eq s.attunement "")}}selected{{/if}}>None</option>
+              <option value="required" {{#if (eq s.attunement "required")}}selected{{/if}}>Required</option>
+              <option value="optional" {{#if (eq s.attunement "optional")}}selected{{/if}}>Optional</option>
+            </select>
+          </label>
+        </div>
+        <p class="notes fc-warn" id="magicFixedHint">Fixed to-hit mode: the +X is NOT added automatically — type the statblock's final to-hit and damage (magic included). Switch the Attack step to Calculated to let dnd5e add it.</p>
+        <p class="notes" id="equippedHint">Created equipped, so it works as soon as it's on an actor. Unequip it on the sheet to switch it off.<span id="attuneNote"> Requires attunement: its magic and effects stay off until attuned on the sheet.</span></p>
+      </fieldset>
+    </section>
+
     <!-- ── Step: Attack ──────────────────────────────────────────────────── -->
     <section class="fc-step" data-step="attack" data-title="Attack">
       <fieldset>
         <legend>Attack roll</legend>
         <div class="fc-row">
-          <label data-tooltip="Melee uses reach, ranged uses range.">Type
+          <label id="attackTypeBox" data-tooltip="Melee uses reach, ranged uses range.">Type
             <select data-ef="attackType">
               <option value="melee" {{#if (eq s.attackType "melee")}}selected{{/if}}>Melee</option>
               <option value="ranged" {{#if (eq s.attackType "ranged")}}selected{{/if}}>Ranged</option>
@@ -126,7 +213,8 @@
             <input type="text" data-ef="toHitFlat" value="{{s.toHitFlat}}" class="fc-num" placeholder="7">
           </label>
           <span id="toHitDerivedBox" class="fc-row" style="margin:0;">
-            <select data-ef="toHitAbility" data-tooltip="Ability whose modifier is added.">
+            <select data-ef="toHitAbility" data-tooltip="Ability whose modifier is added. Weapon default: melee STR, ranged DEX, finesse the better one.">
+              <option value="" id="toHitAbilityAuto" {{#if (eq s.toHitAbility "")}}selected{{/if}}>Weapon default</option>
               {{#each abilities as |ab|}}
               <option value="{{ab.[0]}}" {{#if (eq ../s.toHitAbility ab.[0])}}selected{{/if}}>{{ab.[1]}}</option>
               {{/each}}
@@ -139,6 +227,7 @@
       </fieldset>
       <fieldset>
         <legend data-tooltip="Damage dealt on a hit. One row per damage type (e.g. 1d8+3 piercing + 2d6 poison).">Damage on hit</legend>
+        <p class="notes fc-warn" id="weaponCalcHint">Calculated weapon: first row = weapon dice only (e.g. 1d8). dnd5e adds the ability modifier and magic bonus itself — don't type them, or they count twice. Extra rows (e.g. +1d6 fire) are added as-is.</p>
         <div id="damageRows"></div>
         <button type="button" data-add-row="damageRows"><i class="fas fa-plus"></i> Add damage</button>
       </fieldset>

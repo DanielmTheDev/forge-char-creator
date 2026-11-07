@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_STATE, buildEffect, buildItem, KINDS, effectHasContent, summarize, buildLegendaryResistanceItem } from "./feature-payload.js";
+import { DEFAULT_STATE, buildEffect, buildItem, KINDS, effectHasContent, summarize, buildLegendaryResistanceItem,
+         parseDamage, allowedKind } from "./feature-payload.js";
 
 let n = 0;
 const cfg = { randomID: () => `id${String(++n).padStart(14, "0")}`, areaTargetTypes: { radius: {}, cone: {} } };
@@ -240,4 +241,112 @@ test("legendary resistance item: midi optional save-fail → success, spends act
   assert.equal(ch["flags.midi-qol.optional.LegRes.save.fail.all"], "success");
   assert.equal(ch["flags.midi-qol.optional.LegRes.count"], "@resources.legres.value");
   assert.equal(ch["flags.midi-qol.optional.LegRes.label"], "Legendary Resistance");
+});
+
+// ── Items (weapon / equipment) ──────────────────────────────────────────────
+
+const sword = (o = {}) => st({ itemType: "weapon", kind: "attack", name: "Blade", weaponType: "martialM",
+  damageRows: [{ formula: "1d8", type: "slashing" }], ...o });
+
+test("feature stays a feat (default item type)", () => {
+  const it = buildItem(st({ kind: "attack", name: "Claw", damageRows: [{ formula: "5", type: "slashing" }] }), cfg);
+  assert.equal(it.type, "feat");
+  assert.equal(it.system.equipped, undefined);
+});
+
+test("kind is coerced to what the item type allows", () => {
+  assert.equal(allowedKind("weapon", "save"), "attack");
+  assert.equal(allowedKind("equipment", "attack"), "passive");
+  assert.equal(allowedKind("equipment", "buff"), "buff");
+  assert.equal(allowedKind("feat", "effect"), "effect");
+  assert.equal(buildItem(sword({ kind: "effect" }), cfg).type, "weapon"); // never an [AE] bare effect
+});
+
+test("parseDamage: dice, dice+bonus, flat → custom", () => {
+  assert.deepEqual([parseDamage("1d8", "slashing").number, parseDamage("1d8", "slashing").denomination], [1, 8]);
+  assert.equal(parseDamage("2d6 + 1", "fire").bonus, "1");
+  assert.equal(parseDamage("1d4-1", "fire").bonus, "-1");
+  assert.deepEqual(parseDamage("5", "piercing").custom, { enabled: true, formula: "5" });
+  assert.equal(parseDamage("", "fire"), null);
+});
+
+test("weapon, calculated: base damage on the item, includeBase, weapon picks ability, magic +1", () => {
+  const it = buildItem(sword({ toHitMode: "derived", toHitAbility: "", magicBonus: "1", weaponProps: ["fin", "ver", "bogus"],
+    versatileDamage: "1d10", damageRows: [{ formula: "1d8", type: "slashing" }, { formula: "1d6", type: "fire" }] }), cfg);
+  assert.equal(it.type, "weapon");
+  assert.equal(it.img, "icons/svg/sword.svg");
+  assert.equal(it.system.type.value, "martialM");
+  assert.equal(it.system.magicalBonus, 1);
+  assert.deepEqual(it.system.properties.sort(), ["fin", "mgc", "ver"]);
+  assert.equal(it.system.equipped, true);
+  assert.equal(it.system.damage.base.denomination, 8);
+  assert.equal(it.system.damage.versatile.denomination, 10);
+  const [a] = acts(it);
+  assert.deepEqual([a.attack.flat, a.attack.ability, a.attack.type.value], [false, "", "melee"]);
+  assert.equal(a.damage.includeBase, true);
+  assert.equal(a.damage.parts.length, 1, "only the extra (fire) row; base row lives on the item");
+  assert.equal(a.damage.parts[0].types[0], "fire");
+  assert.ok(it.system.description.value.includes("+ mod + 1 slashing"), it.system.description.value);
+});
+
+test("weapon, fixed: statblock-exact — flat to-hit, no base damage, no auto mod", () => {
+  const it = buildItem(sword({ toHitMode: "flat", toHitFlat: "7", magicBonus: "1", damageRows: [{ formula: "1d8+4", type: "slashing" }] }), cfg);
+  const [a] = acts(it);
+  assert.deepEqual([a.attack.flat, a.attack.bonus], [true, "7"]);
+  assert.equal(a.damage.includeBase, false);
+  assert.equal(a.damage.parts[0].custom.formula, "1d8+4");
+  assert.equal(it.system.damage, undefined);
+});
+
+test("weapon type decides melee/ranged; ranged range + long", () => {
+  const it = buildItem(sword({ weaponType: "martialR", attackType: "melee", attackRange: "150", attackRangeLong: "600" }), cfg);
+  assert.equal(acts(it)[0].attack.type.value, "ranged");
+  assert.deepEqual(it.system.range, { value: 150, long: 600, units: "ft" });
+  const nat = buildItem(sword({ weaponType: "natural", attackType: "ranged" }), cfg);
+  assert.equal(acts(nat)[0].attack.type.value, "ranged");
+});
+
+test("weapon on-hit rider still applies via the effect", () => {
+  const it = buildItem(sword({ statuses: ["prone"] }), cfg);
+  assert.equal(it.effects.length, 1);
+  assert.equal(it.effects[0].transfer, false);
+  assert.deepEqual(acts(it)[0].effects, [{ _id: it.effects[0]._id }]);
+});
+
+test("armor: base AC, dex cap, magic bonus, stealth, no empty AE, no activities", () => {
+  const it = buildItem(st({ itemType: "equipment", kind: "passive", name: "Plate", equipType: "medium",
+    armorValue: "14", armorDex: "2", magicBonus: "1", stealthDis: true, rarity: "rare" }), cfg);
+  assert.equal(it.type, "equipment");
+  assert.deepEqual(it.system.armor, { value: 14, dex: 2, magicalBonus: 1 });
+  assert.deepEqual(it.system.properties.sort(), ["mgc", "stealthDisadvantage"]);
+  assert.equal(it.effects.length, 0);
+  assert.equal(it.system.activities, undefined);
+  assert.ok(it.system.description.value.startsWith("Medium Armor, AC 15 + Dex (max 2)"), it.system.description.value);
+  assert.ok(!it.system.description.value.includes("Indefinite"));
+});
+
+test("heavy armor ignores dex; shield is a bonus", () => {
+  const h = buildItem(st({ itemType: "equipment", kind: "passive", name: "H", equipType: "heavy", armorValue: "18", armorDex: "" }), cfg);
+  assert.equal(h.system.armor.dex, null);
+  assert.ok(h.system.description.value.startsWith("Heavy Armor, AC 18."), h.system.description.value);
+  const sh = buildItem(st({ itemType: "equipment", kind: "passive", name: "S", equipType: "shield", armorValue: "2", magicBonus: "1" }), cfg);
+  assert.ok(sh.system.description.value.startsWith("Shield, +3 AC"), sh.system.description.value);
+});
+
+test("wearable with a passive effect: transfer AE (active only while equipped/attuned)", () => {
+  const it = buildItem(st({ itemType: "equipment", kind: "passive", name: "Ring", equipType: "ring", acBonus: 1, attunement: "required" }), cfg);
+  assert.equal(it.system.armor.value, null);
+  assert.equal(it.system.attuned, false, "never pre-attuned: slot limit is the owner's call");
+  assert.ok(it.system.properties.includes("mgc"));
+  assert.equal(it.effects.length, 1);
+  assert.equal(it.effects[0].transfer, true);
+  assert.ok(it.system.description.value.includes("requires attunement"));
+});
+
+test("wearable with a use: activity + uses (e.g. 1/long rest temp HP)", () => {
+  const it = buildItem(st({ itemType: "equipment", kind: "buff", name: "Brooch", equipType: "wondrous",
+    buffMode: "temphp", tempHpFormula: "10", usesMode: "perRest", usesMax: "1", activationTarget: "wearer" }), cfg);
+  assert.equal(acts(it)[0].type, "heal");
+  assert.equal(it.system.uses.max, "1");
+  assert.ok(acts(it)[0].consumption);
 });
