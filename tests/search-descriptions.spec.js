@@ -19,7 +19,8 @@ test.describe('Item Search Descriptions', () => {
 
     // 7. The first rows are filled eagerly — description text must appear
     const firstRow = page.locator('#itemSearchResults li[data-uuid]').first();
-    await expect(firstRow.locator('.item-desc')).not.toBeEmpty({ timeout: 15000 });
+    // Wait past the lazy-load placeholder too (a cold pack doc can take a moment).
+    await expect(firstRow.locator('.item-desc')).not.toHaveText(/^(\s*|Loading…)$/, { timeout: 15000 });
     const descText = (await firstRow.locator('.item-desc').textContent()).trim();
     expect(descText).not.toBe('Loading…');
     expect(descText).not.toBe('(no description)');
@@ -58,7 +59,8 @@ test.describe('Item Search Descriptions', () => {
     await searchInput.fill('');
     await searchInput.fill('guiding bolt');
     await page.waitForSelector('#itemSearchResults li[data-uuid]', { timeout: 15000 });
-    await expect(firstRow.locator('.item-desc')).not.toBeEmpty({ timeout: 15000 });
+    // Wait past the lazy-load placeholder too (a cold pack doc can take a moment).
+    await expect(firstRow.locator('.item-desc')).not.toHaveText(/^(\s*|Loading…)$/, { timeout: 15000 });
     await page.waitForTimeout(1000);
     const refetches = await page.evaluate(() => window.__forgeUuidLoads);
     expect(refetches).toBe(0);
